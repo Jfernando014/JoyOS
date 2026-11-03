@@ -1,0 +1,31 @@
+# Versiones y prototipos anteriores (solo se conserva JoyOS v7)
+prototype_v[0-6]*.html
+index.html
+boot_joy.html
+ajustes-joy.html
+
+# Documentación interna / generada
+IMPLEMENTATION_PLAN.md
+HARDWARE_GUIDE.md
+*.tmp
+*.log
+*.bak
+
+# Entorno y sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores e IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Builds y empaquetado Android (futuro)
+.gradle/
+build/
+captures/
+*.apk
+*.aab
+local.properties
