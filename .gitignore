@@ -19,6 +19,7 @@ desktop.ini
 # Editores e IDEs
 .idea/
 .vscode/
+*.iml
 *.swp
 *.swo
 
@@ -26,6 +27,8 @@ desktop.ini
 .gradle/
 build/
 captures/
+.cxx/
+.externalNativeBuild/
 *.apk
 *.aab
 local.properties
