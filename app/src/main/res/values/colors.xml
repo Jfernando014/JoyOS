@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- JoyOS Automotive Palette -->
+    <color name="joyos_bg_canvas">#0a0e17</color>
+    <color name="joyos_surface">#131b2c</color>
+    <color name="joyos_accent">#5ce1e6</color>
+    <color name="joyos_accent_strong">#38bdf8</color>
+    <color name="joyos_ink">#f8fafc</color>
+    <color name="joyos_mute">#94a3b8</color>
+    <color name="joyos_line">#1e293b</color>
+</resources>
