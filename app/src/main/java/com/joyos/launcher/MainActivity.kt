@@ -1,6 +1,8 @@
 package com.joyos.launcher
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -13,13 +15,17 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.joyos.launcher.bridge.AndroidBridge
+import com.joyos.launcher.services.GpsTelemetryManager
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
+    private lateinit var gpsManager: GpsTelemetryManager
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,9 +36,18 @@ class MainActivity : AppCompatActivity() {
 
         webView = findViewById(R.id.webView)
         bridge = AndroidBridge(this)
+        gpsManager = GpsTelemetryManager(this) { speedKmh, tripKm ->
+            runOnUiThread {
+                webView.evaluateJavascript(
+                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: $speedKmh, tripKm: ${"%.1f".format(tripKm)} });",
+                    null
+                )
+            }
+        }
 
         configureWebView()
         loadJoyOS()
+        ensureAutomotivePermissions()
 
         // Handle back button: as a Home Launcher, do not exit the app
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -46,6 +61,37 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         hideSystemUI()
+        gpsManager.startTracking()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        gpsManager.stopTracking()
+    }
+
+    private fun ensureAutomotivePermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                1001
+            )
+        } else {
+            gpsManager.startTracking()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            gpsManager.startTracking()
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
