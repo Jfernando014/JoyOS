@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.joyos.launcher"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "7.0.0"
