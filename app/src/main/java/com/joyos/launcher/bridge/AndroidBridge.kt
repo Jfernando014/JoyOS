@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import org.json.JSONArray
@@ -27,33 +28,43 @@ class AndroidBridge(private val context: Context) {
      */
     @JavascriptInterface
     fun getInstalledApps(): String {
-        val appList = JSONArray()
-        val intent = Intent(Intent.ACTION_MAIN, null).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-
-        val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
-        } else {
-            @Suppress("DEPRECATION")
-            packageManager.queryIntentActivities(intent, 0)
-        }
-
-        for (resolveInfo in activities) {
-            val pkg = resolveInfo.activityInfo.packageName
-            if (pkg == context.packageName) continue // Skip JoyOS itself
-
-            val label = resolveInfo.loadLabel(packageManager).toString()
-            val appObj = JSONObject().apply {
-                put("id", pkg)
-                put("name", label)
-                put("package", pkg)
-                put("category", categorizeApp(pkg))
+        return try {
+            val appList = JSONArray()
+            val intent = Intent(Intent.ACTION_MAIN, null).apply {
+                addCategory(Intent.CATEGORY_LAUNCHER)
             }
-            appList.put(appObj)
-        }
 
-        return appList.toString()
+            val activities = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.queryIntentActivities(intent, PackageManager.ResolveInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.queryIntentActivities(intent, 0)
+            }
+
+            for (resolveInfo in activities) {
+                val pkg = resolveInfo.activityInfo?.packageName ?: continue
+                if (pkg == context.packageName) continue // Skip JoyOS itself
+
+                val label = try {
+                    resolveInfo.loadLabel(packageManager).toString()
+                } catch (_: Throwable) {
+                    pkg
+                }
+
+                val appObj = JSONObject().apply {
+                    put("id", pkg)
+                    put("name", label)
+                    put("package", pkg)
+                    put("category", categorizeApp(pkg))
+                }
+                appList.put(appObj)
+            }
+
+            appList.toString()
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Safe fallback for installed apps: ${e.message}")
+            "[]"
+        }
     }
 
     /**
@@ -71,7 +82,7 @@ class AndroidBridge(private val context: Context) {
                 Toast.makeText(context, "App not found: $packageName", Toast.LENGTH_SHORT).show()
                 false
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             Toast.makeText(context, "Failed to launch: ${e.message}", Toast.LENGTH_SHORT).show()
             false
         }
@@ -82,10 +93,14 @@ class AndroidBridge(private val context: Context) {
      */
     @JavascriptInterface
     fun setMasterVolume(vol: Int) {
-        audioManager?.let { am ->
-            val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            val mapped = (vol.coerceIn(0, 30) * max) / 30
-            am.setStreamVolume(AudioManager.STREAM_MUSIC, mapped, 0)
+        try {
+            audioManager?.let { am ->
+                val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val mapped = (vol.coerceIn(0, 30) * max) / 30
+                am.setStreamVolume(AudioManager.STREAM_MUSIC, mapped, 0)
+            }
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Volume set handled safely: ${e.message}")
         }
     }
 
@@ -94,11 +109,15 @@ class AndroidBridge(private val context: Context) {
      */
     @JavascriptInterface
     fun getMasterVolume(): Int {
-        return audioManager?.let { am ->
-            val cur = am.getStreamVolume(AudioManager.STREAM_MUSIC)
-            val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            if (max > 0) (cur * 30) / max else 15
-        } ?: 15
+        return try {
+            audioManager?.let { am ->
+                val cur = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+                val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                if (max > 0) (cur * 30) / max else 15
+            } ?: 15
+        } catch (e: Throwable) {
+            15
+        }
     }
 
     /**
@@ -111,7 +130,7 @@ class AndroidBridge(private val context: Context) {
             val updateFile = File(context.filesDir, "joy_os_live.html")
             updateFile.writeText(htmlContent, Charsets.UTF_8)
             true
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             false
         }
     }
@@ -131,7 +150,7 @@ class AndroidBridge(private val context: Context) {
             }
             context.startActivity(intent)
             true
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             false
         }
     }
