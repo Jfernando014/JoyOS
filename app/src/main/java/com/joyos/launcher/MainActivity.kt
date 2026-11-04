@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -35,35 +36,56 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        hideSystemUI()
+
+        // Install uncaught exception guard to capture and prevent fatal launch crashes
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            Log.e("JoyOS", "Uncaught exception on thread ${thread.name}: ${throwable.message}", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+
+        try {
+            hideSystemUI()
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "System UI hide warning: ${e.message}")
+        }
 
         setContentView(R.layout.activity_main)
 
         webView = findViewById(R.id.webView)
         bridge = AndroidBridge(this)
+
         gpsManager = GpsTelemetryManager(this) { speedKmh, tripKm ->
             runOnUiThread {
-                webView.evaluateJavascript(
-                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: $speedKmh, tripKm: ${"%.1f".format(tripKm)} });",
-                    null
-                )
+                try {
+                    webView.evaluateJavascript(
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: $speedKmh, tripKm: ${"%.1f".format(tripKm)} });",
+                        null
+                    )
+                } catch (_: Throwable) {}
             }
         }
+
         obdManager = ObdBleManager(this) { rpm, coolantTempC, _, connected ->
             runOnUiThread {
-                val hot = coolantTempC >= 104
-                webView.evaluateJavascript(
-                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ rpm: $rpm, engineHot: $hot, obdConnected: $connected });",
-                    null
-                )
+                try {
+                    val hot = coolantTempC >= 104
+                    webView.evaluateJavascript(
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ rpm: $rpm, engineHot: $hot, obdConnected: $connected });",
+                        null
+                    )
+                } catch (_: Throwable) {}
             }
         }
+
         tpmsReceiver = TpmsUsbReceiver(this) { _, _, _, _, lowAlert, connected ->
             runOnUiThread {
-                webView.evaluateJavascript(
-                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ tireAlert: $lowAlert, tpmsConnected: $connected });",
-                    null
-                )
+                try {
+                    webView.evaluateJavascript(
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ tireAlert: $lowAlert, tpmsConnected: $connected });",
+                        null
+                    )
+                } catch (_: Throwable) {}
             }
         }
 
@@ -71,41 +93,58 @@ class MainActivity : AppCompatActivity() {
         loadJoyOS()
         ensureAutomotivePermissions()
 
-        // Handle back button: as a Home Launcher, do not exit the app
+        // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                // Inform web view or navigate to home tab
-                webView.evaluateJavascript("if (typeof switchTab === 'function') switchTab('home');", null)
+                try {
+                    webView.evaluateJavascript("if (typeof switchTab === 'function') switchTab('home');", null)
+                } catch (_: Throwable) {}
             }
         })
     }
 
     override fun onResume() {
         super.onResume()
-        hideSystemUI()
-        gpsManager.startTracking()
-        obdManager.start(lifecycleScope)
-        tpmsReceiver.register()
+        try { hideSystemUI() } catch (_: Throwable) {}
+        try { gpsManager.startTracking() } catch (_: Throwable) {}
+        try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
+        try { tpmsReceiver.register() } catch (_: Throwable) {}
     }
 
     override fun onPause() {
         super.onPause()
-        gpsManager.stopTracking()
-        obdManager.stop()
-        tpmsReceiver.unregister()
+        try { gpsManager.stopTracking() } catch (_: Throwable) {}
+        try { obdManager.stop() } catch (_: Throwable) {}
+        try { tpmsReceiver.unregister() } catch (_: Throwable) {}
     }
 
     private fun ensureAutomotivePermissions() {
+        val permissionsNeeded = mutableListOf<String>()
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
-                1001
-            )
+            permissionsNeeded.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            permissionsNeeded.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_CONNECT)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN)
+            }
+        }
+
+        if (permissionsNeeded.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissionsNeeded.toTypedArray(), 1001)
         } else {
-            gpsManager.startTracking()
+            try { gpsManager.startTracking() } catch (_: Throwable) {}
         }
     }
 
@@ -115,8 +154,13 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == 1001 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            gpsManager.startTracking()
+        if (requestCode == 1001) {
+            try {
+                gpsManager.startTracking()
+            } catch (_: Throwable) {}
+            try {
+                obdManager.start(lifecycleScope)
+            } catch (_: Throwable) {}
         }
     }
 
@@ -132,6 +176,10 @@ class MainActivity : AppCompatActivity() {
                 databaseEnabled = true
                 allowFileAccess = true
                 allowContentAccess = true
+                @Suppress("DEPRECATION")
+                allowFileAccessFromFileURLs = true
+                @Suppress("DEPRECATION")
+                allowUniversalAccessFromFileURLs = true
                 mediaPlaybackRequiresUserGesture = false
                 cacheMode = WebSettings.LOAD_DEFAULT
                 useWideViewPort = true
@@ -144,9 +192,13 @@ class MainActivity : AppCompatActivity() {
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    // Sync initial system volume and settings
-                    val initialVol = bridge.getMasterVolume()
-                    evaluateJavascript("if (typeof state !== 'undefined') { state.vol = $initialVol; if (typeof renderAll === 'function') renderAll(); }", null)
+                    try {
+                        val initialVol = bridge.getMasterVolume()
+                        evaluateJavascript(
+                            "if (typeof state !== 'undefined') { state.vol = $initialVol; if (typeof renderAll === 'function') renderAll(); }",
+                            null
+                        )
+                    } catch (_: Throwable) {}
                 }
             }
 
@@ -155,15 +207,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadJoyOS() {
-        // Priority 1: Check if a hot-update exists in internal storage
-        val liveUpdateFile = File(filesDir, "joy_os_live.html")
-        if (liveUpdateFile.exists() && liveUpdateFile.length() > 1024) {
-            webView.loadUrl("file://${liveUpdateFile.absolutePath}")
-            return
-        }
+        try {
+            // Priority 1: Check if a hot-update exists in internal storage
+            val liveUpdateFile = File(filesDir, "joy_os_live.html")
+            if (liveUpdateFile.exists() && liveUpdateFile.length() > 1024) {
+                webView.loadUrl("file://${liveUpdateFile.absolutePath}")
+                return
+            }
 
-        // Priority 2: Load bundled production assets from assets/www/index.html
-        webView.loadUrl("file:///android_asset/www/index.html")
+            // Priority 2: Load bundled production assets from assets/www/index.html
+            webView.loadUrl("file:///android_asset/www/index.html")
+        } catch (e: Throwable) {
+            Log.e("JoyOS", "Failed to load JoyOS webview content: ${e.message}")
+        }
     }
 
     @Suppress("DEPRECATION")
