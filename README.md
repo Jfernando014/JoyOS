@@ -10,12 +10,14 @@ Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escán
 
 ---
 
-## 📥 Descarga Directa del APK
+## 📲 Descarga Directa del APK (1 Toque)
 
-Cada vez que se sube un commit a la rama `main`, GitHub compila automáticamente el instalador en la nube:
+Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
 
-👉 **[Descargar último JoyOSLauncher APK (GitHub Actions)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)**  
-*(Entra a la última ejecución con ✅ verde y descarga el archivo **`JoyOSLauncher-APK`** al final de la página).*
+👉 **[📥 Descargar JoyOSLauncher.apk (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v7.0.0/JoyOSLauncher.apk)**
+
+> [!TIP]
+> También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.
 
 ---
 
