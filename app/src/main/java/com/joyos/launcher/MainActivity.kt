@@ -17,8 +17,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
+import com.joyos.launcher.services.ObdBleManager
+import com.joyos.launcher.services.TpmsUsbReceiver
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -26,6 +29,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
     private lateinit var gpsManager: GpsTelemetryManager
+    private lateinit var obdManager: ObdBleManager
+    private lateinit var tpmsReceiver: TpmsUsbReceiver
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +45,23 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 webView.evaluateJavascript(
                     "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: $speedKmh, tripKm: ${"%.1f".format(tripKm)} });",
+                    null
+                )
+            }
+        }
+        obdManager = ObdBleManager(this) { rpm, coolantTempC, _, connected ->
+            runOnUiThread {
+                val hot = coolantTempC >= 104
+                webView.evaluateJavascript(
+                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ rpm: $rpm, engineHot: $hot, obdConnected: $connected });",
+                    null
+                )
+            }
+        }
+        tpmsReceiver = TpmsUsbReceiver(this) { _, _, _, _, lowAlert, connected ->
+            runOnUiThread {
+                webView.evaluateJavascript(
+                    "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ tireAlert: $lowAlert, tpmsConnected: $connected });",
                     null
                 )
             }
@@ -62,11 +84,15 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         hideSystemUI()
         gpsManager.startTracking()
+        obdManager.start(lifecycleScope)
+        tpmsReceiver.register()
     }
 
     override fun onPause() {
         super.onPause()
         gpsManager.stopTracking()
+        obdManager.stop()
+        tpmsReceiver.unregister()
     }
 
     private fun ensureAutomotivePermissions() {
