@@ -23,7 +23,12 @@ import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.ObdBleManager
+import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsUsbReceiver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -34,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gpsManager: GpsTelemetryManager
     private lateinit var obdManager: ObdBleManager
     private lateinit var tpmsReceiver: TpmsUsbReceiver
+    private lateinit var otaManager: OtaUpdateManager
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,9 +60,17 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        dspEngine = JoyAudioDspEngine(this)
-        bridge = AndroidBridge(this, dspEngine)
         webView = findViewById(R.id.webView)
+        dspEngine = JoyAudioDspEngine(this)
+        otaManager = OtaUpdateManager(this)
+
+        bridge = AndroidBridge(
+            context = this,
+            dspEngine = dspEngine,
+            otaManager = otaManager,
+            onReloadUi = { runOnUiThread { loadJoyOS() } },
+            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
+        )
 
         gpsManager = GpsTelemetryManager(this) { speedKmh, tripKm ->
             try {
@@ -98,6 +112,7 @@ class MainActivity : AppCompatActivity() {
         configureWebView()
         loadJoyOS()
         ensureAutomotivePermissions()
+        scheduleBackgroundOtaCheck()
 
         // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -257,6 +272,35 @@ class MainActivity : AppCompatActivity() {
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
             )
+        }
+    }
+
+    private fun scheduleBackgroundOtaCheck() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                delay(8000)
+                val res = otaManager.checkLatestRelease(bridge.getAppVersion())
+                if (res.isSuccess && res.getOrNull()?.isNewer == true) {
+                    val info = res.getOrNull()!!
+                    val json = JSONObject().apply {
+                        put("status", "success")
+                        put("isNewer", true)
+                        put("version", info.version)
+                        put("tagName", info.tagName)
+                        put("changelog", info.changelog)
+                        put("apkUrl", info.apkUrl ?: "")
+                        put("liveHtmlUrl", info.liveHtmlUrl ?: "")
+                    }
+                    runOnUiThread {
+                        webView.evaluateJavascript(
+                            "if (typeof window.onOtaUpdateAvailable === 'function') window.onOtaUpdateAvailable($json);",
+                            null
+                        )
+                    }
+                }
+            } catch (e: Throwable) {
+                Log.w("JoyOS", "Silent background OTA check skipped: ${e.message}")
+            }
         }
     }
 }

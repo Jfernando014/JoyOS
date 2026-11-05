@@ -15,6 +15,11 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import com.joyos.launcher.services.JoyAudioDspEngine
+import com.joyos.launcher.services.OtaUpdateManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -25,7 +30,10 @@ import java.io.File
  */
 class AndroidBridge(
     private val context: Context,
-    private val dspEngine: JoyAudioDspEngine? = null
+    private val dspEngine: JoyAudioDspEngine? = null,
+    private val otaManager: OtaUpdateManager? = null,
+    private val onReloadUi: (() -> Unit)? = null,
+    private val onEvaluateJs: ((String) -> Unit)? = null
 ) {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -288,22 +296,112 @@ class AndroidBridge(
     }
 
     /**
-     * Installs an APK from local storage or USB drive.
+     * Installs an APK from local storage or USB drive using secure FileProvider.
      */
     @JavascriptInterface
     fun installApk(filePath: String): Boolean {
         return try {
             val file = File(filePath)
             if (!file.exists()) return false
-
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-            }
-            context.startActivity(intent)
-            true
-        } catch (e: Throwable) {
+            otaManager?.installApk(file) ?: false
+        } catch (_: Throwable) {
             false
+        }
+    }
+
+    /**
+     * Returns the currently installed JoyOS version name (e.g. "8.0.0").
+     */
+    @JavascriptInterface
+    fun getAppVersion(): String {
+        return try {
+            val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+            pInfo.versionName ?: "8.0.0"
+        } catch (_: Throwable) {
+            "8.0.0"
+        }
+    }
+
+    /**
+     * Asynchronously checks GitHub Releases for new JoyOS updates.
+     * Evaluates `window.onOtaUpdateAvailable(data)` in JavaScript.
+     */
+    @JavascriptInterface
+    fun checkForUpdates() {
+        if (otaManager == null) return
+        val currentVer = getAppVersion()
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = otaManager.checkLatestRelease(currentVer)
+            val json = JSONObject()
+            if (result.isSuccess) {
+                val info = result.getOrNull()!!
+                json.put("status", "success")
+                json.put("isNewer", info.isNewer)
+                json.put("version", info.version)
+                json.put("tagName", info.tagName)
+                json.put("changelog", info.changelog)
+                json.put("apkUrl", info.apkUrl ?: "")
+                json.put("liveHtmlUrl", info.liveHtmlUrl ?: "")
+            } else {
+                json.put("status", "error")
+                json.put("message", result.exceptionOrNull()?.message ?: "Error al conectar con GitHub")
+            }
+            withContext(Dispatchers.Main) {
+                onEvaluateJs?.invoke("if (typeof window.onOtaUpdateAvailable === 'function') window.onOtaUpdateAvailable(${json});")
+            }
+        }
+    }
+
+    /**
+     * Downloads and applies an OTA update.
+     * @param type "hot" for live HTML reload or "apk" for full system package.
+     * @param url Download asset URL from GitHub Releases.
+     */
+    @JavascriptInterface
+    fun startOtaDownload(type: String, url: String) {
+        if (otaManager == null) return
+        CoroutineScope(Dispatchers.IO).launch {
+            if (type.equals("hot", ignoreCase = true)) {
+                val res = otaManager.downloadHotUpdate(url) { progress ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onEvaluateJs?.invoke("if (typeof window.onOtaProgress === 'function') window.onOtaProgress($progress);")
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    if (res.isSuccess) {
+                        onEvaluateJs?.invoke("if (typeof window.onOtaComplete === 'function') window.onOtaComplete(true, 'hot');")
+                    } else {
+                        val errMsg = JSONObject.quote(res.exceptionOrNull()?.message ?: "Fallo de descarga")
+                        onEvaluateJs?.invoke("if (typeof window.onOtaComplete === 'function') window.onOtaComplete(false, $errMsg);")
+                    }
+                }
+            } else {
+                val res = otaManager.downloadApkUpdate(url) { progress ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        onEvaluateJs?.invoke("if (typeof window.onOtaProgress === 'function') window.onOtaProgress($progress);")
+                    }
+                }
+                withContext(Dispatchers.Main) {
+                    if (res.isSuccess) {
+                        val apkFile = res.getOrNull()!!
+                        val installed = otaManager.installApk(apkFile)
+                        onEvaluateJs?.invoke("if (typeof window.onOtaComplete === 'function') window.onOtaComplete($installed, 'apk');")
+                    } else {
+                        val errMsg = JSONObject.quote(res.exceptionOrNull()?.message ?: "Fallo al descargar APK")
+                        onEvaluateJs?.invoke("if (typeof window.onOtaComplete === 'function') window.onOtaComplete(false, $errMsg);")
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Soft reloads the active JoyOS WebView interface from local storage.
+     */
+    @JavascriptInterface
+    fun reloadUi() {
+        CoroutineScope(Dispatchers.Main).launch {
+            onReloadUi?.invoke()
         }
     }
 
