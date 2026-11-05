@@ -1399,6 +1399,25 @@
       border-color: rgba(var(--arc), 0.25);
     }
 
+    /* Native Head Unit Fullscreen Mode (1024x600 edge-to-edge, 0 bezel overhead) */
+    body.is-native-car {
+      padding: 0 !important;
+      margin: 0 !important;
+      overflow: hidden !important;
+      background: #0a0e17 !important;
+    }
+    body.is-native-car #tablet-frame-wrap {
+      max-width: 100vw !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+    body.is-native-car #tablet-viewport {
+      width: 100vw !important;
+      height: 100vh !important;
+      border-radius: 0 !important;
+      border: 0 !important;
+      box-shadow: none !important;
+    }
   </style>
 </head>
 <body class="bg-[#060911] text-slate-100 antialiased p-2 md:p-5 min-h-screen flex flex-col items-center justify-center relative overflow-x-hidden">
@@ -1406,7 +1425,7 @@
   <!-- ===================================================================== -->
   <!-- TABLET SCREEN CONTAINER (9-INCH 1024x600 PROPORTION)                  -->
   <!-- ===================================================================== -->
-  <div class="w-full max-w-[1040px] mx-auto">
+  <div id="tablet-frame-wrap" class="w-full max-w-[1040px] mx-auto">
     <div id="tablet-viewport" class="theme-dark relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500" style="height: 575px;">
 
       <!-- DYNAMIC AMBIENT COLOR BLOBS FOR MUSIC COVERFLOW VIEW (Screenshot 3!) -->
@@ -1633,7 +1652,7 @@
             <path d="M4 16H40V6H80V16H116L110 28H80V38H40V28H10L4 16Z"/>
           </svg>
 
-          <div class="weather cursor-pointer pressable" onclick="refreshDynamicWeather()" title="Clima en tiempo real · Toca para actualizar">
+          <div class="weather cursor-pointer pressable" onclick="handleWeatherDiagnosticTap()" title="Clima en tiempo real · Toca para actualizar (5 toques: Modo Diagnóstico)">
             <svg id="top-weather-icon" class="ic" viewBox="0 0 24 24">
               <path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M15.947 12.65a4 4 0 0 0-5.925-4.128"/><path d="M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6Z"/>
             </svg>
@@ -3715,7 +3734,7 @@
   <!-- ===================================================================== -->
   <!-- FLOATING SIGNAL SIMULATOR WIDGET (Bottom-Right Corner like Image 1!)  -->
   <!-- ===================================================================== -->
-  <div class="fixed bottom-4 right-4 z-50 bg-[#0d121d]/95 backdrop-blur-xl text-slate-200 border border-white/10 rounded-2xl p-3.5 shadow-2xl w-64">
+  <div id="sim-widget-panel" class="fixed bottom-4 right-4 z-50 bg-[#0d121d]/95 backdrop-blur-xl text-slate-200 border border-white/10 rounded-2xl p-3.5 shadow-2xl w-64">
     <div onclick="document.getElementById('sim-body').classList.toggle('hidden')" class="flex items-center justify-between cursor-pointer text-xs font-semibold opacity-75 hover:opacity-100">
       <span>▾ Simulador de señales</span>
       <span class="text-xs opacity-50">OBD2 / ILL</span>
@@ -7119,6 +7138,42 @@
         }, () => {}, { timeout: 4000 });
       }
     }
+    let _weatherDiagTaps = 0;
+    let _weatherDiagTimer = null;
+    function handleWeatherDiagnosticTap() {
+      refreshDynamicWeather();
+      _weatherDiagTaps++;
+      clearTimeout(_weatherDiagTimer);
+      if (_weatherDiagTaps >= 5) {
+        _weatherDiagTaps = 0;
+        const simPanel = document.getElementById('sim-widget-panel');
+        if (simPanel) {
+          simPanel.classList.toggle('hidden');
+          const visible = !simPanel.classList.contains('hidden');
+          enqueueNotification({
+            type: 'info',
+            dotClass: 'w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_12px_#38bdf8] shrink-0',
+            title: visible ? 'Modo Diagnóstico Activo' : 'Modo Diagnóstico Oculto',
+            tag: visible ? 'Panel simulador OBD2 / ILL visible' : 'Panel simulador cerrado',
+            tagClass: 'text-[11px] font-semibold text-sky-400 pl-1'
+          });
+        }
+        return;
+      }
+      _weatherDiagTimer = setTimeout(() => { _weatherDiagTaps = 0; }, 900);
+    }
+
+    function initNativeHardwareMode() {
+      const isNative = typeof window.AndroidBridge !== 'undefined' ||
+                       window.location.search.includes('prod=1') ||
+                       window.location.search.includes('native=1');
+      if (isNative) {
+        document.body.classList.add('is-native-car');
+        const simPanel = document.getElementById('sim-widget-panel');
+        if (simPanel) simPanel.classList.add('hidden');
+      }
+    }
+    initNativeHardwareMode();
     refreshDynamicWeather();
 
     window.onTelemetryUpdate = function(data) {
