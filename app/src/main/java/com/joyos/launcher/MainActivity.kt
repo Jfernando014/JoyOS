@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
+import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.ObdBleManager
 import com.joyos.launcher.services.TpmsUsbReceiver
 import java.io.File
@@ -29,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
+    private lateinit var dspEngine: JoyAudioDspEngine
     private lateinit var gpsManager: GpsTelemetryManager
     private lateinit var obdManager: ObdBleManager
     private lateinit var tpmsReceiver: TpmsUsbReceiver
@@ -52,10 +54,14 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        dspEngine = JoyAudioDspEngine(this)
+        bridge = AndroidBridge(this, dspEngine)
         webView = findViewById(R.id.webView)
-        bridge = AndroidBridge(this)
 
         gpsManager = GpsTelemetryManager(this) { speedKmh, tripKm ->
+            try {
+                dspEngine.onSpeedUpdated(speedKmh)
+            } catch (_: Throwable) {}
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
@@ -118,6 +124,11 @@ class MainActivity : AppCompatActivity() {
         try { tpmsReceiver.unregister() } catch (_: Throwable) {}
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        try { dspEngine.release() } catch (_: Throwable) {}
+    }
+
     private fun ensureAutomotivePermissions() {
         val permissionsNeeded = mutableListOf<String>()
 
@@ -170,6 +181,12 @@ class MainActivity : AppCompatActivity() {
             setLayerType(View.LAYER_TYPE_HARDWARE, null)
             setBackgroundColor(0xFF0A0E17.toInt())
 
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT, false)
+                } catch (_: Throwable) {}
+            }
+
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
@@ -195,7 +212,7 @@ class MainActivity : AppCompatActivity() {
                     try {
                         val initialVol = bridge.getMasterVolume()
                         evaluateJavascript(
-                            "if (typeof state !== 'undefined') { state.vol = $initialVol; if (typeof renderAll === 'function') renderAll(); }",
+                            "if (typeof state !== 'undefined') { state.vol = $initialVol; if (typeof renderAll === 'function') renderAll(); } if (typeof initNativeHardwareMode === 'function') initNativeHardwareMode();",
                             null
                         )
                     } catch (_: Throwable) {}
