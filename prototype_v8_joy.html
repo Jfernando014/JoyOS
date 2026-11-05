@@ -4919,6 +4919,12 @@
     }
 
     function launchOsApp(appId) {
+      const appObj = osApps.find(a => a.id === appId);
+      if (appObj && appObj.pkg && window.AndroidBridge && typeof window.AndroidBridge.launchApp === 'function') {
+        try {
+          if (window.AndroidBridge.launchApp(appObj.pkg)) return;
+        } catch (e) {}
+      }
       if (appId === 'zlink') {
         state.zlinkActive = true;
         enqueueNotification({
@@ -5219,6 +5225,9 @@
       state.btEnabled = !state.btEnabled;
       const btItem = ajData.find(c => c.id === 'con')?.it.find(x => x.l === 'Bluetooth');
       if (btItem) btItem.v = state.btEnabled;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
+        try { window.AndroidBridge.setBluetoothPower(state.btEnabled); } catch (e) {}
+      }
       renderAll();
       enqueueNotification({
         type: 'info',
@@ -5324,15 +5333,24 @@
         const subPct = (lvl / 10) * 100;
         slider.style.background = `linear-gradient(to right, ${eqAccent} 0%, ${eqAccent} ${subPct}%, ${trackBg} ${subPct}%, ${trackBg} 100%)`;
       }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setSubwooferLevel === 'function') {
+        try { window.AndroidBridge.setSubwooferLevel(lvl); } catch (e) {}
+      }
     }
 
     function toggleSpeedVol() {
       state.speedVolActive = !state.speedVolActive;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setSpeedVolumeEnabled === 'function') {
+        try { window.AndroidBridge.setSpeedVolumeEnabled(state.speedVolActive); } catch (e) {}
+      }
       renderAll();
     }
 
     function toggleNavDucking() {
       state.navDucking = !state.navDucking;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setNavDuckingEnabled === 'function') {
+        try { window.AndroidBridge.setNavDuckingEnabled(state.navDucking); } catch (e) {}
+      }
       renderAll();
     }
 
@@ -5340,6 +5358,9 @@
       state.soundStageX = 0;
       state.soundStageY = 0;
       updateSoundStageUI();
+      if (window.AndroidBridge && typeof window.AndroidBridge.setSoundStage === 'function') {
+        try { window.AndroidBridge.setSoundStage(0, 0); } catch (e) {}
+      }
     }
 
     function startDragSoundStage(e, box) {
@@ -5355,6 +5376,9 @@
         state.soundStageX = Math.max(-50, Math.min(50, state.soundStageX));
         state.soundStageY = Math.max(-50, Math.min(50, state.soundStageY));
         updateSoundStageUI();
+        if (window.AndroidBridge && typeof window.AndroidBridge.setSoundStage === 'function') {
+          try { window.AndroidBridge.setSoundStage(state.soundStageX, state.soundStageY); } catch (e) {}
+        }
       }
       updateFromEvent(e);
       function onMove(ev) { updateFromEvent(ev); }
@@ -5408,6 +5432,9 @@
       const clamped = Math.max(-10, Math.min(10, numVal));
       if (eqPresets[state.eqPreset]) {
         eqPresets[state.eqPreset].bars[bandIdx] = clamped;
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setEqBand === 'function') {
+        try { window.AndroidBridge.setEqBand(bandIdx, clamped); } catch (e) {}
       }
       renderAll();
       updateEqCurve();
@@ -5935,6 +5962,9 @@
         eqPresets[preset].bars = [...defaultEqBars[preset]];
       }
       state.eqPreset = preset;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setEqPreset === 'function' && eqPresets[preset]) {
+        try { window.AndroidBridge.setEqPreset(preset, JSON.stringify(eqPresets[preset].bars)); } catch (e) {}
+      }
       renderAll();
       animateEqCurveTransition();
       const now = Date.now();
@@ -5955,6 +5985,9 @@
 
     function setEqPreset(preset) {
       state.eqPreset = preset;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setEqPreset === 'function' && eqPresets[preset]) {
+        try { window.AndroidBridge.setEqPreset(preset, JSON.stringify(eqPresets[preset].bars)); } catch (e) {}
+      }
       renderAll();
       animateEqCurveTransition();
       if (state.settingsSubView === 'more') renderMoreSettings();
@@ -5962,14 +5995,24 @@
 
     function cycleBrightness() {
       state.brightness = state.brightness === 85 ? 100 : (state.brightness === 100 ? 60 : 85);
+      if (window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
+        try { window.AndroidBridge.setSystemBrightness(state.brightness); } catch (e) {}
+      }
       renderAll();
     }
 
     function optimizeRam() {
       const ramEl = document.getElementById('settings-ram-val');
       const btnEl = document.getElementById('btn-ram-opt');
+      let freedRamLabel = '1,55 GB';
+      if (window.AndroidBridge && typeof window.AndroidBridge.optimizeSystemRam === 'function') {
+        try {
+          const nativeRam = window.AndroidBridge.optimizeSystemRam();
+          if (nativeRam && nativeRam.length > 0) freedRamLabel = nativeRam;
+        } catch (e) {}
+      }
       if (ramEl) {
-        ramEl.textContent = '1,55 GB';
+        ramEl.textContent = freedRamLabel;
         ramEl.className = 'font-bold text-emerald-400';
       }
       if (btnEl) {
@@ -6134,6 +6177,9 @@
       state.vol = Math.max(0, Math.min(30, state.vol + d));
       state.muted = state.vol === 0;
       if (state.vol > 0) state.prevVolBeforeMute = state.vol;
+      if (window.AndroidBridge && typeof window.AndroidBridge.setMasterVolume === 'function') {
+        try { window.AndroidBridge.setMasterVolume(state.vol); } catch (e) {}
+      }
       renderAll();
       enqueueNotification({
         type: 'volume',
@@ -7172,25 +7218,85 @@
         const simPanel = document.getElementById('sim-widget-panel');
         if (simPanel) simPanel.classList.add('hidden');
       }
+
+      if (window.AndroidBridge && typeof window.AndroidBridge.getInstalledApps === 'function') {
+        try {
+          const rawJson = window.AndroidBridge.getInstalledApps();
+          const nativeApps = JSON.parse(rawJson || '[]');
+          nativeApps.forEach(na => {
+            if (!osApps.some(existing => existing.pkg === na.package)) {
+              osApps.push({
+                id: 'native_' + na.package.replace(/[^a-zA-Z0-9]/g, '_'),
+                name: na.name,
+                sub: na.package,
+                badge: 'Android OS',
+                color: 'from-cyan-400 to-blue-600',
+                pkg: na.package,
+                action: 'external',
+                svg: '<rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3"/>'
+              });
+            }
+          });
+        } catch (e) {}
+      }
+
+      if (window.AndroidBridge && typeof window.AndroidBridge.getDspStateJson === 'function') {
+        try {
+          const dspRaw = window.AndroidBridge.getDspStateJson();
+          const dsp = JSON.parse(dspRaw || '{}');
+          if (dsp.preset && eqPresets[dsp.preset]) {
+            state.eqPreset = dsp.preset;
+            if (Array.isArray(dsp.bars) && dsp.bars.length === 5) {
+              eqPresets[dsp.preset].bars = dsp.bars.map(Number);
+            }
+          }
+          if (typeof dsp.subwoofer === 'number') state.subwooferLevel = dsp.subwoofer;
+          if (typeof dsp.soundStageX === 'number') state.soundStageX = dsp.soundStageX;
+          if (typeof dsp.soundStageY === 'number') state.soundStageY = dsp.soundStageY;
+          if (typeof dsp.speedVol === 'boolean') state.speedVolActive = dsp.speedVol;
+          if (typeof dsp.navDucking === 'boolean') state.navDucking = dsp.navDucking;
+        } catch (e) {}
+      }
     }
     initNativeHardwareMode();
     refreshDynamicWeather();
 
     window.onTelemetryUpdate = function(data) {
-      if (typeof data.speed === 'number') state.speed = data.speed;
-      if (typeof data.rpm === 'number') {
-        state.rpm = data.rpm;
+      if (!data) return;
+      if (typeof data.speed === 'number') {
+        state.speed = Math.round(data.speed);
         state.gear = Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
+      }
+      if (typeof data.tripKm === 'number') {
+        state.tripKm = data.tripKm;
+      }
+      if (typeof data.rpm === 'number') {
+        state.rpm = Math.round(data.rpm);
+        state.gear = Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
+        state.sensorWaitMode = false;
       }
       if (typeof data.temp === 'number') {
         state.engineHot = data.temp >= 105;
         const tempEl = document.getElementById('home-ecu-status');
         if (tempEl) tempEl.textContent = data.temp + ' °C';
       }
+      if (typeof data.engineHot === 'boolean') {
+        state.engineHot = data.engineHot;
+      }
+      if (typeof data.obdConnected === 'boolean') {
+        state.sensorWaitMode = !data.obdConnected;
+      }
       if (typeof data.psi_fl === 'number') {
         state.tireAlert = data.psi_fl < 28;
       }
+      if (typeof data.tireAlert === 'boolean') {
+        state.tireAlert = data.tireAlert;
+      }
+      if (typeof data.vol === 'number') {
+        state.vol = data.vol;
+      }
       if (typeof data.btConnected === 'boolean') state.btEnabled = data.btConnected;
+      if (typeof data.btEnabled === 'boolean') state.btEnabled = data.btEnabled;
       if (typeof data.phoneBattery === 'number') state.phoneBattery = data.phoneBattery;
       if (typeof data.phoneSignal === 'number') state.phoneSignal = data.phoneSignal;
       renderAll();
