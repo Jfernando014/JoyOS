@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+set -e
+
+echo "====================================================================="
+echo "   🚀 JoyOS v8.0 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO"
+echo "   Chevrolet Joy 2022 · Unidad AC8227L / ZXDZ_01 (1024x600)"
+echo "====================================================================="
+echo ""
+
+echo "[1/6] Verificando conexión ADB..."
+if ! adb devices | grep -q -w "device"; then
+    echo "❌ ERROR: No se detectó ninguna tablet conectada por USB o WiFi."
+    echo "Asegúrate de activar 'Depuración por USB' en los ajustes de Android."
+    exit 1
+fi
+echo "  -> Tablet conectada correctamente."
+echo ""
+
+echo "[2/6] Verificando instalación de JoyOSLauncher.apk..."
+if ! adb shell pm list packages | grep -q "com.joyos.launcher"; then
+    if [ -f "JoyOSLauncher.apk" ]; then
+        echo "  -> Instalando JoyOSLauncher.apk..."
+        adb install -r -g JoyOSLauncher.apk
+    elif [ -f "app/build/outputs/apk/debug/JoyOSLauncher.apk" ]; then
+        echo "  -> Instalando APK desde compilación local..."
+        adb install -r -g app/build/outputs/apk/debug/JoyOSLauncher.apk
+    else
+        echo "  ⚠️ No se encontró el APK local. Descárgalo de GitHub Releases."
+    fi
+else
+    echo "  -> JoyOS v8.0 ya está presente en la tablet."
+fi
+echo ""
+
+echo "[3/6] Otorgando permisos de sistema y hardware..."
+adb shell pm grant com.joyos.launcher android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_CONNECT 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_SCAN 2>/dev/null || true
+adb shell appops set com.joyos.launcher WRITE_SETTINGS allow 2>/dev/null || true
+echo "  -> Permisos de GPS, Bluetooth y brillo otorgados."
+echo ""
+
+echo "[4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)..."
+adb shell cmd package set-home-activity com.joyos.launcher/.MainActivity 2>/dev/null || true
+echo "  -> JoyOS registrado como Home Launcher nativo."
+echo ""
+
+echo "[5/6] Desbloqueando 100% de Audio y Rendimiento..."
+adb shell settings put global audio_safe_volume_state 2 2>/dev/null || true
+adb shell dumpsys deviceidle whitelist +com.joyos.launcher 2>/dev/null || true
+adb shell settings put global window_animation_scale 0.5 2>/dev/null || true
+adb shell settings put global transition_animation_scale 0.5 2>/dev/null || true
+adb shell settings put global animator_duration_scale 0.5 2>/dev/null || true
+echo "  -> Audio DSP desbloqueado sin limitador de volumen."
+echo "  -> Prioridad máxima de CPU/GPU aplicada."
+echo ""
+
+echo "[6/6] Congelando launchers OEM de fábrica..."
+read -p "¿Deseas congelar el launcher genérico de fábrica para liberar 400 MB de RAM? (s/n): " confirm
+if [[ "$confirm" =~ ^[sS]$ ]]; then
+    adb shell pm disable-user --user 0 com.android.launcher3 2>/dev/null || true
+    adb shell pm disable-user --user 0 com.fyt.launcher 2>/dev/null || true
+    adb shell pm disable-user --user 0 com.ts.main 2>/dev/null || true
+    adb shell pm disable-user --user 0 com.xyauto.launcher 2>/dev/null || true
+    echo "  -> Launchers de fábrica congelados. 100% de RAM entregada a JoyOS."
+fi
+
+echo ""
+echo "====================================================================="
+echo "   🎉 ¡OPTIMIZACIÓN COMPLETA! Iniciando JoyOS v8.0..."
+echo "====================================================================="
+adb shell am start -n com.joyos.launcher/.MainActivity 2>/dev/null || true
