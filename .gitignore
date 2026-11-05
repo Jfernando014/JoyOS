@@ -1,8 +1,12 @@
-# Versiones y prototipos anteriores (solo se conserva JoyOS v7)
+# Versiones y prototipos anteriores (solo se conservan JoyOS v7 y v8)
 /prototype_v[0-6]*.html
 /index.html
 /boot_joy.html
 /ajustes-joy.html
+
+# Capturas temporales de depuración
+/crop_*.png
+/debug_*.png
 
 # Documentación interna / generada
 IMPLEMENTATION_PLAN.md
