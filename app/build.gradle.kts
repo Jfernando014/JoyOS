@@ -11,8 +11,8 @@ android {
         applicationId = "com.joyos.launcher"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "7.0.0"
+        versionCode = 8
+        versionName = "8.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
