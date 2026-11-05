@@ -36,3 +36,5 @@ captures/
 *.apk
 *.aab
 local.properties
+/scripts/platform-tools/
+/scripts/*.zip
