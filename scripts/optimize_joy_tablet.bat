@@ -28,12 +28,18 @@ echo [2/6] Verificando instalación de JoyOSLauncher.apk...
 adb shell pm list packages | findstr /C:"com.joyos.launcher" >nul
 if %errorlevel% neq 0 (
     echo   -> JoyOS no está instalado aún. Buscando archivo APK local...
-    if exist "JoyOSLauncher.apk" (
+    if exist "%~dp0..\JoyOSLauncher.apk" (
+        echo   -> Instalando JoyOSLauncher.apk con permisos pre-concedidos...
+        adb install -r -g "%~dp0..\JoyOSLauncher.apk"
+    ) else if exist "%~dp0JoyOSLauncher.apk" (
+        echo   -> Instalando JoyOSLauncher.apk con permisos pre-concedidos...
+        adb install -r -g "%~dp0JoyOSLauncher.apk"
+    ) else if exist "JoyOSLauncher.apk" (
         echo   -> Instalando JoyOSLauncher.apk con permisos pre-concedidos...
         adb install -r -g JoyOSLauncher.apk
-    ) else if exist "app\build\outputs\apk\debug\JoyOSLauncher.apk" (
+    ) else if exist "%~dp0..\app\build\outputs\apk\debug\JoyOSLauncher.apk" (
         echo   -> Instalando APK desde compilación local...
-        adb install -r -g app\build\outputs\apk\debug\JoyOSLauncher.apk
+        adb install -r -g "%~dp0..\app\build\outputs\apk\debug\JoyOSLauncher.apk"
     ) else (
         echo   ⚠️ No se encontró JoyOSLauncher.apk en esta carpeta.
         echo   Descarga el APK desde los Releases de GitHub o compílalo antes de continuar.

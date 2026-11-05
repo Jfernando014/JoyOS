@@ -17,13 +17,20 @@ echo "  -> Tablet conectada correctamente."
 echo ""
 
 echo "[2/6] Verificando instalación de JoyOSLauncher.apk..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if ! adb shell pm list packages | grep -q "com.joyos.launcher"; then
-    if [ -f "JoyOSLauncher.apk" ]; then
+    if [ -f "$SCRIPT_DIR/../JoyOSLauncher.apk" ]; then
+        echo "  -> Instalando JoyOSLauncher.apk..."
+        adb install -r -g "$SCRIPT_DIR/../JoyOSLauncher.apk"
+    elif [ -f "$SCRIPT_DIR/JoyOSLauncher.apk" ]; then
+        echo "  -> Instalando JoyOSLauncher.apk..."
+        adb install -r -g "$SCRIPT_DIR/JoyOSLauncher.apk"
+    elif [ -f "JoyOSLauncher.apk" ]; then
         echo "  -> Instalando JoyOSLauncher.apk..."
         adb install -r -g JoyOSLauncher.apk
-    elif [ -f "app/build/outputs/apk/debug/JoyOSLauncher.apk" ]; then
+    elif [ -f "$SCRIPT_DIR/../app/build/outputs/apk/debug/JoyOSLauncher.apk" ]; then
         echo "  -> Instalando APK desde compilación local..."
-        adb install -r -g app/build/outputs/apk/debug/JoyOSLauncher.apk
+        adb install -r -g "$SCRIPT_DIR/../app/build/outputs/apk/debug/JoyOSLauncher.apk"
     else
         echo "  ⚠️ No se encontró el APK local. Descárgalo de GitHub Releases."
     fi
