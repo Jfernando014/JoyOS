@@ -1,4 +1,4 @@
-# JoyOS v7 — Automotive Home Launcher
+# JoyOS v8 — Automotive Home Launcher & Hardware DSP OS
 
 [![Build JoyOS Launcher APK](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android_10%2B_%7C_SDK_26--34-brightgreen.svg)]()
@@ -6,7 +6,7 @@
 
 Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1024×600`, MediaTek `AC8227L`, MCU `cm69`) en Chevrolet Joy 2022.
 
-Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, interfaz de audio Coverflow y navegación global por gestos.
+Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, interfaz de audio Coverflow, **Ecualizador Gráfico de 5 bandas con curva Bézier en tiempo real**, **Motor de Audio Hardware DSP de alta ganancia** (`Equalizer`, `BassBoost`, `LoudnessEnhancer`, `Virtualizer`) y scripts de optimización para aprovechar el 100% de la tablet sin bloatware de fábrica.
 
 ---
 
@@ -14,10 +14,20 @@ Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escán
 
 Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
 
-👉 **[📥 Descargar JoyOSLauncher.apk (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v7.0.0/JoyOSLauncher.apk)**
+👉 **[📥 Descargar JoyOSLauncher.apk v8.0.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.0.0/JoyOSLauncher.apk)**
 
 > [!TIP]
 > También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.
+
+---
+
+## 🚀 Optimización del 100% del Hardware (Script de 1 Clic por ADB)
+
+Para que la tablet no ejecute el launcher de fábrica en segundo plano (ahorrando ~400 MB de RAM) y entregue el 100% de la potencia de audio y aceleración por GPU:
+* En Windows: ejecuta con doble clic el archivo `scripts/optimize_joy_tablet.bat`.
+* En Linux / macOS: ejecuta `./scripts/optimize_joy_tablet.sh`.
+
+El script configura automáticamente JoyOS como Home Launcher principal, otorga permisos vehiculares, elimina el limitador de volumen de Android y congela de manera segura el launcher genérico preinstalado.
 
 ---
 
@@ -30,14 +40,15 @@ JoyOS/
 ├── .github/workflows/
 │   └── build-apk.yml             # Compilación automatizada en CI con Gradle 8.5 y JDK 17
 ├── app/
-│   ├── build.gradle.kts          # Módulo Android (SDK 34, minSdk 26, ProGuard rules)
+│   ├── build.gradle.kts          # Módulo Android (SDK 34, minSdk 26, ProGuard rules, v8.0.0)
 │   ├── src/main/
 │   │   ├── AndroidManifest.xml   # Intent filters de HOME Launcher y permisos vehiculares
 │   │   ├── java/com/joyos/launcher/
 │   │   │   ├── MainActivity.kt   # Actividad inmersiva a pantalla completa y ciclo de vida
 │   │   │   ├── bridge/
-│   │   │   │   └── AndroidBridge.kt       # Puente JavaScript <-> Android (Apps, volumen, updates)
+│   │   │   │   └── AndroidBridge.kt       # Puente JavaScript <-> Android (Apps, DSP, volumen, RAM)
 │   │   │   └── services/
+│   │   │       ├── JoyAudioDspEngine.kt   # Motor DSP hardware (Equalizer, BassBoost, Loudness, Virtualizer)
 │   │   │       ├── GpsTelemetryManager.kt # Velocidad real GPS (km/h) y odómetro a 2 Hz
 │   │   │       ├── ObdBleManager.kt       # Conexión continua a Vgate iCar Pro 4.0 (ELM327 CAN)
 │   │   │       └── TpmsUsbReceiver.kt     # Monitoreo de presión de llantas por USB OTG
@@ -47,7 +58,10 @@ JoyOS/
 │   │       ├── css/fonts.css     # Fuentes Sora y Manrope locales en WOFF2
 │   │       ├── fonts/            # Archivos binarios tipográficos offline
 │   │       └── js/tailwindcss.min.js # Motor de utilidades local
-└── prototype_v7_joy.html         # Prototipo interactivo con simulador de señales para navegador
+├── scripts/
+│   ├── optimize_joy_tablet.bat   # Script automatizado de optimización para Windows
+│   └── optimize_joy_tablet.sh    # Script automatizado de optimización para Linux/macOS
+└── prototype_v8_joy.html         # Prototipo interactivo con simulador de señales para navegador
 ```
 
 ---
