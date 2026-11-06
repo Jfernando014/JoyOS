@@ -43,14 +43,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v8.1.0' }}
-          name: "JoyOS v8.1.0 (Release APK & OTA Hot-Update)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v8.2.0' }}
+          name: "JoyOS v8.2.0 (Native Hardware Super Optimizer & OTA)"
           body: |
-            ### 🚀 JoyOS v8.1.0 — Actualizaciones Automáticas OTA & Ecualizador Pro
-            - **Sistema OTA Autónomo**: Comprobación directa y descargas automáticas vía Wi-Fi sin cables ni PC.
-            - **Hot-Updates en Caliente**: Actualización de interfaz en 3 segundos (`joy_os_live.html`) sin reiniciar la app.
-            - **Ecualizador de 5 Bandas**: Curva Bézier fluida, BassBoost dedicado y atenuador inteligente de audio para navegación.
-            - **Hardware AC8227L / ZXDZ_01**: Desbloqueo de audio a 48kHz sin limitador de volumen y asignación de prioridad de memoria.
+            ### 🚀 JoyOS v8.2.0 — Optimizador de Hardware Nativo & USB Manager
+            - **Super Optimizador de Hardware 100% Nativo**: Ejecuta el script de rendimiento directamente dentro de la app sin requerir PC ni cables ADB.
+            - **Audio Sin Límites**: Desbloqueo nativo del limitador de volumen de fábrica (`audio_safe_volume_state = 2`) y escalado a 48kHz.
+            - **Suspensión de Bloatware OEM**: Desactiva en segundo plano los launchers de fábrica (`launcher3`, `fyt`, `ts`, `xyauto`) liberando núcleos de CPU y RAM.
+            - **Gestor de Archivos USB**: Interfaz dual con temas oscuro y claro, filtros rápidos para APKs y música, e instalador directo.
+            - **Sistema OTA Autónomo**: Actualizaciones en caliente y descargas automáticas vía Wi-Fi.
           files: |
             app/build/outputs/apk/debug/JoyOSLauncher.apk
             joy_os_live.html

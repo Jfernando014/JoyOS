@@ -1,4 +1,4 @@
-# JoyOS v8.1 — Automotive Home Launcher & Hardware DSP OS
+# JoyOS v8.2 — Automotive Home Launcher & Hardware DSP OS
 
 [![Build JoyOS Launcher APK](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android_10%2B_%7C_SDK_26--34-brightgreen.svg)]()
@@ -6,7 +6,7 @@
 
 Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1024×600`, MediaTek `AC8227L`, MCU `cm69`) en Chevrolet Joy 2022.
 
-Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, interfaz de audio Coverflow, **Ecualizador Gráfico de 5 bandas con curva Bézier en tiempo real**, **Motor de Audio Hardware DSP de alta ganancia** (`Equalizer`, `BassBoost`, `LoudnessEnhancer`, `Virtualizer`), **Sistema Autónomo de Actualizaciones OTA vía Wi-Fi con Hot-Updates en 3 segundos** y scripts de optimización para aprovechar el 100% de la tablet sin bloatware de fábrica.
+Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, interfaz de audio Coverflow, **Ecualizador Gráfico de 5 bandas con curva Bézier en tiempo real**, **Motor de Audio Hardware DSP de alta ganancia** (`Equalizer`, `BassBoost`, `LoudnessEnhancer`, `Virtualizer`), **Super Optimizador de Hardware 100% In-App (Root Shell & RAM)**, **Sistema Autónomo de Actualizaciones OTA vía Wi-Fi con Hot-Updates en 3 segundos** y Gestor de Archivos USB guantera.
 
 ---
 
@@ -14,29 +14,25 @@ Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escán
 
 Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
 
-👉 **[📥 Descargar JoyOSLauncher.apk v8.1.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.1.0/JoyOSLauncher.apk)**
+👉 **[📥 Descargar JoyOSLauncher.apk v8.2.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.2.0/JoyOSLauncher.apk)**
 
 > [!TIP]
 > También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.
 
 ---
 
-## 🔄 Actualizaciones Automáticas OTA (Over-The-Air)
+## ⚡ Super Optimización de Hardware 100% In-App (Sin PC ni cables)
 
-A partir de JoyOS v8.1, la pantalla de tu Chevrolet Joy puede buscar y aplicar actualizaciones directamente por Wi-Fi sin necesidad de cables ni computadores:
-1. **Comprobación Automática en GitHub:** Cada vez que el carro se conecta al Wi-Fi (o al tocar *"Buscar actualizaciones"* en Ajustes), JoyOS consulta el repositorio y te avisa en la Dynamic Island.
-2. **Hot-Updates en Caliente (3 segundos):** Si la actualización es de diseño, ecualizador o velocímetro, descarga el paquete visual (`joy_os_live.html`) y recarga la pantalla suavemente sin reiniciar el sistema ni tocar botones de Android.
-3. **Actualización de Sistema APK:** Si hay cambios en los motores de audio o permisos nativos, descarga el nuevo APK y lo instala con un solo toque.
+A partir de JoyOS v8.2, no necesitas conectar tu laptop a la tablet ni usar cables USB especiales:
+1. **Auto-Optimización al Encender:** 4 segundos después de arrancar el carro, JoyOS ejecuta de forma silenciosa el optimizador nativo en segundo plano.
+2. **Botón Manual de 1 Toque:** En *Ajustes → Información del Sistema*, toca **`[ ⚡ Optimizar Hardware al 100% (Super Mode) ]`**.
+3. **¿Qué realiza internamente?**
+   - Desbloquea el limitador de audio de fábrica (`audio_safe_volume_state = 2`).
+   - Escala las animaciones a `0.5x` para máxima fluidez y respuesta táctil instantánea.
+   - Si la tablet tiene acceso Root de fábrica (MediaTek AC8227L), congela de inmediato los launchers OEM (`launcher3`, `fyt`, `ts`, `xyauto`) ahorrando ~400 MB de RAM y liberando ciclos de CPU.
+   - Habilita el puerto ADB inalámbrico `5555` en segundo plano.
 
----
-
-## 🚀 Optimización del 100% del Hardware (Script de 1 Clic por ADB)
-
-Para que la tablet no ejecute el launcher de fábrica en segundo plano (ahorrando ~400 MB de RAM) y entregue el 100% de la potencia de audio y aceleración por GPU:
-* En Windows: ejecuta con doble clic el archivo `scripts/optimize_joy_tablet.bat`.
-* En Linux / macOS: ejecuta `./scripts/optimize_joy_tablet.sh`.
-
-El script configura automáticamente JoyOS como Home Launcher principal, otorga permisos vehiculares, elimina el limitador de volumen de Android y congela de manera segura el launcher genérico preinstalado.
+*(Opcional: Si prefieres ejecutarlo externamente desde un PC por ADB, puedes seguir usando `scripts/optimize_joy_tablet.bat` o `./scripts/optimize_joy_tablet.sh`)*.
 
 ---
 
