@@ -4116,7 +4116,11 @@
       speed: 58,
       rpm: 2450,
       gear: 3,
-      accel: false
+      accel: false,
+      fileDrive: 'usb',
+      fileFilter: 'all',
+      filesPage: 1,
+      filesPerPage: 4
     };
 
     function switchTab(t) {
@@ -4804,12 +4808,12 @@
     ];
 
     const storageFiles = [
-      { id: 'f_ota', drive: 'usb', cat: 'apk', name: 'JoyOS_v8.0_HotUpdate.html', size: '340 KB', desc: 'Actualización en caliente de Interfaz JoyOS', actionLbl: 'Actualizar OS', actionType: 'ota', installed: false },
-      { id: 'f_apk1', drive: 'usb', cat: 'apk', name: 'YouTube_Car_HD.apk', size: '24,6 MB', desc: 'Reproductor de video en estacionamiento', actionLbl: 'Instalar APK', actionType: 'apk', appName: 'YouTube', appSub: 'Video', appGrad: 'from-red-500 to-rose-700', installed: false },
-      { id: 'f_apk2', drive: 'usb', cat: 'apk', name: 'CarScanner_ELM327_Pro.apk', size: '18,2 MB', desc: 'Diagnóstico profundo ECU Chevrolet 1.4L', actionLbl: 'Instalar APK', actionType: 'apk', appName: 'Car Scanner', appSub: 'OBD2', appGrad: 'from-blue-400 to-cyan-600', installed: false },
-      { id: 'f_mp3', drive: 'usb', cat: 'media', name: 'Playlist_Ruta_Colombia_FLAC.mp3', size: '42,0 MB', desc: 'Audio sin compresión · Importar al Coverflow', actionLbl: 'Reproducir', actionType: 'music', installed: false },
-      { id: 'f_img', drive: 'internal', cat: 'media', name: 'Logo_Chevrolet_RS_Avatar.png', size: '1,4 MB', desc: 'Imagen para avatar de perfil activo', actionLbl: 'Usar en Perfil', actionType: 'avatar', installed: false },
-      { id: 'f_bak', drive: 'internal', cat: 'media', name: 'Bitacora_Vehiculo_Backup.json', size: '18 KB', desc: 'Respaldo local de SOAT, Aceite y Perfiles', actionLbl: 'Respaldado ✓', actionType: 'backup', installed: true }
+      { id: 'f_ota', drive: 'usb', cat: 'apk', ext: 'html', name: 'JoyOS_v8.0_HotUpdate.html', size: '340 KB', desc: 'Actualización de la interfaz JoyOS', actionLbl: 'Actualizar', actionType: 'ota', installed: false },
+      { id: 'f_apk1', drive: 'usb', cat: 'apk', ext: 'apk', name: 'YouTube_Car_HD.apk', size: '24,6 MB', desc: 'Video en estacionamiento · origen desconocido', actionLbl: 'Instalar', actionType: 'apk', appName: 'YouTube', appSub: 'Video', appGrad: 'from-red-500 to-rose-700', installed: false },
+      { id: 'f_apk2', drive: 'usb', cat: 'apk', ext: 'apk', name: 'CarScanner_ELM327_Pro.apk', size: '18,2 MB', desc: 'Diagnóstico de la ECU del Chevrolet 1.4L', actionLbl: 'Instalar', actionType: 'apk', appName: 'Car Scanner', appSub: 'OBD2', appGrad: 'from-blue-400 to-cyan-600', installed: false },
+      { id: 'f_mp3', drive: 'usb', cat: 'media', ext: 'mp3', name: 'Playlist_Ruta_Colombia_FLAC.mp3', size: '42,0 MB', desc: 'Lista de reproducción', actionLbl: 'Reproducir', actionType: 'music', installed: false },
+      { id: 'f_img', drive: 'internal', cat: 'media', ext: 'img', name: 'Logo_Chevrolet_RS_Avatar.png', size: '1,4 MB', desc: 'Avatar para perfil de conductor', actionLbl: 'Aplicar', actionType: 'avatar', installed: false },
+      { id: 'f_bak', drive: 'internal', cat: 'media', ext: 'json', name: 'Bitacora_Vehiculo_Backup.json', size: '18 KB', desc: 'Copia de seguridad local SOAT y perfiles', actionLbl: 'Restaurar', actionType: 'backup', installed: false }
     ];
 
     function openAppsSubView(sub, filterOpt = null) {
@@ -5043,12 +5047,41 @@
 
     function selectFileDrive(drv) {
       state.fileDrive = drv;
+      state.filesPage = 1;
       renderFilesManagerUI();
     }
 
     function setFileFilter(flt) {
       state.fileFilter = flt;
+      state.filesPage = 1;
       renderFilesManagerUI();
+    }
+
+    function navigateFilesPage(dir) {
+      const filtered = storageFiles.filter(f => state.fileFilter === 'all' || f.cat === state.fileFilter);
+      const totalPages = Math.max(1, Math.ceil(filtered.length / state.filesPerPage));
+      const nextP = state.filesPage + dir;
+      if (nextP >= 1 && nextP <= totalPages) {
+        state.filesPage = nextP;
+        renderFilesManagerUI();
+      }
+    }
+
+    function getFileTypeBadge(ext) {
+      const e = (ext || '').toLowerCase();
+      if (e === 'html') {
+        return { lbl: 'HTML', cls: 'badge-html' };
+      }
+      if (e === 'apk') {
+        return { lbl: 'APK', cls: 'badge-apk' };
+      }
+      if (e === 'mp3') {
+        return { lbl: '♪', cls: 'badge-music' };
+      }
+      if (e === 'img' || e === 'png' || e === 'jpg') {
+        return { lbl: 'IMG', cls: 'badge-img' };
+      }
+      return { lbl: 'DAT', cls: 'badge-dat' };
     }
 
     function triggerHotUpdateSim() {
@@ -5058,7 +5091,7 @@
       enqueueNotification({
         type: 'info',
         dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
-        title: 'JoyOS v8.0 actualizado',
+        title: 'JoyOS v8.1 actualizado',
         tag: 'Hot-Update aplicado correctamente',
         tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
         targetTab: 'apps'
@@ -5111,63 +5144,120 @@
 
     function renderFilesManagerUI() {
       const pathEl = document.getElementById('files-current-path');
-      const headEl = document.getElementById('files-list-heading');
       const listEl = document.getElementById('files-items-container');
       const btnUsb = document.getElementById('drive-btn-usb');
       const btnInt = document.getElementById('drive-btn-internal');
+      const badgeUsb = document.getElementById('drive-badge-usb');
+      const badgeInt = document.getElementById('drive-badge-internal');
+      const pageIndicator = document.getElementById('files-page-indicator');
+      const prevBtn = document.getElementById('files-prev-btn');
+      const nextBtn = document.getElementById('files-next-btn');
       if (!listEl) return;
 
+      // 1. Path Breadcrumb
       if (pathEl) {
         pathEl.textContent = state.fileDrive === 'usb'
-          ? '/storage/usb0 · Kingston DataTraveler 32 GB'
-          : '/storage/emulated/0 · Memoria Interna AC8227L';
-      }
-      if (headEl) {
-        headEl.textContent = state.fileDrive === 'usb' ? 'Archivos en USB' : 'Archivos en Memoria Interna';
+          ? '/storage/usb0 · Kingston DataTraveler 32 GB · FAT32'
+          : '/storage/emulated/0 · Memoria Interna · AC8227L';
       }
 
+      // 2. Drive Selection Buttons & Badges
       if (btnUsb && btnInt) {
-        btnUsb.className = state.fileDrive === 'usb'
-          ? 'pressable p-2.5 rounded-xl text-left flex items-center justify-between bg-[var(--accent)]/15 text-[var(--accent)] font-semibold'
-          : 'pressable p-2.5 rounded-xl text-left flex items-center justify-between hover:bg-current/5';
-        btnInt.className = state.fileDrive === 'internal'
-          ? 'pressable p-2.5 rounded-xl text-left flex items-center justify-between bg-[var(--accent)]/15 text-[var(--accent)] font-semibold'
-          : 'pressable p-2.5 rounded-xl text-left flex items-center justify-between hover:bg-current/5';
+        if (state.fileDrive === 'usb') {
+          btnUsb.classList.add('active');
+          btnInt.classList.remove('active');
+          if (badgeUsb) {
+            badgeUsb.textContent = 'Activa';
+            badgeUsb.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
+          }
+          if (badgeInt) {
+            badgeInt.textContent = '32 GB';
+            badgeInt.className = 'text-[10px] text-[var(--mute)] font-medium';
+          }
+        } else {
+          btnInt.classList.add('active');
+          btnUsb.classList.remove('active');
+          if (badgeInt) {
+            badgeInt.textContent = 'Activa';
+            badgeInt.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
+          }
+          if (badgeUsb) {
+            badgeUsb.textContent = 'Conectada';
+            badgeUsb.className = 'text-[10px] text-[var(--mute)] font-medium';
+          }
+        }
       }
 
-      ['all', 'apk', 'media'].forEach(flt => {
-        const b = document.getElementById('ff-btn-' + flt);
-        if (b) {
-          b.className = state.fileFilter === flt
-            ? 'pressable py-1.5 px-2.5 rounded-lg text-left font-bold text-[var(--accent)] bg-[var(--accent)]/10'
-            : 'pressable py-1.5 px-2.5 rounded-lg text-left text-[var(--mute)] hover:text-[var(--ink)]';
-        }
-      });
+      // 3. Filter Pills with Dynamic Counts
+      const allCount = storageFiles.length;
+      const apkCount = storageFiles.filter(f => f.cat === 'apk').length;
+      const mediaCount = storageFiles.filter(f => f.cat === 'media').length;
 
+      const btnAll = document.getElementById('ff-btn-all');
+      const btnApk = document.getElementById('ff-btn-apk');
+      const btnMedia = document.getElementById('ff-btn-media');
+
+      if (btnAll) {
+        btnAll.textContent = `Todos · ${allCount}`;
+        btnAll.className = state.fileFilter === 'all'
+          ? 'pressable px-3 py-1.5 rounded-xl font-bold text-xs transition filter-pill active'
+          : 'pressable px-3 py-1.5 rounded-xl font-semibold text-xs text-[var(--mute)] border border-transparent transition filter-pill';
+      }
+      if (btnApk) {
+        btnApk.textContent = `Instaladores · ${apkCount}`;
+        btnApk.className = state.fileFilter === 'apk'
+          ? 'pressable px-3 py-1.5 rounded-xl font-bold text-xs transition filter-pill active'
+          : 'pressable px-3 py-1.5 rounded-xl font-semibold text-xs text-[var(--mute)] border border-transparent transition filter-pill';
+      }
+      if (btnMedia) {
+        btnMedia.textContent = `Música · ${mediaCount}`;
+        btnMedia.className = state.fileFilter === 'media'
+          ? 'pressable px-3 py-1.5 rounded-xl font-bold text-xs transition filter-pill active'
+          : 'pressable px-3 py-1.5 rounded-xl font-semibold text-xs text-[var(--mute)] border border-transparent transition filter-pill';
+      }
+
+      // 4. Filtering & Pagination (4 items per page)
       const filtered = storageFiles.filter(f => {
         if (state.fileFilter !== 'all' && f.cat !== state.fileFilter) return false;
         return true;
       });
 
-      listEl.innerHTML = filtered.map(f => `
-        <div class="py-2 flex items-center justify-between gap-3">
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <span class="font-sora font-medium text-xs text-[var(--ink)] truncate">${f.name}</span>
-              <span class="px-2 py-0.5 rounded-md bg-current/[0.06] text-[10px] text-[var(--mute)] tabular-nums">${f.size}</span>
+      const totalPages = Math.max(1, Math.ceil(filtered.length / state.filesPerPage));
+      state.filesPage = Math.min(Math.max(1, state.filesPage), totalPages);
+
+      if (pageIndicator) pageIndicator.textContent = `${state.filesPage} / ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = state.filesPage <= 1;
+      if (nextBtn) nextBtn.disabled = state.filesPage >= totalPages;
+
+      const pageItems = filtered.slice(
+        (state.filesPage - 1) * state.filesPerPage,
+        state.filesPage * state.filesPerPage
+      );
+
+      // 5. Render Individual File Cards matching the new proposal
+      listEl.innerHTML = pageItems.map(f => {
+        const badge = getFileTypeBadge(f.ext);
+        return `
+          <div class="file-item-card p-3 rounded-2xl flex items-center justify-between gap-3 border transition">
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="file-type-icon w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${badge.cls}">
+                ${badge.lbl}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-sora font-bold text-xs text-[var(--ink)] truncate">${f.name}</span>
+                  <span class="text-[11px] text-[var(--mute)] tabular-nums shrink-0">${f.size}</span>
+                </div>
+                <div class="text-[11px] text-[var(--mute)] truncate mt-0.5">${f.desc}</div>
+              </div>
             </div>
-            <div class="text-[11px] text-[var(--mute)] truncate">${f.desc}</div>
+            <button onclick="handleFileAction('${f.id}')"
+                    class="file-action-pill pressable px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition ${f.installed ? 'installed' : ''}">
+              ${f.installed ? 'Listo ✓' : f.actionLbl}
+            </button>
           </div>
-          <button onclick="handleFileAction('${f.id}')"
-                  class="pressable px-3 py-1.5 rounded-xl text-[11px] font-bold shrink-0 ${
-                    f.installed
-                      ? 'bg-emerald-500/20 text-emerald-400'
-                      : 'bg-[var(--accent)] text-slate-950 shadow-sm'
-                  }">
-            ${f.installed ? 'Instalado ✓' : f.actionLbl}
-          </button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     // --- SWIPE DEDICADO EN CANCIÓN (CAMBIAR CANCIÓN SIN CAMBIAR DE PESTAÑA) ---
