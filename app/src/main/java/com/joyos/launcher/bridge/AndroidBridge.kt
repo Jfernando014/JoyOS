@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.Settings
 import android.util.Log
 import android.webkit.JavascriptInterface
@@ -431,13 +432,240 @@ class AndroidBridge(
         }
     }
 
+    /**
+     * Opens native Android System Settings. Never traps the user.
+     */
+    @JavascriptInterface
+    fun openAndroidSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) {
+            launchApp("com.android.settings")
+        }
+    }
+
+    /**
+     * Emergency Exit / Launcher Switcher.
+     * Opens Android's default home selector so the user can easily return to the stock launcher.
+     */
+    @JavascriptInterface
+    fun openHomeSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_HOME_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) {
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+                true
+            } catch (_: Throwable) {
+                openAndroidSettings()
+            }
+        }
+    }
+
+    /**
+     * Opens native Wi-Fi settings for wireless OBD2 / internet hotspot.
+     */
+    @JavascriptInterface
+    fun openWifiSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) {
+            openAndroidSettings()
+        }
+    }
+
+    /**
+     * Opens native Bluetooth settings to pair phone or OBD2 ELM327 scanner.
+     */
+    @JavascriptInterface
+    fun openBluetoothSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) {
+            openAndroidSettings()
+        }
+    }
+
+    /**
+     * Reboots the Android head unit.
+     */
+    @JavascriptInterface
+    fun rebootDevice() {
+        try {
+            Runtime.getRuntime().exec(arrayOf("su", "-c", "reboot"))
+        } catch (_: Throwable) {
+            try {
+                Runtime.getRuntime().exec("reboot")
+            } catch (_: Throwable) {
+                Toast.makeText(context, "Reinicio requiere permisos de sistema", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Re-enables all factory OEM launchers and restores standard animations (Safety Rollback).
+     */
+    @JavascriptInterface
+    fun restoreFactoryLaunchers(): Boolean {
+        return try {
+            val packages = listOf(
+                "com.android.launcher3",
+                "com.fyt.launcher",
+                "com.ts.main",
+                "com.xyauto.launcher",
+                "com.autochips.carplay"
+            )
+            packages.forEach { pkg ->
+                try { Runtime.getRuntime().exec(arrayOf("su", "-c", "pm enable $pkg")).waitFor() } catch (_: Throwable) {}
+            }
+            try { Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global window_animation_scale 1.0")).waitFor() } catch (_: Throwable) {}
+            try { Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global transition_animation_scale 1.0")).waitFor() } catch (_: Throwable) {}
+            try { Runtime.getRuntime().exec(arrayOf("su", "-c", "settings put global animator_duration_scale 1.0")).waitFor() } catch (_: Throwable) {}
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Scans real files from connected USB drives in glovebox or internal storage.
+     * Returns JSON array of real APK and media files.
+     */
+    @JavascriptInterface
+    fun getStorageFiles(driveType: String): String {
+        return try {
+            val fileList = JSONArray()
+            val targetDirs = mutableListOf<File>()
+
+            if (driveType.equals("usb", ignoreCase = true)) {
+                // Potential USB OTG mount points in automotive MediaTek AC8227L units
+                val storageRoot = File("/storage")
+                if (storageRoot.exists() && storageRoot.isDirectory) {
+                    storageRoot.listFiles()?.forEach { file ->
+                        val name = file.name.lowercase()
+                        if (file.isDirectory && name != "emulated" && name != "self" && file.canRead()) {
+                            targetDirs.add(file)
+                        }
+                    }
+                }
+                val mntMedia = File("/mnt/media_rw")
+                if (mntMedia.exists() && mntMedia.isDirectory) {
+                    mntMedia.listFiles()?.forEach { file ->
+                        if (file.isDirectory && file.canRead() && !targetDirs.contains(file)) {
+                            targetDirs.add(file)
+                        }
+                    }
+                }
+                // Check removable external directories via Context
+                context.getExternalFilesDirs(null)?.forEach { dir ->
+                    if (dir != null && Environment.isExternalStorageRemovable(dir)) {
+                        var root: File? = dir
+                        while (root?.parentFile != null && root.parentFile?.absolutePath != "/storage") {
+                            root = root.parentFile
+                        }
+                        if (root != null && root.canRead() && !targetDirs.contains(root)) {
+                            targetDirs.add(root)
+                        }
+                    }
+                }
+                listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage").forEach { p ->
+                    val f = File(p)
+                    if (f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
+                        targetDirs.add(f)
+                    }
+                }
+            } else {
+                // Internal storage roots
+                targetDirs.add(Environment.getExternalStorageDirectory())
+                targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
+                targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC))
+            }
+
+            val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma")
+            val foundFiles = mutableListOf<File>()
+
+            fun scanDir(dir: File, depth: Int) {
+                if (depth > 3 || foundFiles.size >= 80) return
+                val entries = dir.listFiles() ?: return
+                for (entry in entries) {
+                    if (entry.isDirectory && !entry.name.startsWith(".")) {
+                        scanDir(entry, depth + 1)
+                    } else if (entry.isFile) {
+                        val ext = entry.extension.lowercase()
+                        if (validExtensions.contains(ext)) {
+                            foundFiles.add(entry)
+                        }
+                    }
+                }
+            }
+
+            for (dir in targetDirs) {
+                scanDir(dir, 0)
+            }
+
+            for (file in foundFiles) {
+                val ext = file.extension.lowercase()
+                val isApk = ext == "apk"
+                val isAudio = ext in setOf("mp3", "flac", "wav", "m4a", "aac", "ogg", "wma")
+                val item = JSONObject().apply {
+                    put("id", "f_" + file.absolutePath.hashCode())
+                    put("name", file.name)
+                    put("path", file.absolutePath)
+                    put("size", formatFileSize(file.length()))
+                    put("bytes", file.length())
+                    put("ext", ext)
+                    put("isApk", isApk)
+                    put("isAudio", isAudio)
+                    put("drive", driveType)
+                    put("lastModified", file.lastModified())
+                }
+                fileList.put(item)
+            }
+
+            fileList.toString()
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error scanning storage files: ${e.message}")
+            "[]"
+        }
+    }
+
+    private fun formatFileSize(bytes: Long): String {
+        if (bytes < 1024) return "$bytes B"
+        val kb = bytes / 1024.0
+        if (kb < 1024) return "%.1f KB".format(kb)
+        val mb = kb / 1024.0
+        if (mb < 1024) return "%.1f MB".format(mb)
+        val gb = mb / 1024.0
+        return "%.1f GB".format(gb)
+    }
+
     private fun categorizeApp(pkg: String): String {
         val lower = pkg.lowercase()
         return when {
-            lower.contains("map") || lower.contains("waze") || lower.contains("navigation") -> "nav"
-            lower.contains("music") || lower.contains("spotify") || lower.contains("radio") || lower.contains("audio") -> "media"
-            lower.contains("zlink") || lower.contains("auto") || lower.contains("carplay") -> "link"
-            lower.contains("torque") || lower.contains("obd") || lower.contains("tpms") -> "vehicle"
+            lower.contains("map") || lower.contains("waze") || lower.contains("navigation") || lower.contains("here") -> "nav"
+            lower.contains("music") || lower.contains("spotify") || lower.contains("radio") || lower.contains("audio") || lower.contains("sound") -> "media"
+            lower.contains("zlink") || lower.contains("auto") || lower.contains("carplay") || lower.contains("tlink") -> "link"
+            lower.contains("torque") || lower.contains("obd") || lower.contains("tpms") || lower.contains("carscanner") -> "vehicle"
+            lower.contains("setting") || lower.contains("config") -> "settings"
             else -> "tools"
         }
     }
