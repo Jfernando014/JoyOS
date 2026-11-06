@@ -6,6 +6,11 @@
   <title>JoyOS Production v1.0.0 — Chevrolet Joy</title>
   <link rel="stylesheet" href="css/fonts.css">
   <script src="js/tailwindcss.min.js"></script>
+  <script>
+    if (typeof window.AndroidBridge !== 'undefined' || window.location.search.includes('prod=1') || window.location.search.includes('native=1') || (window.innerWidth >= 1200 && window.innerHeight <= 800)) {
+      document.documentElement.classList.add('is-native-car');
+    }
+  </script>
   <style>
     * {
       box-sizing: border-box;
@@ -1572,19 +1577,23 @@
       border-color: rgba(var(--arc), 0.25);
     }
 
-    /* Native Head Unit Fullscreen Mode (1024x600 edge-to-edge, 0 bezel overhead) */
-    body.is-native-car {
+    /* Native Head Unit Fullscreen Mode (1280x720 edge-to-edge, 0 bezel overhead) */
+    html.is-native-car body, body.is-native-car {
       padding: 0 !important;
       margin: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
       overflow: hidden !important;
       background: #0a0e17 !important;
     }
-    body.is-native-car #tablet-frame-wrap {
+    html.is-native-car #tablet-frame-wrap, body.is-native-car #tablet-frame-wrap {
       max-width: 100vw !important;
       width: 100vw !important;
       height: 100vh !important;
+      margin: 0 !important;
     }
-    body.is-native-car #tablet-viewport {
+    html.is-native-car #tablet-viewport, body.is-native-car #tablet-viewport {
+      max-width: 100vw !important;
       width: 100vw !important;
       height: 100vh !important;
       border-radius: 0 !important;
@@ -1596,10 +1605,10 @@
 <body class="bg-[#060911] text-slate-100 antialiased p-2 md:p-5 min-h-screen flex flex-col items-center justify-center relative overflow-x-hidden">
 
   <!-- ===================================================================== -->
-  <!-- TABLET SCREEN CONTAINER (9-INCH 1024x600 PROPORTION)                  -->
+  <!-- TABLET SCREEN CONTAINER (9-INCH 1280x720 16:9 PROPORTION)             -->
   <!-- ===================================================================== -->
-  <div id="tablet-frame-wrap" class="w-full max-w-[1040px] mx-auto">
-    <div id="tablet-viewport" class="theme-dark relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500" style="height: 575px;">
+  <div id="tablet-frame-wrap" class="w-full max-w-[1280px] mx-auto">
+    <div id="tablet-viewport" class="theme-dark relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500" style="aspect-ratio: 16 / 9; max-height: 720px; min-height: 580px;">
 
       <!-- DYNAMIC AMBIENT COLOR BLOBS FOR MUSIC COVERFLOW VIEW (Screenshot 3!) -->
       <div id="music-ambient-bg" class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 overflow-hidden z-0">
@@ -1611,7 +1620,7 @@
       <!-- ================================================================= -->
       <!-- 0. USER 2-STAGE BOOT CEREMONY (CHEVROLET SHEEN + TWIN SWEEP GAUGES) -->
       <!-- ================================================================= -->
-      <div id="boot-overlay" class="boot-stage run cursor-pointer" title="Doble toque (double tap) para saltar">
+      <div id="boot-overlay" class="boot-stage cursor-pointer hidden-boot" style="display: none;" title="Toca para omitir">
 
 
         <!-- STAGE 1: AUTHENTIC FACETED CHEVROLET LOGOV2 (PURE LOGO-MASKED SHEEN — ZERO BOX LEAKAGE) -->
@@ -1886,15 +1895,15 @@
 
           <!-- Quick Profile Pill in Top Bar -->
           <button onclick="openProfileSelector()" id="top-profile-pill" class="pressable flex items-center gap-2 px-2.5 py-1 rounded-full soft-surface soft-surface-interactive text-xs font-semibold" title="Cambiar o editar perfil">
-            <span id="top-profile-avatar" class="w-5 h-5 rounded-full bg-gradient-to-br from-[#5ce1e6] to-[#0284c7] text-slate-950 font-bold text-[10px] flex items-center justify-center overflow-hidden shadow-sm">F</span>
-            <span id="top-profile-name" class="text-[var(--ink)] text-xs font-semibold">Fernando</span>
+            <span id="top-profile-avatar" class="w-5 h-5 rounded-full bg-gradient-to-br from-[#5ce1e6] to-[#0284c7] text-slate-950 font-bold text-[10px] flex items-center justify-center overflow-hidden shadow-sm">C</span>
+            <span id="top-profile-name" class="text-[var(--ink)] text-xs font-semibold">Conductor 1</span>
           </button>
         </div>
 
         <!-- Center Clock & Expandable Dynamic Island with Date -->
         <div class="island-wrap">
           <button class="island" id="island" aria-expanded="false" title="Toca para ver fecha actual">
-            <span class="t" id="clock">02:40 p. m.</span>
+            <span class="t" id="clock">--:--</span>
             <span class="d" id="date"></span>
           </button>
         </div>
@@ -1902,7 +1911,7 @@
         <!-- Over-The-Air (OTA) Dynamic Update Pill -->
         <div id="ota-update-pill" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-bold cursor-pointer pressable animate-pulse shadow-[0_0_12px_rgba(6,182,212,0.35)]" onclick="openOtaModal()" title="Nueva versión de JoyOS disponible">
           <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-          <span id="ota-pill-text">JoyOS v8.1 · Actualizar</span>
+          <span id="ota-pill-text">JoyOS · Actualizar</span>
         </div>
 
         <!-- Hidden legacy node; volume now stacks in #notification-stack-container -->
@@ -1935,8 +1944,16 @@
           </div>
 
           <div class="conn">
+            <!-- Dynamic Wi-Fi Status Icon -->
+            <svg id="top-wifi-icon" onclick="openWifiDirect()" class="ic opacity-30 cursor-pointer transition-opacity duration-200" viewBox="0 0 24 24" title="Wi-Fi (desconectado)">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
+
             <!-- Dynamic Phone Signal Bars (Active only when phone connected via BT) -->
-            <svg id="top-signal-icon" onclick="openBluetoothDirect()" class="ic cursor-pointer transition-opacity duration-200" viewBox="0 0 24 24" title="Señal del teléfono conectado">
+            <svg id="top-signal-icon" onclick="openBluetoothDirect()" class="ic opacity-30 cursor-pointer transition-opacity duration-200" viewBox="0 0 24 24" title="Señal del teléfono (desconectado)">
               <line id="sig-bar-1" x1="5" y1="18" x2="5" y2="15"/>
               <line id="sig-bar-2" x1="9.5" y1="18" x2="9.5" y2="12"/>
               <line id="sig-bar-3" x1="14" y1="18" x2="14" y2="9"/>
@@ -1944,16 +1961,16 @@
             </svg>
 
             <!-- Dynamic Bluetooth Symbol (Active ONLY when Bluetooth connection active, gray otherwise) -->
-            <svg id="top-bt-icon" class="ic on transition-all duration-200 select-none" viewBox="0 0 24 24" title="Bluetooth">
+            <svg id="top-bt-icon" onclick="openBluetoothDirect()" class="ic opacity-35 cursor-pointer transition-all duration-200 select-none" viewBox="0 0 24 24" title="Bluetooth">
               <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/>
             </svg>
 
             <!-- Dynamic Phone + Battery % from Connected Phone -->
-            <div id="top-phone-wrap" onclick="openBluetoothDirect()" class="phone cursor-pointer transition-opacity duration-200" title="Batería del teléfono conectado">
+            <div id="top-phone-wrap" onclick="openBluetoothDirect()" class="phone opacity-30 cursor-pointer transition-opacity duration-200" title="Teléfono no conectado">
               <svg class="ic" viewBox="0 0 24 24">
                 <rect x="6" y="3" width="12" height="18" rx="2.5"/><line x1="12" y1="17.5" x2="12.01" y2="17.5"/>
               </svg>
-              <span id="top-phone-batt" class="tabular-nums">88%</span>
+              <span id="top-phone-batt" class="tabular-nums">--%</span>
             </div>
 
             <!-- Quick Android Settings Safety Access (Never Trapped) -->
@@ -2010,10 +2027,10 @@
                   <div id="home-tail-glow" class="pointer-events-none absolute bottom-1 w-20 h-4 rounded-full bg-rose-500/45 blur-md opacity-0 transition-opacity duration-300"></div>
 
                   <!-- 4 Clean Tire Pressure Numbers (Tucked right beside each tire like reference!) -->
-                  <span id="home-psi-fl" class="absolute left-2.5 top-[50px] text-[13px] font-semibold tabular-nums transition-colors">32</span>
-                  <span id="home-psi-fr" class="absolute right-2.5 top-[50px] text-[13px] font-semibold tabular-nums">32</span>
-                  <span id="home-psi-rl" class="absolute left-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums">32</span>
-                  <span id="home-psi-rr" class="absolute right-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums">32</span>
+                  <span id="home-psi-fl" class="absolute left-2.5 top-[50px] text-[13px] font-semibold tabular-nums transition-colors">--</span>
+                  <span id="home-psi-fr" class="absolute right-2.5 top-[50px] text-[13px] font-semibold tabular-nums">--</span>
+                  <span id="home-psi-rl" class="absolute left-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums">--</span>
+                  <span id="home-psi-rr" class="absolute right-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums">--</span>
 
                   <!-- Sculpted Cenital Chevrolet Joy Render (Home Card) -->
                   <svg class="w-[112px] h-[216px] drop-shadow-[0_14px_24px_rgba(15,23,42,0.45)] transition-transform duration-300 group-hover:scale-[1.02]" viewBox="0 0 140 260" fill="none">
@@ -2134,7 +2151,7 @@
 
                 <!-- Single Clean Bottom Caption (Directly below rear of car, not separated!) -->
                 <div id="home-tpms-status" class="text-xs text-[var(--mute)] text-center mt-1.5">
-                  Presión de llantas · PSI
+                  Presión TPMS · Sin receptor
                 </div>
               </div>
 
@@ -2151,11 +2168,11 @@
                     <circle cx="100" cy="100" r="68" fill="none" stroke="#ef4444" stroke-width="4.5" stroke-dasharray="62 440" stroke-dashoffset="-232" stroke-linecap="round" transform="rotate(135 100 100)"/>
                     <g id="home-nfs-gear-grp">
                       <rect x="83" y="55" width="34" height="19" rx="3.5" fill="#cbb68e"/>
-                      <text id="home-nfs-gear" x="100" y="65" fill="#0f172a" font-family="Manrope, sans-serif" font-weight="600" font-size="12" text-anchor="middle" dominant-baseline="central">▲3</text>
+                      <text id="home-nfs-gear" x="100" y="65" fill="#0f172a" font-family="Manrope, sans-serif" font-weight="600" font-size="12" text-anchor="middle" dominant-baseline="central">N</text>
                     </g>
-                    <text id="home-nfs-speed" x="100" y="124" fill="#f8fafc" font-family="Sora, sans-serif" font-weight="200" font-size="34" class="tabular-nums" text-anchor="middle" dominant-baseline="central">58</text>
+                    <text id="home-nfs-speed" x="100" y="124" fill="#f8fafc" font-family="Sora, sans-serif" font-weight="200" font-size="34" class="tabular-nums" text-anchor="middle" dominant-baseline="central">0</text>
                     <text x="100" y="148" fill="var(--accent)" font-family="Manrope, sans-serif" font-weight="600" font-size="11" text-anchor="middle">km/h</text>
-                    <g id="home-nfs-needle" transform="rotate(-61 100 100)">
+                    <g id="home-nfs-needle" transform="rotate(-135 100 100)">
                       <polygon points="98,108 102,108 100.8,32 99.2,32" fill="var(--accent)"/>
                     </g>
                     <circle cx="100" cy="100" r="6" fill="#1e293b" stroke="#c4a262" stroke-width="2"/>
@@ -2165,10 +2182,10 @@
                   <div id="home-gauge-arc" class="hidden relative w-full h-full items-center justify-center">
                     <svg class="w-full h-full" viewBox="0 0 200 200">
                       <circle cx="100" cy="100" r="84" fill="none" stroke="var(--arc-track)" stroke-width="5.5" stroke-dasharray="352 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
-                      <circle id="home-arc-bar" cx="100" cy="100" r="84" fill="none" stroke="var(--accent)" stroke-width="5.5" stroke-dasharray="102 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
+                      <circle id="home-arc-bar" cx="100" cy="100" r="84" fill="none" stroke="var(--accent)" stroke-width="5.5" stroke-dasharray="0 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center pt-1">
-                      <span id="home-arc-speed" class="text-5xl speed-hero">58</span>
+                      <span id="home-arc-speed" class="text-5xl speed-hero">0</span>
                       <span class="text-xs text-[var(--mute)] mt-1">km/h</span>
                     </div>
                   </div>
@@ -2178,11 +2195,11 @@
                     <svg class="w-full h-full" viewBox="0 0 200 200">
                       <circle cx="100" cy="100" r="86" fill="none" stroke="var(--arc-track)" stroke-width="8" stroke-dasharray="3 6" transform="rotate(150 100 100)"/>
                       <circle cx="100" cy="100" r="76" fill="none" stroke="var(--arc-track)" stroke-width="4" stroke-dasharray="318 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
-                      <circle id="home-sport-bar" cx="100" cy="100" r="76" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="95 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
+                      <circle id="home-sport-bar" cx="100" cy="100" r="76" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="0 600" stroke-linecap="round" transform="rotate(150 100 100)"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span id="home-sport-gear" class="px-2 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-bold">M3</span>
-                      <span id="home-sport-speed" class="text-4xl speed-hero mt-0.5">58</span>
+                      <span id="home-sport-gear" class="px-2 py-0.5 rounded bg-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-bold">N</span>
+                      <span id="home-sport-speed" class="text-4xl speed-hero mt-0.5">0</span>
                       <span class="text-[10px] text-[var(--mute)] uppercase tracking-wider mt-0.5">km/h</span>
                     </div>
                   </div>
@@ -2193,19 +2210,19 @@
                 <div class="w-full flex flex-col text-[13px] tabular-nums">
                   <div class="flex items-center justify-between py-1.5 border-b border-[var(--line)]">
                     <span id="home-row1-lbl" class="text-[var(--mute)]">Marcha</span>
-                    <span id="home-rpm-text" class="font-semibold text-[var(--accent)]">M3 · 2450 rpm</span>
+                    <span id="home-rpm-text" class="font-semibold text-[var(--accent)]">N · -- rpm</span>
                   </div>
                   <div class="flex items-center justify-between py-1.5 border-b border-[var(--line)]">
                     <span id="home-row2-lbl" class="text-[var(--mute)]">Motor</span>
-                    <span id="home-ecu-status" class="font-semibold">88 °C</span>
+                    <span id="home-ecu-status" class="font-semibold">-- °C</span>
                   </div>
                   <div class="flex items-center justify-between py-1.5 border-b border-[var(--line)]">
                     <span id="home-row3-lbl" class="text-[var(--mute)]">Batería</span>
-                    <span id="home-batt-text" class="font-semibold">14,2 V</span>
+                    <span id="home-batt-text" class="font-semibold">-- V</span>
                   </div>
                   <div class="flex items-center justify-between pt-1.5">
                     <span id="home-row4-lbl" class="text-[var(--mute)]">Consumo</span>
-                    <span id="home-cons-text" class="font-semibold">13,8 km/L</span>
+                    <span id="home-cons-text" class="font-semibold">-- km/L</span>
                   </div>
                 </div>
               </div>
@@ -2273,19 +2290,19 @@
             <!-- Song Metadata + Interactive 0-100% Seek Scrubber + Controls -->
             <div class="relative z-10 flex flex-col gap-2" onclick="event.stopPropagation()">
               <div class="text-center">
-                <div id="home-song-title" class="text-base font-bold tracking-tight truncate">De música ligera (remasterizada)</div>
-                <div id="home-song-artist" class="text-xs opacity-65 mt-0.5 truncate">Soda Stereo · Canción animal</div>
+                <div id="home-song-title" class="text-base font-bold tracking-tight truncate">Audio del Sistema</div>
+                <div id="home-song-artist" class="text-xs opacity-65 mt-0.5 truncate">Toca Play para reproducir o abre tu reproductor</div>
               </div>
 
               <div class="flex flex-col gap-1">
                 <div onpointerdown="startSeekAudio(event, this)" class="w-full h-2.5 py-1 flex items-center cursor-pointer group/seek touch-none">
                   <div class="w-full h-1.5 bg-current/15 rounded-full overflow-hidden relative">
-                    <div id="home-progress-fill" class="h-full bg-[var(--accent)] rounded-full transition-none" style="width: 56%;"></div>
+                    <div id="home-progress-fill" class="h-full bg-[var(--accent)] rounded-full transition-none" style="width: 0%;"></div>
                   </div>
                 </div>
                 <div class="flex items-center justify-between text-[10px] text-[var(--mute)] tabular-nums px-0.5">
-                  <span id="home-time-curr">1:58</span>
-                  <span id="home-time-total">3:32</span>
+                  <span id="home-time-curr">--:--</span>
+                  <span id="home-time-total">--:--</span>
                 </div>
               </div>
 
@@ -2334,10 +2351,10 @@
                 </svg>
 
                 <!-- 4 Clean Tire Pressure Numbers -->
-                <span id="td-psi-fl" class="absolute left-5 top-[54px] text-sm font-semibold tabular-nums">32</span>
-                <span id="td-psi-fr" class="absolute right-5 top-[54px] text-sm font-semibold tabular-nums">32</span>
-                <span id="td-psi-rl" class="absolute left-5 bottom-[50px] text-sm font-semibold tabular-nums">32</span>
-                <span id="td-psi-rr" class="absolute right-5 bottom-[50px] text-sm font-semibold tabular-nums">32</span>
+                <span id="td-psi-fl" class="absolute left-5 top-[54px] text-sm font-semibold tabular-nums">--</span>
+                <span id="td-psi-fr" class="absolute right-5 top-[54px] text-sm font-semibold tabular-nums">--</span>
+                <span id="td-psi-rl" class="absolute left-5 bottom-[50px] text-sm font-semibold tabular-nums">--</span>
+                <span id="td-psi-rr" class="absolute right-5 bottom-[50px] text-sm font-semibold tabular-nums">--</span>
 
                 <!-- Sculpted Cenital Chevrolet Joy Render (Full Cockpit View - Self-Contained Defs!) -->
                 <svg class="w-[126px] h-[236px] drop-shadow-[0_16px_28px_rgba(15,23,42,0.5)] transition-transform duration-300 group-hover:scale-[1.02]" viewBox="0 0 140 260" fill="none">
@@ -2467,16 +2484,16 @@
               <div id="ck-fs-left-wing" class="hidden ethereal-card rounded-2xl p-4 w-48 flex-col gap-2 text-xs tabular-nums">
                 <span id="ck-fs-left-title" class="text-[var(--mute)] font-medium">Estado de Llantas</span>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span>Delantera Izq.</span><span id="ck-fs-psi-fl" class="font-semibold text-[var(--accent)]">32 PSI</span>
+                  <span>Delantera Izq.</span><span id="ck-fs-psi-fl" class="font-semibold text-[var(--accent)]">-- PSI</span>
                 </div>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span>Delantera Der.</span><span id="ck-fs-psi-fr" class="font-semibold">32 PSI</span>
+                  <span>Delantera Der.</span><span id="ck-fs-psi-fr" class="font-semibold">-- PSI</span>
                 </div>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span>Trasera Izq.</span><span id="ck-fs-psi-rl" class="font-semibold">32 PSI</span>
+                  <span>Trasera Izq.</span><span id="ck-fs-psi-rl" class="font-semibold">-- PSI</span>
                 </div>
                 <div class="flex items-center justify-between pt-1">
-                  <span>Trasera Der.</span><span id="ck-fs-psi-rr" class="font-semibold">32 PSI</span>
+                  <span>Trasera Der.</span><span id="ck-fs-psi-rr" class="font-semibold">-- PSI</span>
                 </div>
               </div>
 
@@ -2491,12 +2508,12 @@
                   <circle cx="100" cy="100" r="68" fill="none" stroke="#ef4444" stroke-width="4.5" stroke-dasharray="62 440" stroke-dashoffset="-232" stroke-linecap="round" transform="rotate(135 100 100)"/>
                   <g id="ck-nfs-gear-grp">
                     <rect x="82" y="52" width="36" height="20" rx="4" fill="#cbb68e"/>
-                    <text id="ck-nfs-gear" x="100" y="62" fill="#0f172a" font-family="Manrope, sans-serif" font-weight="600" font-size="12.5" text-anchor="middle" dominant-baseline="central">▲3</text>
+                    <text id="ck-nfs-gear" x="100" y="62" fill="#0f172a" font-family="Manrope, sans-serif" font-weight="600" font-size="12.5" text-anchor="middle" dominant-baseline="central">N</text>
                   </g>
-                  <text id="ck-nfs-speed" x="100" y="122" fill="#f8fafc" font-family="Sora, sans-serif" font-weight="200" font-size="36" class="tabular-nums" text-anchor="middle" dominant-baseline="central">58</text>
+                  <text id="ck-nfs-speed" x="100" y="122" fill="#f8fafc" font-family="Sora, sans-serif" font-weight="200" font-size="36" class="tabular-nums" text-anchor="middle" dominant-baseline="central">0</text>
                   <text x="100" y="145" fill="var(--accent)" font-family="Manrope, sans-serif" font-weight="600" font-size="10.5" text-anchor="middle">km/h</text>
-                  <text id="ck-nfs-rpm-sub" x="100" y="162" fill="#94a3b8" font-family="Manrope, sans-serif" font-weight="500" font-size="8.5" class="tabular-nums" text-anchor="middle">2450 rpm · 88 °C</text>
-                  <g id="ck-nfs-needle" transform="rotate(-61 100 100)">
+                  <text id="ck-nfs-rpm-sub" x="100" y="162" fill="#94a3b8" font-family="Manrope, sans-serif" font-weight="500" font-size="8.5" class="tabular-nums" text-anchor="middle">-- rpm · -- °C</text>
+                  <g id="ck-nfs-needle" transform="rotate(-135 100 100)">
                     <polygon points="98,108 102,108 100.8,30 99.2,30" fill="var(--accent)"/>
                   </g>
                   <circle cx="100" cy="100" r="6.5" fill="#1e293b" stroke="#c4a262" stroke-width="2"/>
@@ -2506,16 +2523,16 @@
                 <div id="ck-gauge-arc" class="hidden relative w-full h-full items-center justify-center">
                   <svg class="w-full h-full" viewBox="0 0 260 260">
                     <circle cx="130" cy="130" r="108" fill="none" stroke="var(--arc-track)" stroke-width="4.5" stroke-dasharray="452 680" stroke-linecap="round" transform="rotate(150 130 130)"/>
-                    <circle id="cockpit-cyan-arc" cx="130" cy="130" r="108" fill="none" stroke="var(--accent)" stroke-width="4.5" stroke-dasharray="220 680" stroke-linecap="round" transform="rotate(150 130 130)" style="transition: stroke-dasharray 90ms linear;"/>
+                    <circle id="cockpit-cyan-arc" cx="130" cy="130" r="108" fill="none" stroke="var(--accent)" stroke-width="4.5" stroke-dasharray="0 680" stroke-linecap="round" transform="rotate(150 130 130)" style="transition: stroke-dasharray 90ms linear;"/>
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center pt-3">
-                    <div id="cockpit-big-speed" class="text-8xl speed-hero">58</div>
+                    <div id="cockpit-big-speed" class="text-8xl speed-hero">0</div>
                     <div class="text-xs opacity-60 font-medium mt-2">km/h</div>
                     <div id="cockpit-gear-rpm" class="text-sm font-bold text-[var(--accent)] mt-3 tabular-nums">
-                      M3 · 2450 rpm
+                      N · -- rpm
                     </div>
                     <div id="cockpit-health-line" class="text-xs opacity-60 mt-1 tabular-nums">
-                      Todo en orden · 88 °C · 14,2 V
+                      Sin conexión OBD2 · -- V
                     </div>
                   </div>
                 </div>
@@ -2525,13 +2542,13 @@
                   <svg class="w-full h-full" viewBox="0 0 260 260">
                     <circle cx="130" cy="130" r="114" fill="none" stroke="var(--arc-track)" stroke-width="10" stroke-dasharray="3.5 7.5" transform="rotate(150 130 130)"/>
                     <circle cx="130" cy="130" r="98" fill="none" stroke="var(--arc-track)" stroke-width="5" stroke-dasharray="410 680" stroke-linecap="round" transform="rotate(150 130 130)"/>
-                    <circle id="ck-sport-bar" cx="130" cy="130" r="98" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="140 680" stroke-linecap="round" transform="rotate(150 130 130)" style="transition: stroke-dasharray 90ms linear;"/>
+                    <circle id="ck-sport-bar" cx="130" cy="130" r="98" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="0 680" stroke-linecap="round" transform="rotate(150 130 130)" style="transition: stroke-dasharray 90ms linear;"/>
                   </svg>
                   <div class="absolute inset-0 flex flex-col items-center justify-center text-center pt-2">
-                    <span id="ck-sport-gear" class="px-3 py-0.5 rounded-full bg-[var(--accent)]/20 border border-[var(--accent)]/40 text-[var(--accent)] text-xs font-bold">MARCHA M3</span>
-                    <div id="ck-sport-speed" class="text-7xl speed-hero mt-2">58</div>
+                    <span id="ck-sport-gear" class="px-3 py-0.5 rounded-full bg-[var(--accent)]/20 border border-[var(--accent)]/40 text-[var(--accent)] text-xs font-bold">MARCHA N</span>
+                    <div id="ck-sport-speed" class="text-7xl speed-hero mt-2">0</div>
                     <div class="text-xs text-[var(--mute)] font-medium mt-1">km/h</div>
-                    <div id="ck-sport-rpm" class="text-xs font-semibold text-[var(--accent)] mt-2 tabular-nums">2450 RPM · 14,2 V</div>
+                    <div id="ck-sport-rpm" class="text-xs font-semibold text-[var(--accent)] mt-2 tabular-nums">-- RPM · -- V</div>
                   </div>
                 </div>
 
@@ -2541,16 +2558,16 @@
               <div id="ck-fs-right-wing" class="hidden ethereal-card rounded-2xl p-4 w-48 flex-col gap-2 text-xs tabular-nums">
                 <span id="ck-fs-right-title" class="text-[var(--mute)] font-medium">Telemetría Motor</span>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span id="ck-fs-r1-lbl">Temperatura</span><span id="ck-fs-temp" class="font-semibold">88 °C</span>
+                  <span id="ck-fs-r1-lbl">Temperatura</span><span id="ck-fs-temp" class="font-semibold">-- °C</span>
                 </div>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span id="ck-fs-r2-lbl">Batería</span><span id="ck-fs-batt" class="font-semibold">14,2 V</span>
+                  <span id="ck-fs-r2-lbl">Batería</span><span id="ck-fs-batt" class="font-semibold">-- V</span>
                 </div>
                 <div class="flex items-center justify-between py-1 border-b border-[var(--line)]">
-                  <span id="ck-fs-r3-lbl">Consumo</span><span id="ck-fs-cons" class="font-semibold">13,8 km/L</span>
+                  <span id="ck-fs-r3-lbl">Consumo</span><span id="ck-fs-cons" class="font-semibold">-- km/L</span>
                 </div>
                 <div class="flex items-center justify-between pt-1">
-                  <span id="ck-fs-r4-lbl">Tacómetro</span><span id="ck-fs-rpm" class="font-semibold text-[var(--accent)]">2450 rpm</span>
+                  <span id="ck-fs-r4-lbl">Tacómetro</span><span id="ck-fs-rpm" class="font-semibold text-[var(--accent)]">-- rpm</span>
                 </div>
               </div>
 
@@ -2563,10 +2580,10 @@
             <div class="flex items-center gap-3.5 min-w-0 flex-1">
               <img id="cockpit-pill-cover" src="" class="w-11 h-11 rounded-xl object-cover shadow-md shrink-0" alt="" />
               <div class="min-w-0 flex-1">
-                <div id="cockpit-pill-title" class="text-sm font-bold truncate">De música ligera (remasterizada)</div>
-                <div id="cockpit-pill-artist" class="text-xs opacity-60 truncate mt-0.5">Soda Stereo · Canción animal</div>
+                <div id="cockpit-pill-title" class="text-sm font-bold truncate">Audio del Sistema</div>
+                <div id="cockpit-pill-artist" class="text-xs opacity-60 truncate mt-0.5">Toca Play para reproducir</div>
                 <div class="w-full max-w-md h-1 bg-current/10 rounded-full overflow-hidden mt-2">
-                  <div id="cockpit-pill-bar" class="h-full bg-[var(--accent)] rounded-full" style="width: 56%;"></div>
+                  <div id="cockpit-pill-bar" class="h-full bg-[var(--accent)] rounded-full" style="width: 0%;"></div>
                 </div>
               </div>
             </div>
@@ -2622,22 +2639,22 @@
 
               <!-- Song Title & Artist -->
               <div class="text-center select-none">
-                <div id="music-hero-title" class="text-xl md:text-2xl font-sora font-semibold text-[var(--ink)] tracking-tight truncate">Telepatía</div>
-                <div id="music-hero-artist" class="text-xs text-[var(--mute)] font-medium mt-0.5 truncate">Kali Uchis</div>
+                <div id="music-hero-title" class="text-xl md:text-2xl font-sora font-semibold text-[var(--ink)] tracking-tight truncate">Audio del Sistema</div>
+                <div id="music-hero-artist" class="text-xs text-[var(--mute)] font-medium mt-0.5 truncate">Toca Play para reproducir o abre tu reproductor</div>
               </div>
 
               <!-- Interactive 0-100% Seek Bar with Circular Scrubber Knob -->
               <div class="w-full flex items-center gap-3.5 select-none px-4">
-                <span id="music-time-curr" class="text-[11px] font-semibold text-[var(--mute)] tabular-nums w-8 text-right">1:24</span>
+                <span id="music-time-curr" class="text-[11px] font-semibold text-[var(--mute)] tabular-nums w-8 text-right">0:00</span>
                 <div onpointerdown="startSeekAudio(event, this)" class="flex-1 h-6 flex items-center cursor-pointer touch-none relative group/seek">
                   <div class="w-full h-1.5 rounded-full bg-current/15 dark:bg-white/15 overflow-visible relative">
-                    <div id="music-seek-fill" class="h-full rounded-full bg-[var(--accent)] relative" style="width: 42%;">
+                    <div id="music-seek-fill" class="h-full rounded-full bg-[var(--accent)] relative" style="width: 0%;">
                       <!-- Circular Scrubber Knob / Thumb at the tip of the fill line -->
                       <div id="music-seek-thumb" class="w-3.5 h-3.5 rounded-full bg-white shadow-[0_2px_8px_rgba(0,0,0,0.4)] absolute -top-1 -right-1.5 transition-transform group-hover/seek:scale-125"></div>
                     </div>
                   </div>
                 </div>
-                <span id="music-time-total" class="text-[11px] font-semibold text-[var(--mute)] tabular-nums w-8">3:30</span>
+                <span id="music-time-total" class="text-[11px] font-semibold text-[var(--mute)] tabular-nums w-8">--:--</span>
               </div>
 
               <!-- Row of 5 Circular Soft Transport Buttons -->
@@ -2816,17 +2833,17 @@
                 </div>
                 <div class="min-w-0">
                   <div class="flex items-baseline gap-2">
-                    <span id="map-turn-dist" class="font-sora text-lg font-medium tabular-nums">350 m</span>
-                    <span id="map-dest-tag" class="text-xs text-[var(--accent)] font-semibold truncate">Hacia Casa</span>
+                    <span id="map-turn-dist" class="font-sora text-lg font-medium tabular-nums">--</span>
+                    <span id="map-dest-tag" class="text-xs text-[var(--accent)] font-semibold truncate">Sin destino activo</span>
                   </div>
-                  <div id="map-turn-street" class="text-xs text-[var(--mute)] truncate mt-0.5">Av. El Poblado · Cra. 43A</div>
+                  <div id="map-turn-street" class="text-xs text-[var(--mute)] truncate mt-0.5">Toca para abrir Waze o Google Maps</div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2">
-                <div class="ethereal-pill rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-medium shadow-xl" style="backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+                <div onclick="launchOsApp('waze')" class="ethereal-pill rounded-full px-3.5 py-1.5 flex items-center gap-2 text-xs font-medium shadow-xl cursor-pointer" style="backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
                   <svg class="ic text-[var(--accent)]" style="width:16px;height:16px" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
-                  <span id="map-eta-badge" class="tabular-nums">14 min · 6,4 km</span>
+                  <span id="map-eta-badge" class="tabular-nums">Abrir GPS</span>
                 </div>
                 <span id="map-fs-toggle-badge" class="ethereal-pill rounded-full px-3 py-1.5 text-[11px] font-semibold text-[var(--accent)] shadow-xl" style="backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
                   Ampliar mapa ⤢
@@ -2838,7 +2855,7 @@
             <div class="relative z-10 flex items-center justify-between gap-3">
               <!-- Speed Badge on Map -->
               <div class="ethereal-pill rounded-2xl px-4 py-2 flex items-baseline gap-1.5 shadow-xl" style="backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
-                <span id="map-speed-val" class="font-sora text-2xl font-light tabular-nums">58</span>
+                <span id="map-speed-val" class="font-sora text-2xl font-light tabular-nums">0</span>
                 <span class="text-xs text-[var(--mute)] font-medium">km/h</span>
               </div>
 
@@ -2846,7 +2863,7 @@
               <div id="map-fs-music-pill" onclick="event.stopPropagation()" class="hidden ethereal-pill rounded-full px-4 py-2 items-center gap-3.5 shadow-2xl max-w-md" style="backdrop-filter: blur(28px) saturate(190%); -webkit-backdrop-filter: blur(28px) saturate(190%);">
                 <img id="map-fs-cover" src="" class="w-8 h-8 rounded-full object-cover shrink-0 shadow" alt="" />
                 <div class="min-w-0 max-w-[165px]">
-                  <div id="map-fs-title" class="text-xs font-bold truncate">De música ligera</div>
+                  <div id="map-fs-title" class="text-xs font-bold truncate">Audio del Sistema</div>
                   <div id="map-fs-artist" class="text-[10px] text-[var(--mute)] truncate">Bluetooth</div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -2884,31 +2901,31 @@
               </div>
 
               <div class="grid grid-cols-3 gap-2 tabular-nums">
-                <!-- Chip 0: Casa -->
-                <button onclick="selectDestination(0)" id="home-dest-0" class="pressable rounded-xl px-2.5 py-1.5 border text-left transition-all flex items-center justify-between">
+                <!-- Chip 0: Waze -->
+                <button onclick="launchOsApp('waze')" id="home-dest-0" class="pressable rounded-xl px-2.5 py-1.5 border border-[var(--accent)] bg-[var(--accent)]/15 text-left transition-all flex items-center justify-between shadow-sm">
                   <div class="min-w-0">
-                    <div class="text-xs font-semibold truncate">Casa</div>
-                    <div class="text-[10px] text-[var(--mute)]">6,4 km</div>
+                    <div class="text-xs font-semibold truncate text-[var(--accent)]">Waze</div>
+                    <div class="text-[10px] text-[var(--mute)]">En vivo</div>
                   </div>
-                  <span class="font-sora text-xs font-medium text-[var(--accent)] ml-1">14m</span>
+                  <span class="font-sora text-xs font-medium text-[var(--accent)] ml-1">GPS</span>
                 </button>
 
-                <!-- Chip 1: Trabajo -->
-                <button onclick="selectDestination(1)" id="home-dest-1" class="pressable rounded-xl px-2.5 py-1.5 border text-left transition-all flex items-center justify-between">
+                <!-- Chip 1: Google Maps -->
+                <button onclick="launchOsApp('maps')" id="home-dest-1" class="pressable rounded-xl px-2.5 py-1.5 border border-[var(--line)] bg-current/5 text-left transition-all flex items-center justify-between opacity-85 hover:opacity-100">
                   <div class="min-w-0">
-                    <div class="text-xs font-semibold truncate">Trabajo</div>
-                    <div class="text-[10px] text-[var(--mute)]">9,8 km</div>
+                    <div class="text-xs font-semibold truncate">Maps</div>
+                    <div class="text-[10px] text-[var(--mute)]">Rutas</div>
                   </div>
-                  <span class="font-sora text-xs font-medium ml-1">22m</span>
+                  <span class="font-sora text-xs font-medium ml-1">GPS</span>
                 </button>
 
-                <!-- Chip 2: Primax -->
-                <button onclick="selectDestination(2)" id="home-dest-2" class="pressable rounded-xl px-2.5 py-1.5 border text-left transition-all flex items-center justify-between">
+                <!-- Chip 2: Buscar por Voz -->
+                <button onclick="triggerVoiceNav()" id="home-dest-2" class="pressable rounded-xl px-2.5 py-1.5 border border-[var(--line)] bg-current/5 text-left transition-all flex items-center justify-between opacity-85 hover:opacity-100">
                   <div class="min-w-0">
-                    <div class="text-xs font-semibold truncate">Primax</div>
-                    <div class="text-[10px] text-[var(--mute)]">1,2 km</div>
+                    <div class="text-xs font-semibold truncate">Buscar</div>
+                    <div class="text-[10px] text-[var(--mute)]">Por voz</div>
                   </div>
-                  <span class="font-sora text-xs font-medium ml-1">4m</span>
+                  <span class="font-sora text-xs font-medium ml-1">IR</span>
                 </button>
               </div>
             </div>
@@ -2946,8 +2963,8 @@
                     </div>
                     <span id="map-audio-badge" class="text-[11px] font-semibold uppercase tracking-wider text-[var(--accent)]">Bluetooth</span>
                   </div>
-                  <div id="map-mini-title" class="text-base font-bold tracking-tight truncate">De música ligera (remasterizada)</div>
-                  <div id="map-mini-artist" class="text-xs text-[var(--mute)] truncate mt-1">Soda Stereo · Canción animal</div>
+                  <div id="map-mini-title" class="text-base font-bold tracking-tight truncate">Audio del Sistema</div>
+                  <div id="map-mini-artist" class="text-xs text-[var(--mute)] truncate mt-1">Bluetooth</div>
                 </div>
               </div>
 
@@ -2955,12 +2972,12 @@
               <div class="relative z-10 flex flex-col gap-2.5 shrink-0" onclick="event.stopPropagation()">
                 <div onpointerdown="startSeekAudio(event, this)" class="w-full h-3 py-1 flex items-center cursor-pointer touch-none">
                   <div class="w-full h-1.5 bg-current/15 rounded-full overflow-hidden">
-                    <div id="map-progress-fill" class="h-full bg-[var(--accent)] rounded-full transition-none" style="width: 56%;"></div>
+                    <div id="map-progress-fill" class="h-full bg-[var(--accent)] rounded-full transition-none" style="width: 0%;"></div>
                   </div>
                 </div>
 
                 <div class="flex items-center justify-between">
-                  <span id="map-time-curr" class="text-xs text-[var(--mute)] tabular-nums">1:58</span>
+                  <span id="map-time-curr" class="text-xs text-[var(--mute)] tabular-nums">0:00</span>
                   <div class="flex items-center gap-5">
                     <button onclick="changeSong(-1)" class="pressable w-9 h-9 rounded-full flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-current/10">
                       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><polygon points="19 20 9 12 19 4 19 20"/><rect x="5" y="4" width="2.2" height="16" rx="1"/></svg>
@@ -2972,7 +2989,7 @@
                       <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 4 15 12 5 20 5 4"/><rect x="16.8" y="4" width="2.2" height="16" rx="1"/></svg>
                     </button>
                   </div>
-                  <span id="map-time-total" class="text-xs text-[var(--mute)] tabular-nums">3:32</span>
+                  <span id="map-time-total" class="text-xs text-[var(--mute)] tabular-nums">--:--</span>
                 </div>
               </div>
             </div>
@@ -3117,7 +3134,7 @@
                       <svg class="ic w-4 h-4 text-[var(--accent)] opacity-85" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
                       <span>OBD2 &amp; Llantas</span>
                     </div>
-                    <span id="settings-tpms-row-val" class="font-semibold">14,2 V · 32 PSI</span>
+                    <span id="settings-tpms-row-val" class="font-semibold">Sin receptor TPMS</span>
                   </div>
 
                   <!-- Fila 4: Memoria Libre + Botón Liberar -->
@@ -3636,17 +3653,17 @@
                 <div class="col-span-4 bt-soft-card p-4 flex flex-col justify-between">
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Hardware &amp; Sensores</span>
-                    <span id="r5-sub-hw-badge" class="text-[11px] font-semibold text-emerald-500">En línea</span>
+                    <span id="r5-sub-hw-badge" class="text-[11px] font-semibold text-amber-500">Esperando sensores</span>
                   </div>
 
                   <div class="flex flex-col gap-2 my-auto">
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
                       <span class="text-[var(--mute)]">Escáner OBD2 BT</span>
-                      <span id="r5-sub-obd-txt" class="font-semibold text-[var(--accent)]">Vgate iCar · 14,2 V</span>
+                      <span id="r5-sub-obd-txt" class="font-semibold text-[var(--accent)]">Sin conexión OBD2</span>
                     </div>
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
                       <span class="text-[var(--mute)]">Receptor TPMS USB</span>
-                      <span id="r5-sub-tpms-txt" class="font-semibold">4 ruedas · 32 PSI</span>
+                      <span id="r5-sub-tpms-txt" class="font-semibold">Sin receptor TPMS</span>
                     </div>
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
                       <span class="text-[var(--mute)]">Estado Batería &amp; Llantas</span>
@@ -3954,7 +3971,7 @@
         <div class="flex items-center justify-between z-10 text-xs text-white/60">
           <div class="flex items-center gap-3">
             <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-            <span id="ss-now-playing">Bluetooth · De música ligera</span>
+            <span id="ss-now-playing">Audio · Reproducción del Sistema</span>
           </div>
           <span>Toca en cualquier lugar para volver</span>
         </div>
@@ -4131,9 +4148,9 @@
     ];
 
     const destinations = [
-      { tag: 'Hacia Casa', street: 'Av. El Poblado · Cra. 43A', dist: '350 m', eta: '14 min · 6,4 km' },
-      { tag: 'Hacia Trabajo', street: 'Autopista Sur · Salida 12', dist: '800 m', eta: '22 min · 9,8 km' },
-      { tag: 'Hacia Primax', street: 'Calle 10 · Retorno Oriente', dist: '150 m', eta: '4 min · 1,2 km' }
+      { tag: 'Sin destino activo', street: 'Toca para abrir Waze o Google Maps', dist: '--', eta: 'Abrir GPS' },
+      { tag: 'Waze', street: 'Navegación y alertas de tráfico en tiempo real', dist: 'GPS', eta: 'Abrir' },
+      { tag: 'Google Maps', street: 'Mapas y navegación satelital', dist: 'GPS', eta: 'Abrir' }
     ];
 
     const defaultEqBars = {
@@ -4150,17 +4167,8 @@
       voice: { label: 'Voz', idx: 3, bars: [-2, 1, 8, 6, -1] }
     };
 
-    const btDevices = [
-      { name: 'iPhone de Fernando', sub: 'Teléfono principal · Audio y llamadas', battery: 88, signal: 4, type: 'phone' },
-      { name: 'Samsung Galaxy S24', sub: 'Dispositivo secundario · Guardado', battery: 92, signal: 3, type: 'phone' },
-      { name: 'Vgate iCar Pro BLE 4.0', sub: 'Telemetría OBD2 Chevrolet Joy', battery: 100, signal: 4, type: 'obd', statusText: 'En línea · 14,2 V' }
-    ];
-
-    const discoverableBtPool = [
-      { name: 'AirPods Pro de Fernando', sub: 'Audio Bluetooth · Listo para vincular', battery: 95, signal: 4, type: 'phone' },
-      { name: 'Xiaomi 14 Ultra', sub: 'Teléfono invitado · Audio HD', battery: 79, signal: 4, type: 'phone' },
-      { name: 'TPMS USB/BLE Bridge', sub: 'Sensores de presión 4 ruedas', battery: 100, signal: 4, type: 'obd', statusText: 'En línea · 32 PSI' }
-    ];
+    const btDevices = [];
+    const discoverableBtPool = [];
     let discoverPoolIdx = 0;
 
     const speedVolLabels = ['Off', 'Bajo', 'Medio', 'Alto'];
@@ -4232,19 +4240,21 @@
 
     let profiles = safeGetStorage('joyos_v8_profiles_min') || JSON.parse(JSON.stringify(defaultProfiles));
 
-    // Vehicle State extracted via R5 App (Default JOY-2022)
-    const savedR5 = safeGetStorage('joyos_v8_r5_vehicle');
-    const r5State = savedR5 || {
-      plate: 'JOY-2022',
-      ownerDoc: '1037648920',
-      city: 'Medellín',
-      insurance: 'Seguros Sura · Todo Riesgo',
+    // Vehicle State extracted via R5 App (Neutral initial state)
+    const defaultR5State = {
+      plate: '',
+      ownerDoc: '',
+      city: 'Bogotá',
+      insurance: 'Sin registrar',
       picoRestricted: false,
       expiringAlert: false,
-      soatDays: 214,
-      rtmDays: 168,
-      oilKm: 1840
+      soatDays: 0,
+      rtmDays: 0,
+      oilKm: 0,
+      oilKmLeft: 0
     };
+    const savedR5 = safeGetStorage('joyos_v8_r5_vehicle');
+    const r5State = savedR5 || Object.assign({}, defaultR5State);
 
     const state = {
       theme: 'dark',
@@ -4255,13 +4265,20 @@
       draftProfile: null,
       savedThemeBeforeEdit: 'dark',
       savedAccentBeforeEdit: 'cyan',
-      sensorWaitMode: false,
+      sensorWaitMode: true,
+      obdConnected: false,
+      tpmsConnected: false,
+      wifiConnected: false,
+      wifiSsid: 'Desconectado',
+      btConnected: false,
+      btDeviceName: 'Sin dispositivo vinculado',
+      voltage: null,
       appsSubView: 'drawer', // 'drawer' | 'r5' | 'files'
       tab: 'home',
       settingsSubView: 'cards', // 'cards' | 'bt' | 'eq' | 'more' | 'r5'
       btEnabled: true,
       btDeviceIdx: 0,
-      btAutoPlay: true,
+      btAutoPlay: false,
       weatherTemp: 22,
       speedVolActive: false,
       speedVolIdx: 2,
@@ -4284,16 +4301,16 @@
       engineHot: false,
       audioMode: 'bt',
       songIdx: 0,
-      songProgressPct: 62,
+      songProgressPct: 0,
       stationIdx: 1,
       customFreq: null,
       sourceIdx: 0,
-      playing: true,
+      playing: false,
       muted: false,
       vol: 15,
-      speed: (typeof window.AndroidBridge !== 'undefined' ? 0 : 58),
-      rpm: (typeof window.AndroidBridge !== 'undefined' ? 0 : 2450),
-      gear: (typeof window.AndroidBridge !== 'undefined' ? 1 : 3),
+      speed: 0,
+      rpm: 0,
+      gear: 1,
       accel: false,
       fileDrive: 'usb',
       fileFilter: 'all',
@@ -5698,15 +5715,27 @@
       if (countEl) countEl.textContent = `Dispositivos Vinculados (${btDevices.length})`;
       if (!container) return;
 
+      if (btDevices.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center text-xs text-[var(--mute)] flex flex-col items-center gap-3">
+            <span>No hay dispositivos Bluetooth vinculados en la tablet</span>
+            <button onclick="if(window.AndroidBridge&&window.AndroidBridge.openBluetoothSettings){window.AndroidBridge.openBluetoothSettings();}else{alert('Abre Ajustes de Bluetooth');}" class="pressable px-4 py-2 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-md">
+              Vincular en Ajustes de Android
+            </button>
+          </div>
+        `;
+        return;
+      }
+
       container.innerHTML = btDevices.map((dev, idx) => {
-        if (dev.isTelemetry) {
+        if (dev.isTelemetry || dev.type === 'obd') {
           return `
             <div class="bt-soft-item px-5 py-3.5 flex items-center justify-between gap-4">
               <div class="min-w-0 flex-1">
                 <div class="font-sora font-semibold text-sm text-[var(--ink)] truncate">${dev.name}</div>
                 <div class="text-xs text-[var(--mute)] mt-1 truncate">${dev.sub}</div>
               </div>
-              <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold tabular-nums shrink-0">En línea · ${(state.voltage || 14.2).toFixed(1).replace('.', ',')} V</span>
+              <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold tabular-nums shrink-0">${state.obdConnected ? 'En línea' : 'Vinculado'}</span>
             </div>
           `;
         }
@@ -5724,28 +5753,15 @@
     }
 
     function scanBtDevices(btn) {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openBluetoothSettings === 'function') {
+        window.AndroidBridge.openBluetoothSettings();
+        return;
+      }
       if (!btn) return;
       btn.textContent = 'Buscando...';
       setTimeout(() => {
-        if (discoverableBtPool.length > 0) {
-          const newDev = discoverableBtPool.shift();
-          btDevices.push(newDev);
-          renderBluetoothDevicesList();
-          btn.textContent = '+1 encontrado ✓';
-          enqueueNotification({
-            type: 'info',
-            dotClass: 'w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_12px_#38bdf8] shrink-0',
-            title: `Nuevo dispositivo detectado: ${newDev.name}`,
-            tag: 'Añadido a la pila de dispositivos Bluetooth',
-            tagClass: 'text-[11px] font-semibold text-sky-400 pl-1',
-            targetTab: 'settings',
-            targetSubView: 'bt'
-          });
-        } else {
-          btn.textContent = `${btDevices.length} en lista ✓`;
-        }
-      }, 800);
-      setTimeout(() => { btn.textContent = 'Buscar dispositivos'; }, 2400);
+        btn.textContent = 'Buscar dispositivos';
+      }, 1500);
     }
 
     // --- ECUALIZADOR GRÁFICO + ESCENARIO SONORO 2D (FADER/BALANCE + SUBWOOFER) ---
@@ -5984,29 +6000,30 @@
         {t:'tog',l:'Animación de arranque',v:true},{t:'seg',l:'Apagar pantalla tras',o:['1 min','5 min','Nunca'],v:1}
       ]},
       {id:'wifi',n:'Wi-Fi y Red',it:[
-        {h:'Conexión Wi-Fi'},{t:'tog',l:'Wi-Fi',v:true,d:'Conectado a red de alta velocidad'},
-        {t:'info',l:'Red conectada',v:'Familia_5G (Excelente)'},
+        {h:'Conexión Wi-Fi'},{t:'tog',l:'Wi-Fi',v:true,d:'Conexión inalámbrica a Internet'},
+        {t:'info',l:'Red conectada',v:'Desconectado'},
         {t:'act',l:'Buscar redes Wi-Fi cercanas',b:'Buscar'},
         {h:'Zona portátil y GPS'},{t:'tog',l:'Punto de acceso Wi-Fi (Hotspot)',v:false},
-        {t:'seg',l:'Fuente de GPS',o:['Teléfono','Antena'],v:0}
+        {t:'seg',l:'Fuente de GPS',o:['Antena tablet','Teléfono'],v:0}
       ]},
       {id:'fan',n:'Ventiladores',it:[
-        {h:'Control Térmico del Chasis'},{t:'seg',l:'Modo de ventilador',o:['Auto','Silencio','Turbo'],v:0,d:'Regula el disipador trasero de la tablet'},
-        {t:'info',l:'Temperatura del procesador',v:'44 °C'},
-        {t:'info',l:'Velocidad actual del cooler',v:'3.200 RPM'},
-        {t:'rng',l:'Activar Turbo automático sobre',min:55,max:85,v:65,u:' °C'},
-        {t:'tog',l:'Enfriamiento continuo con motor encendido',v:true}
+        {h:'Control Térmico del Chasis'},{t:'seg',l:'Modo de ventilador',o:['Auto','Silencio','Turbo'],v:0,d:'Regula el disipador térmico de la tablet'},
+        {t:'info',l:'Temperatura del procesador',v:'-- °C'},
+        {t:'info',l:'Velocidad del disipador',v:'Control térmico automático'},
+        {t:'rng',l:'Activar enfriamiento sobre',min:55,max:85,v:65,u:' °C'},
+        {t:'tog',l:'Enfriamiento continuo con pantalla encendida',v:true}
       ]},
       {id:'con',n:'Conectividad',it:[
-        {h:'Bluetooth'},{t:'tog',l:'Bluetooth',v:true},{t:'info',l:'Teléfono principal',v:'Conectado'},
-        {t:'tog',l:'Reproducir al conectar',v:true},
-        {h:'Proyección'},{t:'info',l:'Z-Link / Android Auto',v:'Listo'},{t:'act',l:'Reconectar Z-Link',b:'Reconectar'}
+        {h:'Bluetooth'},{t:'tog',l:'Bluetooth',v:true},{t:'info',l:'Dispositivo vinculado',v:'Sin vincular'},
+        {t:'act',l:'Administrar dispositivos Bluetooth',b:'Abrir'},
+        {t:'tog',l:'Reproducir al conectar',v:false},
+        {h:'Proyección'},{t:'info',l:'Z-Link / CarPlay / Android Auto',v:'Disponible'},{t:'act',l:'Abrir Z-Link',b:'Abrir'}
       ]},
       {id:'veh',n:'Vehículo',it:[
         {h:'Unidades'},{t:'seg',l:'Sistema',o:['Métrico','Imperial'],v:0},{t:'seg',l:'Presión de llantas',o:['PSI','bar'],v:0},
         {h:'Alertas'},{t:'rng',l:'Presión baja bajo',min:20,max:34,v:28,u:' PSI'},{t:'rng',l:'Temperatura del motor sobre',min:95,max:115,v:105,u:' °C'},
         {t:'rng',l:'Aviso de velocidad',min:40,max:140,v:100,u:' km/h'},
-        {h:'Sensores'},{t:'info',l:'Adaptador OBD2',v:'ELM327 BT · 14,2 V'},{t:'info',l:'Sensores de llantas',v:'4/4 en línea'},{t:'act',l:'Probar conexión',b:'Probar'}
+        {h:'Sensores'},{t:'info',l:'Adaptador OBD2',v:'Sin conexión OBD2'},{t:'info',l:'Sensores de llantas',v:'Sin receptor TPMS'},{t:'act',l:'Vincular escáner OBD2',b:'Vincular'}
       ]},
       {id:'cond',n:'Conductor',it:[
         {h:'Perfil'},{t:'seg',l:'Perfil activo',o:['Conductor 1','Conductor 2','Invitado'],v:0,d:'Guarda tema, sonido y destinos'},
@@ -6184,6 +6201,16 @@
               window.AndroidBridge.openWifiSettings();
               return;
             }
+          }
+          if (x.l.includes('Bluetooth') || x.l.includes('OBD2') || x.l.includes('Probar')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openBluetoothSettings === 'function') {
+              window.AndroidBridge.openBluetoothSettings();
+              return;
+            }
+          }
+          if (x.l.includes('Z-Link')) {
+            launchOsApp('zlink');
+            return;
           }
           if (x.l === 'Reiniciar sistema') {
             if (confirm('¿Reiniciar la pantalla del carro?')) {
@@ -6642,22 +6669,16 @@
         setTimeout(() => {
           overlay.classList.add('hidden-boot');
           overlay.style.display = 'none';
-        }, 450);
-        openProfileSelector();
+        }, 350);
       }
     }
 
-    let lastBootTapTime = 0;
     const bOverlay = document.getElementById('boot-overlay');
     if (bOverlay) {
-      bOverlay.addEventListener('pointerdown', (e) => {
-        const now = Date.now();
-        if (now - lastBootTapTime < 350) {
-          skipBootCeremony();
-        }
-        lastBootTapTime = now;
+      bOverlay.addEventListener('pointerdown', () => {
+        skipBootCeremony();
       });
-      bOverlay.addEventListener('dblclick', skipBootCeremony);
+      bOverlay.addEventListener('click', skipBootCeremony);
     }
 
     initBootGauges();
@@ -6846,6 +6867,9 @@
     }
 
     function changeSong(dir) {
+      if (window.AndroidBridge && typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
+        window.AndroidBridge.sendMediaKeyEvent(dir > 0 ? 'next' : 'prev');
+      }
       if (state.audioMode === 'radio') {
         state.customFreq = null;
         state.stationIdx = (state.stationIdx + dir + radioStations.length) % radioStations.length;
@@ -6872,6 +6896,9 @@
 
     function togglePlay() {
       state.playing = !state.playing;
+      if (window.AndroidBridge && typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
+        window.AndroidBridge.sendMediaKeyEvent('toggle');
+      }
       renderAll();
     }
 
@@ -6887,8 +6914,8 @@
       const dur = curSong.durationSec || 210;
       const pct = Math.max(0, Math.min(100, state.songProgressPct));
       const curSec = Math.round((pct / 100) * dur);
-      const curStr = formatTimeSec(curSec);
-      const totStr = formatTimeSec(dur);
+      const curStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(curSec);
+      const totStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(dur);
 
       ['home-progress-fill', 'cockpit-pill-bar', 'map-progress-fill', 'music-seek-fill'].forEach(id => {
         const el = document.getElementById(id);
@@ -7031,12 +7058,16 @@
       accelInt = null;
       const decel = setInterval(() => {
         if (state.accel) { clearInterval(decel); return; }
-        if (state.speed > 58) {
-          state.speed = Math.max(58, state.speed - 3);
-          state.rpm = Math.max(2450, state.rpm - 220);
-          state.gear = state.speed > 125 ? 5 : state.speed > 86 ? 4 : 3;
+        if (state.speed > 0) {
+          state.speed = Math.max(0, state.speed - 3);
+          state.rpm = state.obdConnected ? Math.max(780, state.rpm - 220) : 0;
+          state.gear = state.speed > 125 ? 5 : state.speed > 86 ? 4 : state.speed > 45 ? 3 : state.speed > 18 ? 2 : 1;
           updateTelemetryUI();
         } else {
+          state.speed = 0;
+          state.rpm = state.obdConnected ? 780 : 0;
+          state.gear = 1;
+          updateTelemetryUI();
           clearInterval(decel);
         }
       }, 55);
@@ -7050,67 +7081,63 @@
       const noSens = state.sensorWaitMode;
       const spDeg = -135 + (Math.min(200, sp) / 200) * 270;
 
-      // 1. Home Gauges (NFS, Arc, Sport) — When noSens, ONLY show clean speed!
+      // 1. Home Gauges (NFS, Arc, Sport)
       const homeNfsGrp = document.getElementById('home-nfs-gear-grp');
-      if (homeNfsGrp) homeNfsGrp.style.display = noSens ? 'none' : '';
-      document.getElementById('home-nfs-needle').setAttribute('transform', `rotate(${(noSens ? spDeg : deg).toFixed(1)} 100 100)`);
+      if (homeNfsGrp) homeNfsGrp.style.display = '';
+      document.getElementById('home-nfs-needle').setAttribute('transform', `rotate(${(state.obdConnected ? deg : spDeg).toFixed(1)} 100 100)`);
       document.getElementById('home-nfs-speed').textContent = sp;
-      if (!noSens) {
-        document.getElementById('home-nfs-gear').textContent = `▲${state.gear}`;
-      }
+      document.getElementById('home-nfs-gear').textContent = state.obdConnected ? `▲${state.gear}` : (sp > 0 ? `▲${state.gear}` : 'N');
 
       const homeArcLen = Math.min(352, Math.max(12, (sp / 200) * 352));
       document.getElementById('home-arc-bar').setAttribute('stroke-dasharray', `${homeArcLen.toFixed(0)} 600`);
       document.getElementById('home-arc-speed').textContent = sp;
 
       const homeSportGrp = document.getElementById('home-sport-gear');
-      if (homeSportGrp) homeSportGrp.style.display = noSens ? 'none' : '';
+      if (homeSportGrp) homeSportGrp.style.display = '';
       const homeSportLen = Math.min(318, Math.max(12, (sp / 200) * 318));
       document.getElementById('home-sport-bar').setAttribute('stroke-dasharray', `${homeSportLen.toFixed(0)} 600`);
       document.getElementById('home-sport-speed').textContent = sp;
-      if (!noSens) {
-        document.getElementById('home-sport-gear').textContent = `M${state.gear}`;
-      }
+      document.getElementById('home-sport-gear').textContent = state.obdConnected ? `M${state.gear}` : (sp > 0 ? `M${state.gear}` : 'N');
 
-      // Home 4-Row Telemetry Table: Row 1 value (Viaje GPS vs Marcha OBD2)
-      document.getElementById('home-rpm-text').textContent = noSens
-        ? `${(state.speed > 0 ? (12.4 + state.speed * 0.01) : 12.4).toFixed(1)} km`
-        : `M${state.gear} · ${rp} rpm`;
+      // Home 4-Row Telemetry Table: Row 1 value (Marcha OBD2 vs GPS)
+      document.getElementById('home-rpm-text').textContent = state.obdConnected
+        ? `M${state.gear} · ${rp} rpm`
+        : (sp > 0 ? `▲${state.gear} · GPS` : 'N · -- rpm');
 
-      // 2. Cockpit Gauges (NFS, Arc, Sport) — When noSens, ONLY show clean speed!
+      // 2. Cockpit Gauges (NFS, Arc, Sport)
       const ckNfsGrp = document.getElementById('ck-nfs-gear-grp');
-      if (ckNfsGrp) ckNfsGrp.style.display = noSens ? 'none' : '';
+      if (ckNfsGrp) ckNfsGrp.style.display = '';
       const ckNfsSub = document.getElementById('ck-nfs-rpm-sub');
-      if (ckNfsSub) ckNfsSub.style.display = noSens ? 'none' : '';
-      document.getElementById('ck-nfs-needle').setAttribute('transform', `rotate(${(noSens ? spDeg : deg).toFixed(1)} 100 100)`);
+      if (ckNfsSub) ckNfsSub.style.display = '';
+      document.getElementById('ck-nfs-needle').setAttribute('transform', `rotate(${(state.obdConnected ? deg : spDeg).toFixed(1)} 100 100)`);
       document.getElementById('ck-nfs-speed').textContent = sp;
-      if (!noSens) {
-        document.getElementById('ck-nfs-gear').textContent = `▲${state.gear}`;
-        document.getElementById('ck-nfs-rpm-sub').textContent = `${rp} rpm · ${state.engineHot ? '108 °C !' : '88 °C'}`;
-      }
+      document.getElementById('ck-nfs-gear').textContent = state.obdConnected ? `▲${state.gear}` : (sp > 0 ? `▲${state.gear}` : 'N');
+      document.getElementById('ck-nfs-rpm-sub').textContent = state.obdConnected
+        ? `${rp} rpm · ${state.engineHot ? '108 °C !' : '88 °C'}`
+        : (sp > 0 ? `${sp} km/h · GPS` : 'OBD2 Desconectado');
 
       const arcLen = Math.min(452, Math.max(16, (sp / 200) * 452));
       document.getElementById('cockpit-cyan-arc').setAttribute('stroke-dasharray', `${arcLen.toFixed(0)} 680`);
       document.getElementById('cockpit-big-speed').textContent = sp;
       const ckArcGear = document.getElementById('cockpit-gear-rpm');
       if (ckArcGear) {
-        ckArcGear.style.display = noSens ? 'none' : '';
-        ckArcGear.textContent = `M${state.gear} · ${rp} rpm`;
+        ckArcGear.style.display = '';
+        ckArcGear.textContent = state.obdConnected ? `M${state.gear} · ${rp} rpm` : (sp > 0 ? `GPS · ▲${state.gear}` : 'N · En espera');
       }
       const ckArcHealth = document.getElementById('cockpit-health-line');
       if (ckArcHealth) {
-        ckArcHealth.style.display = noSens ? 'none' : '';
+        ckArcHealth.style.display = '';
       }
 
       const ckSportGear = document.getElementById('ck-sport-gear');
       if (ckSportGear) {
-        ckSportGear.style.display = noSens ? 'none' : '';
-        ckSportGear.textContent = `MARCHA M${state.gear}`;
+        ckSportGear.style.display = '';
+        ckSportGear.textContent = state.obdConnected ? `MARCHA M${state.gear}` : (sp > 0 ? `GPS M${state.gear}` : 'EN ESPERA · N');
       }
       const ckSportRpm = document.getElementById('ck-sport-rpm');
       if (ckSportRpm) {
-        ckSportRpm.style.display = noSens ? 'none' : '';
-        ckSportRpm.textContent = `${rp} RPM · 14,2 V`;
+        ckSportRpm.style.display = '';
+        ckSportRpm.textContent = state.obdConnected ? `${rp} RPM · ${state.voltage ? state.voltage.toFixed(1) + ' V' : '-- V'}` : (state.voltage ? `${state.voltage.toFixed(1)} V (Batería)` : 'Sin OBD2');
       }
       const ckSportLen = Math.min(410, Math.max(16, (sp / 200) * 410));
       document.getElementById('ck-sport-bar').setAttribute('stroke-dasharray', `${ckSportLen.toFixed(0)} 680`);
@@ -7118,9 +7145,7 @@
 
       const fsRpm = document.getElementById('ck-fs-rpm');
       if (fsRpm) {
-        fsRpm.textContent = noSens
-          ? (r5State.expiringAlert ? 'Vence en 5d' : 'Al día')
-          : `${rp} rpm`;
+        fsRpm.textContent = state.obdConnected ? `${rp} rpm` : (sp > 0 ? `${sp} km/h` : '-- rpm');
       }
 
       const mapSp = document.getElementById('map-speed-val');
@@ -7132,7 +7157,7 @@
       vp.className = `${state.theme === 'dark' ? 'theme-dark' : 'theme-light'} accent-${state.accent || 'cyan'} relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500`;
 
       // --- TOP BAR: BLUETOOTH ACTIVO/APAGADO, SEÑAL Y BATERÍA DEL TELÉFONO, CLIMA ---
-      const curDev = btDevices[state.btDeviceIdx] || btDevices[0];
+      const curDev = (btDevices && btDevices.length > 0) ? (btDevices[state.btDeviceIdx] || btDevices[0]) : null;
       const topBt = document.getElementById('top-bt-icon');
       const topSig = document.getElementById('top-signal-icon');
       const topBatt = document.getElementById('top-phone-batt');
@@ -7145,11 +7170,11 @@
         topBt.style.setProperty('stroke', state.btEnabled ? 'var(--accent)' : '#71717a', 'important');
         topBt.style.setProperty('opacity', state.btEnabled ? '1' : '0.35', 'important');
         topBt.style.setProperty('filter', state.btEnabled ? 'none' : 'grayscale(100%)', 'important');
-        topBt.setAttribute('title', state.btEnabled ? 'Bluetooth activado' : 'Bluetooth desactivado (Apagado)');
+        topBt.setAttribute('title', state.btEnabled ? (state.btConnected ? `Bluetooth: ${state.btDeviceName || 'Conectado'}` : 'Bluetooth activado') : 'Bluetooth desactivado (Apagado)');
       }
-      const sigBars = state.btEnabled ? (curDev.signal || state.phoneSignal || 4) : 0;
+      const sigBars = state.btConnected ? (curDev?.signal || state.phoneSignal || 4) : 0;
       if (topSig) {
-        topSig.className = state.btEnabled ? 'opacity-90 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300';
+        topSig.className = state.btConnected ? 'opacity-90 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300';
       }
       [1, 2, 3, 4].forEach(b => {
         const barEl = document.getElementById('sig-bar-' + b);
@@ -7157,13 +7182,13 @@
       });
       const topPhoneWrap = document.getElementById('top-phone-wrap');
       if (topPhoneWrap) {
-        topPhoneWrap.className = state.btEnabled
+        topPhoneWrap.className = state.btConnected
           ? 'phone cursor-pointer opacity-90 transition-opacity duration-300'
           : 'phone cursor-pointer opacity-25 transition-opacity duration-300';
       }
       if (topBatt) {
-        if (state.btEnabled) {
-          const battVal = curDev.battery || state.phoneBattery || 88;
+        if (state.btConnected) {
+          const battVal = curDev?.battery || state.phoneBattery || 100;
           topBatt.textContent = `${battVal}%`;
           topBatt.className = 'text-[11px] font-semibold text-[var(--ink)] tabular-nums transition-opacity duration-300';
         } else {
@@ -7240,36 +7265,42 @@
       document.getElementById('home-td-haz').className.baseVal = state.hazard ? 'td-hazard-group on' : 'td-hazard-group';
       document.getElementById('td-td-haz').className.baseVal = state.hazard ? 'td-hazard-group on' : 'td-hazard-group';
 
-      // Alerts (Tire 23 PSI & Engine 108 °C)
-      const tempVal = state.engineHot ? '108 °C' : '88 °C';
+      // Real Telemetry Guards (Zero Burned Data)
+      const tempVal = state.obdConnected ? (state.engineHot ? '108 °C' : '88 °C') : (state.cpuTemp ? `${state.cpuTemp} °C` : '-- °C');
 
       document.getElementById('home-ecu-status').textContent = tempVal;
-      document.getElementById('home-ecu-status').className = state.engineHot
+      document.getElementById('home-ecu-status').className = (state.obdConnected && state.engineHot)
         ? 'font-bold text-amber-500 tabular-nums'
         : 'font-semibold tabular-nums';
 
-      document.getElementById('home-tpms-status').textContent = state.tireAlert
-        ? 'Presión baja delantera izq. · 23 PSI'
-        : 'Presión de llantas · PSI';
-      document.getElementById('home-tpms-status').className = state.tireAlert
+      const tpmsText = state.tpmsConnected
+        ? (state.tireAlert ? 'Presión baja delantera izq. · 23 PSI' : 'Presión de llantas · 32 PSI')
+        : 'Presión TPMS · Sin receptor';
+      document.getElementById('home-tpms-status').textContent = tpmsText;
+      document.getElementById('home-tpms-status').className = (state.tpmsConnected && state.tireAlert)
         ? 'text-xs font-semibold text-amber-500 text-center mt-1.5 tabular-nums'
         : 'text-xs text-[var(--mute)] text-center mt-1.5';
 
-      document.getElementById('home-tire-fl').setAttribute('fill', state.tireAlert ? '#d97706' : '#1e293b');
-      document.getElementById('home-psi-fl').textContent = state.tireAlert ? '23' : '32';
-      document.getElementById('home-psi-fl').className = state.tireAlert
+      document.getElementById('home-tire-fl').setAttribute('fill', (state.tpmsConnected && state.tireAlert) ? '#d97706' : '#1e293b');
+      document.getElementById('home-psi-fl').textContent = state.tpmsConnected ? (state.tireAlert ? '23' : '32') : '--';
+      document.getElementById('home-psi-fl').className = (state.tpmsConnected && state.tireAlert)
         ? 'absolute left-2.5 top-[50px] text-[13px] font-bold text-amber-500 tabular-nums animate-bounce'
         : 'absolute left-2.5 top-[50px] text-[13px] font-semibold tabular-nums';
 
-      document.getElementById('td-tire-fl').setAttribute('fill', state.tireAlert ? '#d97706' : '#1e293b');
-      document.getElementById('td-psi-fl').textContent = state.tireAlert ? '23' : '32';
-      document.getElementById('td-psi-fl').className = state.tireAlert
+      document.getElementById('td-tire-fl').setAttribute('fill', (state.tpmsConnected && state.tireAlert) ? '#d97706' : '#1e293b');
+      document.getElementById('td-psi-fl').textContent = state.tpmsConnected ? (state.tireAlert ? '23' : '32') : '--';
+      document.getElementById('td-psi-fl').className = (state.tpmsConnected && state.tireAlert)
         ? 'absolute left-5 top-[54px] text-sm font-bold text-amber-500 tabular-nums animate-bounce'
         : 'absolute left-5 top-[54px] text-sm font-semibold tabular-nums';
 
-      const healthMsg = (state.engineHot || state.tireAlert)
-        ? `Atención requerida · ${tempVal} · 14,2 V`
-        : `Todo en orden · 88 °C · 14,2 V`;
+      let healthMsg = '';
+      if (!state.obdConnected && !state.tpmsConnected) {
+        healthMsg = state.voltage ? `Batería ${state.voltage.toFixed(1)} V · Sensores en espera` : 'OBD2 / TPMS desconectados · En espera';
+      } else if (state.engineHot || state.tireAlert) {
+        healthMsg = `Atención requerida · ${tempVal} · ${state.voltage ? state.voltage.toFixed(1) + ' V' : '-- V'}`;
+      } else {
+        healthMsg = `Todo en orden · ${tempVal} · ${state.voltage ? state.voltage.toFixed(1) + ' V' : 'OK'}`;
+      }
       document.getElementById('cockpit-health-line').textContent = healthMsg;
       document.getElementById('cockpit-health-line').className = `text-xs mt-1 tabular-nums ${(state.engineHot || state.tireAlert) ? 'text-rose-400 font-bold' : 'opacity-60'}`;
 
@@ -7357,13 +7388,14 @@
       document.getElementById('radio-presets-row').innerHTML = presetsHtml;
 
       // Active Title & Subtitle across Home, Cockpit, Vision Pill & Map
-      const activeTitle = isRadio ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}` : curSong.title;
-      const activeSub = isRadio ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`) : `${curSong.artist} · ${curSong.album}`;
+      const isStopped = !state.playing && state.songProgressPct === 0;
+      const activeTitle = isRadio ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}` : (isStopped ? 'Audio del Sistema' : curSong.title);
+      const activeSub = isRadio ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`) : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : `${curSong.artist} · ${curSong.album}`);
 
       const heroTitle = document.getElementById('music-hero-title');
-      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : curSong.title;
+      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isStopped ? 'Audio del Sistema' : curSong.title);
       const heroArtist = document.getElementById('music-hero-artist');
-      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : curSong.artist;
+      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : curSong.artist);
 
       document.getElementById('home-cov-curr').src = curSong.cover;
       document.getElementById('home-cov-prev').src = prevSong.cover;
@@ -7513,17 +7545,17 @@
           : 'w-20 h-28 rounded-[38px] bg-slate-700/60 shadow-none flex items-center justify-center transition-all duration-300 opacity-60';
       }
       const btName = document.getElementById('bt-card-phone-name');
-      if (btName) btName.textContent = state.btEnabled ? curDev.name : 'Bluetooth desactivado';
+      if (btName) btName.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin dispositivo vinculado') : 'Bluetooth desactivado');
       const btSub = document.getElementById('bt-card-phone-sub');
-      if (btSub) btSub.textContent = state.btEnabled ? curDev.sub : 'Toca para activar y conectar';
+      if (btSub) btSub.textContent = (state.btEnabled && curDev) ? (curDev.sub || 'Conectado') : (state.btEnabled ? 'Toca para vincular teléfono' : 'Toca para activar');
       const btSw = document.getElementById('bt-card-power-sw');
       if (btSw) btSw.setAttribute('aria-checked', state.btEnabled);
       const btSubSw = document.getElementById('bt-sub-power-sw');
       if (btSubSw) btSubSw.setAttribute('aria-checked', state.btEnabled);
       const btSubTitle = document.getElementById('bt-sub-phone-title');
-      if (btSubTitle) btSubTitle.textContent = state.btEnabled ? curDev.name : 'Sin conexión';
+      if (btSubTitle) btSubTitle.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin vincular') : 'Sin conexión');
       const btSubStatus = document.getElementById('bt-sub-phone-status');
-      if (btSubStatus) btSubStatus.textContent = state.btEnabled ? `Conectado · Batería ${curDev.battery || 88}% · Audio HD` : 'Bluetooth apagado';
+      if (btSubStatus) btSubStatus.textContent = (state.btEnabled && curDev) ? `Conectado · Batería ${curDev.battery || 100}% · Audio HD` : (state.btEnabled ? (state.btConnected ? 'Conectado' : 'Esperando conexión...') : 'Bluetooth apagado');
 
       [0, 1].forEach(i => {
         const dBtn = document.getElementById('bt-dev-btn-' + i);
@@ -7640,8 +7672,10 @@
 
       const tpmsRow = document.getElementById('settings-tpms-row-val');
       if (tpmsRow) {
-        tpmsRow.textContent = state.tireAlert ? 'Alerta · 23 PSI !' : 'TPMS USB · 32 PSI';
-        tpmsRow.className = state.tireAlert ? 'font-bold text-amber-500' : 'font-semibold';
+        tpmsRow.textContent = state.tpmsConnected
+          ? (state.tireAlert ? 'Alerta · 23 PSI !' : '4 ruedas · 32 PSI')
+          : 'Sin receptor TPMS';
+        tpmsRow.className = (state.tpmsConnected && state.tireAlert) ? 'font-bold text-amber-500' : 'font-semibold';
       }
 
       // Simulator buttons active state
@@ -7675,10 +7709,10 @@
         : 'relative w-72 h-72 flex items-center justify-center cursor-grab active:cursor-grabbing select-none transition-all duration-300';
       document.getElementById('ck-fs-left-wing').className = fs ? 'ethereal-card rounded-2xl p-4 w-52 flex flex-col gap-2 text-xs tabular-nums' : 'hidden';
       document.getElementById('ck-fs-right-wing').className = fs ? 'ethereal-card rounded-2xl p-4 w-52 flex flex-col gap-2 text-xs tabular-nums' : 'hidden';
-      document.getElementById('ck-fs-psi-fl').textContent = state.tireAlert ? '23 PSI !' : '32 PSI';
-      document.getElementById('ck-fs-psi-fl').className = state.tireAlert ? 'font-bold text-amber-500' : 'font-semibold text-[var(--accent)]';
+      document.getElementById('ck-fs-psi-fl').textContent = state.tpmsConnected ? (state.tireAlert ? '23 PSI !' : '32 PSI') : '-- PSI';
+      document.getElementById('ck-fs-psi-fl').className = (state.tpmsConnected && state.tireAlert) ? 'font-bold text-amber-500' : 'font-semibold text-[var(--accent)]';
       document.getElementById('ck-fs-temp').textContent = tempVal;
-      document.getElementById('ck-fs-temp').className = state.engineHot ? 'font-bold text-amber-500' : 'font-semibold';
+      document.getElementById('ck-fs-temp').className = (state.obdConnected && state.engineHot) ? 'font-bold text-amber-500' : 'font-semibold';
 
       // --- SYNC ACOPLAMIENTO INFORMACIÓN DEL SISTEMA + CORBATÍN CHEVROLET CON PLACA ---
       const activePlate = r5State.plate || 'JOY-2022';
@@ -7779,146 +7813,68 @@
       const ckBatt = document.getElementById('ck-fs-batt');
       const ckCons = document.getElementById('ck-fs-cons');
 
-      if (noSens) {
-        if (sensBadge) {
-          sensBadge.textContent = 'Modo GPS';
-          sensBadge.className = 'text-xs font-semibold text-[var(--accent)]';
-        }
-        if (tpmsRow) {
-          tpmsRow.textContent = 'En espera · GPS';
-          tpmsRow.className = 'font-semibold text-[var(--accent)]';
-        }
-        if (subHwBadge) {
-          subHwBadge.textContent = 'Esperando lectores';
-          subHwBadge.className = 'text-[11px] font-semibold text-amber-500';
-        }
-        if (subObdTxt) subObdTxt.textContent = 'En espera · Voltaje MCU';
-        if (subTpmsTxt) subTpmsTxt.textContent = '85% vida útil';
+      if (sensBadge) {
+        sensBadge.textContent = state.obdConnected ? 'En línea' : 'Sin conexión';
+        sensBadge.className = state.obdConnected ? 'text-xs font-semibold text-emerald-500' : 'text-xs font-semibold text-[var(--mute)]';
+      }
+      if (subHwBadge) {
+        subHwBadge.textContent = state.obdConnected ? 'En línea' : 'Esperando sensores';
+        subHwBadge.className = state.obdConnected ? 'text-[11px] font-semibold text-emerald-500' : 'text-[11px] font-semibold text-amber-500';
+      }
+      if (subObdTxt) subObdTxt.textContent = state.obdConnected ? 'OBD2 En línea · ' + (state.voltage ? state.voltage.toFixed(1) + ' V' : '14.2 V') : 'Sin conexión OBD2';
+      if (subTpmsTxt) subTpmsTxt.textContent = state.tpmsConnected ? (state.tireAlert ? 'Alerta presión !' : '4 ruedas · OK') : 'Sin receptor TPMS';
 
-        document.getElementById('home-tire-fl').setAttribute('fill', '#1e293b');
-        document.getElementById('td-tire-fl').setAttribute('fill', '#1e293b');
-        ['home-psi-fl', 'home-psi-fr'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = '85%';
-            el.className = (id.endsWith('fl') ? 'absolute left-2.5 top-[50px]' : 'absolute right-2.5 top-[50px]') + ' text-xs font-semibold text-[var(--accent)] tabular-nums';
+      const allTireIds = ['home-psi-fl', 'home-psi-fr', 'home-psi-rl', 'home-psi-rr', 'td-psi-fl', 'td-psi-fr', 'td-psi-rl', 'td-psi-rr'];
+      allTireIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          if (state.tpmsConnected) {
+            el.textContent = state.tireAlert && id.endsWith('fl') ? '23' : '32';
+          } else {
+            el.textContent = '--';
           }
-        });
-        ['home-psi-rl', 'home-psi-rr'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = '88%';
-            el.className = (id.endsWith('rl') ? 'absolute left-2.5 bottom-[46px]' : 'absolute right-2.5 bottom-[46px]') + ' text-xs font-semibold text-[var(--accent)] tabular-nums';
-          }
-        });
-        ['td-psi-fl', 'td-psi-fr'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = '85%';
-            el.className = (id.endsWith('fl') ? 'absolute left-5 top-[54px]' : 'absolute right-5 top-[54px]') + ' text-xs font-semibold text-[var(--accent)] tabular-nums';
-          }
-        });
-        ['td-psi-rl', 'td-psi-rr'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = '88%';
-            el.className = (id.endsWith('rl') ? 'absolute left-5 bottom-[48px]' : 'absolute right-5 bottom-[48px]') + ' text-xs font-semibold text-[var(--accent)] tabular-nums';
-          }
-        });
+        }
+      });
+      if (tdTpmsStat) {
+        tdTpmsStat.textContent = state.tpmsConnected
+          ? (state.tireAlert ? 'Presión baja del. izq. · 23 PSI' : 'Presión de llantas · 32 PSI')
+          : 'Presión TPMS · Sin receptor';
+        tdTpmsStat.className = (state.tpmsConnected && state.tireAlert) ? 'text-xs font-semibold text-amber-500 text-center mt-1 tabular-nums' : 'text-xs opacity-65 text-center mt-1';
+      }
 
-        document.getElementById('home-tpms-status').textContent = 'Vida útil llantas';
-        document.getElementById('home-tpms-status').className = 'text-xs text-[var(--mute)] text-center mt-1.5 tabular-nums truncate';
-        if (tdTpmsStat) {
-          tdTpmsStat.textContent = 'Vida útil llantas';
-          tdTpmsStat.className = 'text-xs text-[var(--mute)] text-center mt-1 tabular-nums truncate';
-        }
+      if (hR1Lbl) hR1Lbl.textContent = state.obdConnected ? 'Marcha' : 'Velocidad';
+      if (hR2Lbl) hR2Lbl.textContent = 'Motor';
+      if (hR3Lbl) hR3Lbl.textContent = 'Batería';
+      if (hR4Lbl) hR4Lbl.textContent = 'Consumo';
 
-        if (hR1Lbl) hR1Lbl.textContent = 'Viaje GPS';
-        if (hR2Lbl) hR2Lbl.textContent = 'Voltaje';
-        if (hR3Lbl) hR3Lbl.textContent = 'Aceite';
-        if (hR4Lbl) hR4Lbl.textContent = 'SOAT';
+      if (hBatt) {
+        hBatt.textContent = state.voltage ? `${state.voltage.toFixed(1)} V` : (state.obdConnected ? '14.2 V · OK' : '-- V · En espera');
+        hBatt.className = 'font-semibold text-[var(--accent)] tabular-nums';
+      }
+      if (hCons) {
+        hCons.textContent = state.obdConnected ? '14,2 km/L' : '-- km/L';
+        hCons.className = 'font-semibold tabular-nums';
+      }
 
-        document.getElementById('home-ecu-status').textContent = '14,1 V';
-        document.getElementById('home-ecu-status').className = 'font-semibold text-[var(--ink)] tabular-nums';
-        if (hBatt) {
-          hBatt.textContent = `${(r5State.oilKmLeft || r5State.oilKm).toLocaleString('es-CO')} km`;
-          hBatt.className = 'font-semibold text-[var(--ink)] tabular-nums';
-        }
-        if (hCons) {
-          hCons.textContent = r5State.expiringAlert ? 'Vence en 5d' : 'Al día';
-          hCons.className = r5State.expiringAlert ? 'font-bold text-amber-500 tabular-nums' : 'font-semibold text-emerald-400 tabular-nums';
-        }
+      if (ckLeftTtl) ckLeftTtl.textContent = 'Presión TPMS · 4 Ruedas';
+      if (ckPsiFl) { ckPsiFl.textContent = state.tpmsConnected ? (state.tireAlert ? '23 PSI !' : '32 PSI') : '-- PSI'; ckPsiFl.className = (state.tpmsConnected && state.tireAlert) ? 'font-bold text-amber-500' : 'font-semibold text-[var(--accent)]'; }
+      if (ckPsiFr) { ckPsiFr.textContent = state.tpmsConnected ? '32 PSI' : '-- PSI'; ckPsiFr.className = 'font-semibold text-[var(--accent)]'; }
+      if (ckPsiRl) { ckPsiRl.textContent = state.tpmsConnected ? '32 PSI' : '-- PSI'; ckPsiRl.className = 'font-semibold text-[var(--accent)]'; }
+      if (ckPsiRr) { ckPsiRr.textContent = state.tpmsConnected ? '32 PSI' : '-- PSI'; ckPsiRr.className = 'font-semibold text-[var(--accent)]'; }
 
-        if (ckLeftTtl) ckLeftTtl.textContent = 'Vida Útil Llantas';
-        if (ckPsiFl) { ckPsiFl.textContent = '85%'; ckPsiFl.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckPsiFr) { ckPsiFr.textContent = '85%'; ckPsiFr.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckPsiRl) { ckPsiRl.textContent = '88%'; ckPsiRl.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckPsiRr) { ckPsiRr.textContent = '88%'; ckPsiRr.className = 'font-semibold text-[var(--accent)]'; }
-
-        if (ckRightTtl) ckRightTtl.textContent = 'Información Sistema';
-        if (ckR1Lbl) ckR1Lbl.textContent = 'Viaje GPS';
-        if (ckR2Lbl) ckR2Lbl.textContent = 'Voltaje';
-        if (ckR3Lbl) ckR3Lbl.textContent = 'Aceite';
-        if (ckR4Lbl) ckR4Lbl.textContent = 'SOAT';
-        if (ckTemp) { ckTemp.textContent = '14,1 V'; ckTemp.className = 'font-semibold'; }
-        if (ckBatt) { ckBatt.textContent = `${(r5State.oilKmLeft || r5State.oilKm).toLocaleString('es-CO')} km`; ckBatt.className = 'font-semibold'; }
-        if (ckCons) {
-          ckCons.textContent = r5State.expiringAlert ? 'Vence en 5d' : 'Al día';
-          ckCons.className = r5State.expiringAlert ? 'font-bold text-amber-500' : 'font-semibold text-emerald-400';
-        }
-      } else {
-        if (sensBadge) {
-          sensBadge.textContent = r5State.expiringAlert ? 'Alerta · 4/4' : 'Al día · 4/4';
-          sensBadge.className = r5State.expiringAlert ? 'text-xs font-bold text-amber-500' : 'text-xs font-semibold text-emerald-500';
-        }
-        if (subHwBadge) {
-          subHwBadge.textContent = 'En línea';
-          subHwBadge.className = 'text-[11px] font-semibold text-emerald-500';
-        }
-        if (subObdTxt) subObdTxt.textContent = 'Vgate iCar · 14,2 V';
-        if (subTpmsTxt) subTpmsTxt.textContent = state.tireAlert ? 'Alerta · 23 PSI !' : '4 ruedas · 32 PSI';
-
-        ['home-psi-fr', 'home-psi-rl', 'home-psi-rr', 'td-psi-fr', 'td-psi-rl', 'td-psi-rr'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = '32';
-            if (id === 'home-psi-fr') el.className = 'absolute right-2.5 top-[50px] text-[13px] font-semibold tabular-nums';
-            if (id === 'home-psi-rl') el.className = 'absolute left-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums';
-            if (id === 'home-psi-rr') el.className = 'absolute right-2.5 bottom-[46px] text-[13px] font-semibold tabular-nums';
-            if (id === 'td-psi-fr') el.className = 'absolute right-5 top-[54px] text-sm font-semibold tabular-nums';
-            if (id === 'td-psi-rl') el.className = 'absolute left-5 bottom-[48px] text-sm font-semibold tabular-nums';
-            if (id === 'td-psi-rr') el.className = 'absolute right-5 bottom-[48px] text-sm font-semibold tabular-nums';
-          }
-        });
-        if (tdTpmsStat) {
-          tdTpmsStat.textContent = state.tireAlert ? 'Presión baja del. izq. · 23 PSI' : 'Presión de llantas · PSI';
-          tdTpmsStat.className = state.tireAlert ? 'text-xs font-semibold text-amber-500 text-center mt-1 tabular-nums' : 'text-xs opacity-65 text-center mt-1';
-        }
-
-        if (hR1Lbl) hR1Lbl.textContent = 'Marcha';
-        if (hR2Lbl) hR2Lbl.textContent = 'Motor';
-        if (hR3Lbl) hR3Lbl.textContent = 'Batería';
-        if (hR4Lbl) hR4Lbl.textContent = 'Consumo';
-        if (hBatt) {
-          hBatt.textContent = '14,2 V · OK';
-          hBatt.className = 'font-semibold text-[var(--accent)] tabular-nums';
-        }
-        if (hCons) {
-          hCons.textContent = '14,2 km/L';
-          hCons.className = 'font-semibold tabular-nums';
-        }
-
-        if (ckLeftTtl) ckLeftTtl.textContent = 'Presión TPMS · 4 Ruedas';
-        if (ckPsiFr) { ckPsiFr.textContent = '32 PSI'; ckPsiFr.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckPsiRl) { ckPsiRl.textContent = '32 PSI'; ckPsiRl.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckPsiRr) { ckPsiRr.textContent = '32 PSI'; ckPsiRr.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckRightTtl) ckRightTtl.textContent = 'Motor & OBD2 ECU';
-        if (ckR1Lbl) ckR1Lbl.textContent = 'Régimen RPM';
-        if (ckR2Lbl) ckR2Lbl.textContent = 'Temp. Refrigerante';
-        if (ckR3Lbl) ckR3Lbl.textContent = 'Batería / Alternador';
-        if (ckR4Lbl) ckR4Lbl.textContent = 'Consumo Medio';
-        if (ckBatt) { ckBatt.textContent = '14,2 V'; ckBatt.className = 'font-semibold text-[var(--accent)]'; }
-        if (ckCons) { ckCons.textContent = '14,2 km/L'; ckCons.className = 'font-semibold'; }
+      if (ckRightTtl) ckRightTtl.textContent = 'Motor & Diagnóstico';
+      if (ckR1Lbl) ckR1Lbl.textContent = state.obdConnected ? 'Régimen RPM' : 'Velocidad GPS';
+      if (ckR2Lbl) ckR2Lbl.textContent = 'Temp. Motor';
+      if (ckR3Lbl) ckR3Lbl.textContent = 'Batería';
+      if (ckR4Lbl) ckR4Lbl.textContent = 'Consumo Medio';
+      if (ckTemp) { ckTemp.textContent = tempVal; ckTemp.className = (state.obdConnected && state.engineHot) ? 'font-bold text-amber-500' : 'font-semibold'; }
+      if (ckBatt) {
+        ckBatt.textContent = state.voltage ? `${state.voltage.toFixed(1)} V` : (state.obdConnected ? '14.2 V' : '-- V');
+        ckBatt.className = 'font-semibold text-[var(--accent)]';
+      }
+      if (ckCons) {
+        ckCons.textContent = state.obdConnected ? '14,2 km/L' : '-- km/L';
+        ckCons.className = 'font-semibold';
       }
 
       updateSoundStageUI();
@@ -8025,23 +7981,155 @@
           if (typeof dsp.navDucking === 'boolean') state.navDucking = dsp.navDucking;
         } catch (e) {}
       }
+
+      updateHardwareStatus();
     }
+
+    function openWifiDirect() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+        window.AndroidBridge.openWifiSettings();
+      } else {
+        switchTab('settings');
+        openAjCat('wifi');
+      }
+    }
+
+    function openBluetoothDirect() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openBluetoothSettings === 'function') {
+        window.AndroidBridge.openBluetoothSettings();
+      } else {
+        switchTab('settings');
+        openAjCat('bt');
+      }
+    }
+
+    function updateHardwareStatus() {
+      if (!window.AndroidBridge) return;
+      // 1. Wi-Fi
+      try {
+        if (typeof window.AndroidBridge.getWifiStatus === 'function') {
+          const w = JSON.parse(window.AndroidBridge.getWifiStatus() || '{}');
+          state.wifiConnected = !!w.connected;
+          state.wifiSsid = w.ssid || 'Desconectado';
+          const wifiIco = document.getElementById('top-wifi-icon');
+          if (wifiIco) {
+            if (w.connected) {
+              wifiIco.classList.remove('opacity-30');
+              wifiIco.classList.add('on', 'text-[var(--accent)]');
+              wifiIco.setAttribute('title', `Wi-Fi: ${w.ssid}`);
+            } else if (w.enabled) {
+              wifiIco.classList.remove('opacity-30', 'on', 'text-[var(--accent)]');
+              wifiIco.setAttribute('title', 'Wi-Fi activado (sin red)');
+            } else {
+              wifiIco.classList.add('opacity-30');
+              wifiIco.classList.remove('on', 'text-[var(--accent)]');
+              wifiIco.setAttribute('title', 'Wi-Fi apagado');
+            }
+          }
+          const wifiItem = ajData.find(c => c.id === 'wifi')?.it?.find(i => i.l === 'Red conectada');
+          if (wifiItem) {
+            wifiItem.v = w.connected ? `${w.ssid} (Conectado)` : (w.enabled ? 'Desconectado' : 'Apagado');
+          }
+        }
+      } catch (e) {}
+
+      // 2. Bluetooth
+      try {
+        if (typeof window.AndroidBridge.getBluetoothStatus === 'function') {
+          const b = JSON.parse(window.AndroidBridge.getBluetoothStatus() || '{}');
+          state.btConnected = !!b.connected;
+          state.btDeviceName = b.device || 'Sin dispositivo';
+          const btIco = document.getElementById('top-bt-icon');
+          const phoneWrap = document.getElementById('top-phone-wrap');
+          const sigIco = document.getElementById('top-signal-icon');
+          if (btIco) {
+            if (b.connected) {
+              btIco.classList.remove('opacity-35');
+              btIco.classList.add('on', 'text-[var(--accent)]');
+              btIco.setAttribute('title', `Bluetooth: ${b.device}`);
+            } else {
+              btIco.classList.add('opacity-35');
+              btIco.classList.remove('on', 'text-[var(--accent)]');
+              btIco.setAttribute('title', b.enabled ? 'Bluetooth listo' : 'Bluetooth apagado');
+            }
+          }
+          if (phoneWrap) {
+            if (b.connected) {
+              phoneWrap.classList.remove('opacity-30');
+              phoneWrap.setAttribute('title', `Teléfono: ${b.device}`);
+            } else {
+              phoneWrap.classList.add('opacity-30');
+              phoneWrap.setAttribute('title', 'Teléfono no conectado');
+            }
+          }
+          if (sigIco) {
+            if (b.connected) sigIco.classList.remove('opacity-30');
+            else sigIco.classList.add('opacity-30');
+          }
+        }
+        if (typeof window.AndroidBridge.getBluetoothBondedDevices === 'function') {
+          const rawBonded = window.AndroidBridge.getBluetoothBondedDevices();
+          const bonded = JSON.parse(rawBonded || '[]');
+          if (Array.isArray(bonded)) {
+            btDevices.length = 0;
+            bonded.forEach(d => {
+              btDevices.push({
+                name: d.name,
+                sub: d.type === 'obd' ? 'Telemetría ECU OBD2' : 'Audio y llamadas Bluetooth',
+                battery: 100,
+                signal: 4,
+                type: d.type
+              });
+            });
+            renderBluetoothDevicesList();
+          }
+        }
+      } catch (e) {}
+
+      // 3. Battery / Voltage
+      try {
+        if (typeof window.AndroidBridge.getBatteryStatus === 'function') {
+          const bat = JSON.parse(window.AndroidBridge.getBatteryStatus() || '{}');
+          if (bat.voltage) {
+            state.voltage = parseFloat(bat.voltage);
+            const battEl = document.getElementById('home-batt-text');
+            if (battEl) battEl.textContent = `${bat.voltage} V`;
+            const ckBattEl = document.getElementById('ck-fs-batt');
+            if (ckBattEl) ckBattEl.textContent = `${bat.voltage} V`;
+          }
+          if (typeof bat.level === 'number') {
+            const pb = document.getElementById('top-phone-batt');
+            if (pb && state.btConnected) pb.textContent = `${bat.level}%`;
+          }
+        }
+      } catch (e) {}
+
+      // 4. CPU Temp
+      try {
+        if (typeof window.AndroidBridge.getCpuTemperature === 'function') {
+          const cpuT = window.AndroidBridge.getCpuTemperature();
+          const fanItem = ajData.find(c => c.id === 'fan')?.it?.find(i => i.l === 'Temperatura del procesador');
+          if (fanItem && cpuT > 0) fanItem.v = `${cpuT} °C`;
+        }
+      } catch (e) {}
+    }
+
     initNativeHardwareMode();
+    setInterval(updateHardwareStatus, 3000);
     refreshDynamicWeather();
 
     window.onTelemetryUpdate = function(data) {
       if (!data) return;
       if (typeof data.speed === 'number') {
         state.speed = Math.round(data.speed);
-        state.gear = Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
+        state.gear = state.speed === 0 ? 1 : Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
       }
       if (typeof data.tripKm === 'number') {
         state.tripKm = data.tripKm;
       }
       if (typeof data.rpm === 'number') {
         state.rpm = Math.round(data.rpm);
-        state.gear = Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
-        state.sensorWaitMode = false;
+        state.gear = state.speed === 0 ? 1 : Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
       }
       if (typeof data.temp === 'number') {
         state.engineHot = data.temp >= 105;
@@ -8052,7 +8140,11 @@
         state.engineHot = data.engineHot;
       }
       if (typeof data.obdConnected === 'boolean') {
+        state.obdConnected = data.obdConnected;
         state.sensorWaitMode = !data.obdConnected;
+      }
+      if (typeof data.tpmsConnected === 'boolean') {
+        state.tpmsConnected = data.tpmsConnected;
       }
       if (typeof data.psi_fl === 'number') {
         state.tireAlert = data.psi_fl < 28;
@@ -8126,7 +8218,7 @@
 
     // 1-second audio progress tick during playback
     setInterval(() => {
-      if (state.playing && state.audioMode !== 'radio') {
+      if (state.playing && state.audioMode !== 'radio' && state.songProgressPct > 0) {
         const curSong = songs[state.songIdx] || songs[0];
         const dur = curSong.durationSec || 210;
         const incPct = (1 / dur) * 100;
