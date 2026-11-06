@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableDelayedExpansion
-title Optimizador 100%% Hardware - JoyOS v8.0 Chevrolet Joy
+title Optimizador 100%% Hardware - JoyOS v8.1 Chevrolet Joy
 cls
 echo =====================================================================
-echo    🚀 JoyOS v8.0 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO
+echo    🚀 JoyOS v8.1 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO
 echo    Chevrolet Joy 2022 · Unidad AC8227L / ZXDZ_01 (1024x600)
 echo =====================================================================
 echo.
@@ -62,7 +62,7 @@ del "%~dp0adb_check.tmp" >nul 2>&1
 echo   -> Tablet conectada y autorizada correctamente.
 echo.
 
-echo [2/6] Instalando / Actualizando JoyOSLauncher.apk (v8.0.0)...
+echo [2/6] Instalando / Actualizando JoyOSLauncher.apk (v8.1.0)...
 if exist "%~dp0..\JoyOSLauncher.apk" (
     echo   -> Instalando JoyOSLauncher.apk con todos los permisos pre-concedidos...
     "%ADB_CMD%" install -r -g "%~dp0..\JoyOSLauncher.apk"
@@ -76,19 +76,20 @@ if exist "%~dp0..\JoyOSLauncher.apk" (
     echo   -> Instalando APK desde compilación local...
     "%ADB_CMD%" install -r -g "%~dp0..\app\build\outputs\apk\debug\JoyOSLauncher.apk"
 ) else (
-    echo   -> Descargando JoyOSLauncher.apk v8.0.0 desde GitHub Releases...
-    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/Jfernando014/JoyOS/releases/download/v8.0.0/JoyOSLauncher.apk' -OutFile '%~dp0..\JoyOSLauncher.apk'"
+    echo   -> Descargando última versión de JoyOSLauncher.apk desde GitHub Releases...
+    powershell -Command "Invoke-WebRequest -Uri 'https://github.com/Jfernando014/JoyOS/releases/latest/download/JoyOSLauncher.apk' -OutFile '%~dp0..\JoyOSLauncher.apk'"
     "%ADB_CMD%" install -r -g "%~dp0..\JoyOSLauncher.apk"
 )
 echo.
 
-echo [3/6] Otorgando permisos especiales de sistema y hardware...
+echo [3/6] Otorgando permisos especiales de sistema, hardware y OTA...
 "%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.ACCESS_FINE_LOCATION >nul 2>&1
 "%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.ACCESS_COARSE_LOCATION >nul 2>&1
 "%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.BLUETOOTH_CONNECT >nul 2>&1
 "%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.BLUETOOTH_SCAN >nul 2>&1
 "%ADB_CMD%" shell appops set com.joyos.launcher WRITE_SETTINGS allow >nul 2>&1
-echo   -> Permisos de GPS, Bluetooth y brillo físico otorgados.
+"%ADB_CMD%" shell appops set com.joyos.launcher REQUEST_INSTALL_PACKAGES allow >nul 2>&1
+echo   -> Permisos de GPS, Bluetooth, brillo físico y actualizaciones OTA otorgados.
 echo.
 
 echo [4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)...
@@ -96,7 +97,7 @@ echo [4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)...
 echo   -> JoyOS registrado como Home Launcher nativo.
 echo.
 
-echo [5/6] Desbloqueando 100%% del Sonido y Optimizando CPU/GPU...
+echo [5/6] Desbloqueando 100%% del Sonido, CPU/GPU y Puerto ADB Inalámbrico...
 :: Elimina el limitador de volumen seguro de Android para dar 100% ganancia al amplificador
 "%ADB_CMD%" shell settings put global audio_safe_volume_state 2 >nul 2>&1
 :: Exime a JoyOS de suspensión de batería / Doze mode
@@ -105,8 +106,10 @@ echo [5/6] Desbloqueando 100%% del Sonido y Optimizando CPU/GPU...
 "%ADB_CMD%" shell settings put global window_animation_scale 0.5 >nul 2>&1
 "%ADB_CMD%" shell settings put global transition_animation_scale 0.5 >nul 2>&1
 "%ADB_CMD%" shell settings put global animator_duration_scale 0.5 >nul 2>&1
+:: Habilita puerto 5555 para futuras conexiones Wi-Fi sin cables
+"%ADB_CMD%" tcpip 5555 >nul 2>&1
 echo   -> Audio DSP desbloqueado sin limitador de volumen.
-echo   -> Prioridad máxima de CPU/GPU aplicada.
+echo   -> Prioridad máxima de CPU/GPU y puerto Wi-Fi 5555 activados.
 echo.
 
 echo [6/6] Limpieza de Bloatware (Congelamiento del Launcher de fábrica)...
@@ -130,7 +133,7 @@ if /i "!DESACTIVAR!"=="S" (
 echo.
 echo =====================================================================
 echo    🎉 ¡OPTIMIZACIÓN COMPLETA!
-echo    Iniciando JoyOS v8.0 en la pantalla del Chevrolet Joy...
+echo    Iniciando JoyOS v8.1 en la pantalla del Chevrolet Joy...
 echo =====================================================================
 "%ADB_CMD%" shell am start -n com.joyos.launcher/.MainActivity >nul 2>&1
 echo.
