@@ -1148,6 +1148,179 @@
       background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%) !important;
       border-color: rgba(0, 0, 0, 0.08) !important;
     }
+
+    /* ======================================================================= */
+    /* REDESIGNED USB & FILE MANAGER (PROPOSAL MATCHING DARK & LIGHT THEMES)    */
+    /* ======================================================================= */
+    .file-drive-card {
+      background: rgba(19, 29, 46, 0.6);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .file-drive-card:hover {
+      background: rgba(19, 29, 46, 0.85);
+      border-color: rgba(92, 225, 230, 0.25);
+    }
+    .file-drive-card.active {
+      background: rgba(92, 225, 230, 0.08);
+      border-color: rgba(92, 225, 230, 0.45);
+      box-shadow: 0 0 16px rgba(92, 225, 230, 0.08);
+    }
+    .theme-light .file-drive-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .theme-light .file-drive-card:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+    .theme-light .file-drive-card.active {
+      background: rgba(2, 132, 199, 0.04);
+      border-color: rgba(2, 132, 199, 0.5);
+      box-shadow: 0 0 16px rgba(2, 132, 199, 0.08);
+    }
+
+    /* Filter Pills */
+    .filter-pill {
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      border: 1px solid transparent;
+    }
+    .filter-pill:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.1);
+      color: #f1f5f9;
+    }
+    .filter-pill.active {
+      background: #5ce1e6 !important;
+      color: #0b1320 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 2px 10px rgba(92, 225, 230, 0.3);
+    }
+    .theme-light .filter-pill {
+      background: #ffffff;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+    .theme-light .filter-pill:hover:not(.active) {
+      background: #f8fafc;
+      color: #1e293b;
+      border-color: #cbd5e1;
+    }
+    .theme-light .filter-pill.active {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      border: none !important;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+    }
+
+    /* File Item Cards */
+    .file-item-card {
+      background: rgba(19, 29, 46, 0.55);
+      border-color: rgba(255, 255, 255, 0.06);
+    }
+    .file-item-card:hover {
+      background: rgba(19, 29, 46, 0.85);
+      border-color: rgba(92, 225, 230, 0.2);
+    }
+    .theme-light .file-item-card {
+      background: #ffffff;
+      border-color: #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+    }
+    .theme-light .file-item-card:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    /* File Type Badges */
+    .file-type-icon {
+      font-size: 11px;
+      letter-spacing: -0.02em;
+    }
+    .badge-html {
+      background: rgba(14, 165, 233, 0.15);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      color: #38bdf8;
+    }
+    .theme-light .badge-html {
+      background: rgba(2, 132, 199, 0.10);
+      border: 1px solid rgba(2, 132, 199, 0.25);
+      color: #0284c7;
+    }
+    .badge-apk {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: #34d399;
+    }
+    .theme-light .badge-apk {
+      background: rgba(16, 185, 129, 0.10);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #059669;
+    }
+    .badge-music {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.35);
+      color: #c084fc;
+      font-size: 15px;
+    }
+    .theme-light .badge-music {
+      background: rgba(147, 51, 234, 0.10);
+      border: 1px solid rgba(147, 51, 234, 0.25);
+      color: #7e22ce;
+      font-size: 15px;
+    }
+    .badge-img {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+    .theme-light .badge-img {
+      background: rgba(217, 119, 6, 0.10);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+      color: #b45309;
+    }
+    .badge-dat {
+      background: rgba(148, 163, 184, 0.15);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      color: #cbd5e1;
+    }
+    .theme-light .badge-dat {
+      background: rgba(100, 116, 139, 0.08);
+      border: 1px solid rgba(100, 116, 139, 0.2);
+      color: #475569;
+    }
+
+    /* Action Button Pills */
+    .file-action-pill {
+      background: #5ce1e6;
+      color: #0b1320;
+      box-shadow: 0 2px 8px rgba(92, 225, 230, 0.25);
+    }
+    .file-action-pill:hover {
+      filter: brightness(1.1);
+    }
+    .file-action-pill.installed {
+      background: rgba(52, 211, 153, 0.2) !important;
+      color: #34d399 !important;
+      border: 1px solid rgba(52, 211, 153, 0.35) !important;
+      box-shadow: none !important;
+    }
+    .theme-light .file-action-pill {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+    }
+    .theme-light .file-action-pill:hover {
+      background: #0369a1;
+    }
+    .theme-light .file-action-pill.installed {
+      background: rgba(16, 185, 129, 0.12) !important;
+      color: #059669 !important;
+      border: 1px solid rgba(16, 185, 129, 0.3) !important;
+      box-shadow: none !important;
+    }
     .theme-light #sound-stage-box .bg-black\/10,
     .theme-light #sound-stage-box .dark\:bg-white\/10 {
       background: rgba(15, 23, 42, 0.05) !important;
