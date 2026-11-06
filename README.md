@@ -1,4 +1,4 @@
-# JoyOS v8.3 — Automotive Home Launcher & Hardware DSP OS
+# JoyOS Production v1.0.0 — Automotive Home Launcher & Hardware DSP OS
 
 [![Build JoyOS Launcher APK](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android_8.1%2B_%7C_SDK_26--34-brightgreen.svg)]()
@@ -6,7 +6,7 @@
 
 Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1280×720`, MediaTek `AC8227L`, MCU `CVD1810-WJ`, panel `YT090IBNK12018`) en Chevrolet Joy.
 
-Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, **Ecualizador Gráfico Hardware DSP de 5 bandas**, **Cajón de Aplicaciones 100% Real**, **Gestor de Archivos USB para la Guantera**, **Salidas de Emergencia y Acceso Directo a Ajustes de Android**, y optimización de rendimiento automotriz sin datos simulados ni dependencias de internet.
+Versión oficial de producción con el diseño completo del prototipo v8, telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, **Ecualizador Gráfico Hardware DSP de 5 bandas**, **Cajón de Aplicaciones 100% Real**, **Gestor de Archivos USB para la Guantera**, **Salidas de Emergencia y Acceso Directo a Ajustes de Android**, y optimización de rendimiento automotriz sin datos simulados ni dependencias de internet.
 
 ---
 
@@ -14,7 +14,7 @@ Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escán
 
 Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
 
-👉 **[📥 Descargar JoyOSLauncher.apk v8.3.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.3.0/JoyOSLauncher.apk)**
+👉 **[📥 Descargar JoyOSLauncher.apk v1.0.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v1.0.0/JoyOSLauncher.apk)**
 
 > [!TIP]
 > También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.

@@ -30,7 +30,7 @@ jobs:
           unzip -q gradle.zip
           ./gradle-8.5/bin/gradle assembleDebug --no-daemon --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/JoyOSLauncher.apk
-          cp joy_os_production.html joy_os_live.html
+          cp joy_os_v1_production.html joy_os_live.html
 
       - name: Upload JoyOSLauncher APK Artifact
         uses: actions/upload-artifact@v4
@@ -43,16 +43,16 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v8.3.0' }}
-          name: "JoyOS v8.3.0 (Real Hardware 1280x720 & Safety Exits)"
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.0.0' }}
+          name: "JoyOS Production v1.0.0 (Official Hardware Release)"
           body: |
-            ### 🚀 JoyOS v8.3.0 — Versión Funcional Real (1280×720 IPS)
-            - **Resolución Nativa 1280×720 (9 Pulgadas)**: Adaptado 1:1 al hardware del Chevrolet Joy (`YT090IBNK12018`).
-            - **Salidas de Emergencia & Seguridad**: Botones dedicados para abrir Ajustes de Android (`com.android.settings`) y cambiar de Launcher (`ACTION_HOME_SETTINGS`) al instante.
-            - **Cajón de Aplicaciones 100% Real**: Consulta y ejecuta directamente las aplicaciones instaladas en la tablet (Z-Link, Radio FM nativa, Maps, Ajustes, etc.).
-            - **Gestor de Archivos USB Conectado al Hardware**: Escaneo real de puertos USB de guantera con instalador directo de paquetes APK.
-            - **Cero Datos Quemados**: Velocímetro en 0 km/h, RPM en 0, marcha en P/N y telemetría en tiempo real.
-            - **100% Offline**: Estilos y fuentes cargados localmente sin depender de internet.
+            ### 🚀 JoyOS Production v1.0.0 — Versión Oficial para Chevrolet Joy (9" 1280×720)
+            - **Diseño Completo e Intacto**: Todo el diseño visual, animaciones y pantallas del prototipo v8 adaptadas a producción.
+            - **Salidas de Emergencia y Seguridad**: Botones funcionales para abrir Ajustes de Android (`com.android.settings`) y cambiar de Launcher (`ACTION_HOME_SETTINGS`).
+            - **Cajón de Apps 100% Real**: Detección y ejecución nativa de todas las aplicaciones de la pantalla táctil (Z-Link, Radio FM, Maps, etc.).
+            - **Gestor de Archivos USB Conectado al Hardware**: Detección del puerto de la guantera con instalación directa de APKs.
+            - **Cero Datos Quemados**: Velocímetro en 0 km/h y telemetría en tiempo real por GPS y OBD2.
+            - **100% Offline**: Fuentes y estilos cargados localmente en el paquete sin dependencias externas.
           files: |
             app/build/outputs/apk/debug/JoyOSLauncher.apk
             joy_os_live.html
