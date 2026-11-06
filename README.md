@@ -1,12 +1,12 @@
-# JoyOS v8.2 — Automotive Home Launcher & Hardware DSP OS
+# JoyOS v8.3 — Automotive Home Launcher & Hardware DSP OS
 
 [![Build JoyOS Launcher APK](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)
-[![Platform](https://img.shields.io/badge/Platform-Android_10%2B_%7C_SDK_26--34-brightgreen.svg)]()
-[![Hardware Target](https://img.shields.io/badge/Target-1024%C3%97600_AC8227L_9%22-blue.svg)]()
+[![Platform](https://img.shields.io/badge/Platform-Android_8.1%2B_%7C_SDK_26--34-brightgreen.svg)]()
+[![Hardware Target](https://img.shields.io/badge/Target-1280%C3%97720_AC8227L_9%22-blue.svg)]()
 
-Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1024×600`, MediaTek `AC8227L`, MCU `cm69`) en Chevrolet Joy 2022.
+Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1280×720`, MediaTek `AC8227L`, MCU `CVD1810-WJ`, panel `YT090IBNK12018`) en Chevrolet Joy.
 
-Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, interfaz de audio Coverflow, **Ecualizador Gráfico de 5 bandas con curva Bézier en tiempo real**, **Motor de Audio Hardware DSP de alta ganancia** (`Equalizer`, `BassBoost`, `LoudnessEnhancer`, `Virtualizer`), **Super Optimizador de Hardware 100% In-App (Root Shell & RAM)**, **Sistema Autónomo de Actualizaciones OTA vía Wi-Fi con Hot-Updates en 3 segundos** y Gestor de Archivos USB guantera.
+Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, **Ecualizador Gráfico Hardware DSP de 5 bandas**, **Cajón de Aplicaciones 100% Real**, **Gestor de Archivos USB para la Guantera**, **Salidas de Emergencia y Acceso Directo a Ajustes de Android**, y optimización de rendimiento automotriz sin datos simulados ni dependencias de internet.
 
 ---
 
@@ -14,7 +14,7 @@ Combina telemetría en tiempo real por GPS, conectividad Plug & Play para escán
 
 Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
 
-👉 **[📥 Descargar JoyOSLauncher.apk v8.2.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.2.0/JoyOSLauncher.apk)**
+👉 **[📥 Descargar JoyOSLauncher.apk v8.3.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v8.3.0/JoyOSLauncher.apk)**
 
 > [!TIP]
 > También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.
