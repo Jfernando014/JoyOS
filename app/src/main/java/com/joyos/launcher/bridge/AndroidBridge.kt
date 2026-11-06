@@ -19,6 +19,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
 import com.joyos.launcher.services.OtaUpdateManager
@@ -450,6 +451,102 @@ class AndroidBridge(
             if (!file.exists()) return false
             otaManager?.installApk(file) ?: false
         } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Opens a media or document file using the system's default media player or viewer.
+     */
+    @JavascriptInterface
+    fun openFile(filePath: String): Boolean {
+        return try {
+            val file = File(filePath)
+            if (!file.exists()) return false
+            val ext = file.extension.lowercase()
+            val mimeType = when (ext) {
+                "mp3" -> "audio/mpeg"
+                "flac" -> "audio/flac"
+                "wav" -> "audio/wav"
+                "m4a", "aac" -> "audio/mp4"
+                "ogg" -> "audio/ogg"
+                "mp4", "mkv", "avi" -> "video/*"
+                "png", "jpg", "jpeg" -> "image/*"
+                else -> "*/*"
+            }
+            val uri: Uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error opening file: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Finds and launches the vehicle's native stock Radio FM application.
+     */
+    @JavascriptInterface
+    fun openNativeRadio(): Boolean {
+        val radioPkgs = listOf(
+            "com.ts.fmradio",
+            "com.xyauto.radio",
+            "com.android.fmradio",
+            "com.microntek.fmradio",
+            "com.forfan.fmradio",
+            "com.ww.fmradio",
+            "com.tw.radio",
+            "com.sds.radio",
+            "com.autonavi.radio"
+        )
+        for (pkg in radioPkgs) {
+            if (launchApp(pkg)) return true
+        }
+        try {
+            val pm = context.packageManager
+            val packages = pm.getInstalledPackages(0)
+            for (p in packages) {
+                val pkgName = p.packageName.lowercase()
+                if ((pkgName.contains("radio") || pkgName.contains("fmradio")) && !pkgName.contains("joyos")) {
+                    if (launchApp(p.packageName)) return true
+                }
+            }
+        } catch (_: Throwable) {}
+        return false
+    }
+
+    /**
+     * Sends frequency tune broadcast intents to automotive MCU radio services.
+     */
+    @JavascriptInterface
+    fun tuneRadio(frequency: Double): Boolean {
+        return try {
+            val freqKhz = (frequency * 1000).toInt()
+            val freqMhz = frequency.toFloat()
+            val tuneIntents = listOf(
+                Intent("com.android.fmradio.ACTION_TUNE").putExtra("frequency", freqKhz),
+                Intent("com.microntek.radio.frequency").putExtra("frequency", freqKhz),
+                Intent("com.ts.fmradio.ACTION_TUNE").putExtra("frequency", freqKhz),
+                Intent("xyauto.radio.tune").putExtra("frequency", freqMhz),
+                Intent("com.autonavi.radio.tune").putExtra("freq", freqKhz)
+            )
+            for (intent in tuneIntents) {
+                try {
+                    context.sendBroadcast(intent)
+                } catch (_: Throwable) {}
+            }
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error tuning radio: ${e.message}")
             false
         }
     }

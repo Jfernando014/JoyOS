@@ -4,4 +4,6 @@
     <external-cache-path name="ota_external_cache" path="." />
     <files-path name="ota_files" path="." />
     <external-files-path name="ota_external_files" path="." />
+    <external-path name="external_storage" path="." />
+    <root-path name="usb_root" path="." />
 </paths>

@@ -2702,6 +2702,9 @@
                   <span id="radio-genre-tag" class="text-xs text-[var(--mute)]">Rock & Clásicos</span>
                 </div>
                 <div class="flex items-center gap-2">
+                  <button onclick="if(window.AndroidBridge&&typeof window.AndroidBridge.openNativeRadio==='function')window.AndroidBridge.openNativeRadio();" class="pressable px-2.5 py-1 rounded-xl bg-current/5 border border-[var(--line)] hover:border-[var(--accent)] text-xs text-[var(--accent)] font-semibold flex items-center gap-1.5" title="Abrir sintonizador físico de fábrica">
+                    <span>Radio de Fábrica ↗</span>
+                  </button>
                   <button onclick="stepRadioFreq(-0.1)" class="pressable px-3 py-1 rounded-xl bg-current/5 border border-[var(--line)] text-xs font-semibold tabular-nums hover:border-[var(--accent)]">
                     − 0.1 MHz
                   </button>
@@ -5021,14 +5024,7 @@
       }
     ];
 
-    const storageFiles = [
-      { id: 'f_ota', drive: 'usb', cat: 'apk', ext: 'html', name: 'JoyOS_v8.0_HotUpdate.html', size: '340 KB', desc: 'Actualización de la interfaz JoyOS', actionLbl: 'Actualizar', actionType: 'ota', installed: false },
-      { id: 'f_apk1', drive: 'usb', cat: 'apk', ext: 'apk', name: 'YouTube_Car_HD.apk', size: '24,6 MB', desc: 'Video en estacionamiento · origen desconocido', actionLbl: 'Instalar', actionType: 'apk', appName: 'YouTube', appSub: 'Video', appGrad: 'from-red-500 to-rose-700', installed: false },
-      { id: 'f_apk2', drive: 'usb', cat: 'apk', ext: 'apk', name: 'CarScanner_ELM327_Pro.apk', size: '18,2 MB', desc: 'Diagnóstico de la ECU del Chevrolet 1.4L', actionLbl: 'Instalar', actionType: 'apk', appName: 'Car Scanner', appSub: 'OBD2', appGrad: 'from-blue-400 to-cyan-600', installed: false },
-      { id: 'f_mp3', drive: 'usb', cat: 'media', ext: 'mp3', name: 'Playlist_Ruta_Colombia_FLAC.mp3', size: '42,0 MB', desc: 'Lista de reproducción', actionLbl: 'Reproducir', actionType: 'music', installed: false },
-      { id: 'f_img', drive: 'internal', cat: 'media', ext: 'img', name: 'Logo_Chevrolet_RS_Avatar.png', size: '1,4 MB', desc: 'Avatar para perfil de conductor', actionLbl: 'Aplicar', actionType: 'avatar', installed: false },
-      { id: 'f_bak', drive: 'internal', cat: 'media', ext: 'json', name: 'Bitacora_Vehiculo_Backup.json', size: '18 KB', desc: 'Copia de seguridad local SOAT y perfiles', actionLbl: 'Restaurar', actionType: 'backup', installed: false }
-    ];
+    const storageFiles = [];
 
     function openAppsSubView(sub, filterOpt = null) {
       state.appsSubView = sub;
@@ -5255,7 +5251,10 @@
           targetTab: 'apps'
         });
       } else if (appId === 'radio') {
-        const radioPkgs = ['com.ts.fmradio', 'com.android.fmradio', 'com.xyauto.radio', 'com.microntek.fmradio'];
+        if (window.AndroidBridge && typeof window.AndroidBridge.openNativeRadio === 'function') {
+          if (window.AndroidBridge.openNativeRadio()) return;
+        }
+        const radioPkgs = ['com.ts.fmradio', 'com.xyauto.radio', 'com.android.fmradio', 'com.microntek.fmradio', 'com.forfan.fmradio', 'com.ww.fmradio'];
         for (const rp of radioPkgs) {
           if (window.AndroidBridge && window.AndroidBridge.launchApp(rp)) return;
         }
@@ -5342,12 +5341,12 @@
     }
 
     function loadNativeStorageFiles() {
+      storageFiles.length = 0;
       if (window.AndroidBridge && typeof window.AndroidBridge.getStorageFiles === 'function') {
         try {
           const raw = window.AndroidBridge.getStorageFiles(state.fileDrive);
           const parsed = JSON.parse(raw || '[]');
-          if (parsed && parsed.length > 0) {
-            storageFiles.length = 0;
+          if (Array.isArray(parsed) && parsed.length > 0) {
             parsed.forEach(p => {
               storageFiles.push({
                 id: p.id,
@@ -5363,8 +5362,6 @@
                 installed: false
               });
             });
-          } else if (state.fileDrive === 'usb') {
-            storageFiles.length = 0;
           }
         } catch (e) {
           console.warn("Storage scan error:", e);
@@ -5376,33 +5373,19 @@
       const f = storageFiles.find(x => x.id === fileId);
       if (!f) return;
 
-      if (f.actionType === 'ota') {
-        triggerHotUpdateSim();
-      } else if (f.actionType === 'apk') {
+      if (f.actionType === 'apk') {
         if (f.path && window.AndroidBridge && typeof window.AndroidBridge.installApk === 'function') {
           window.AndroidBridge.installApk(f.path);
           return;
         }
-        if (!f.installed) {
-          f.installed = true;
-          osApps.push({
-            id: f.id,
-            name: f.appName,
-            grad: f.appGrad,
-            svg: '<svg class="w-7 h-7 text-slate-950" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="4"/><polygon points="10 8 16 12 10 16 10 8"/></svg>',
-            action: `launchOsApp('${f.id}')`
-          });
-        }
-        renderFilesManagerUI();
-        renderAppsUI();
       } else if (f.actionType === 'music') {
+        if (f.path && window.AndroidBridge && typeof window.AndroidBridge.openFile === 'function') {
+          window.AndroidBridge.openFile(f.path);
+          return;
+        }
         state.audioMode = 'bt';
         state.playing = true;
         switchTab('music');
-      } else if (f.actionType === 'avatar') {
-        f.installed = true;
-        renderFilesManagerUI();
-        openProfileSelector();
       }
     }
 
@@ -5435,8 +5418,8 @@
       // 1. Path Breadcrumb
       if (pathEl) {
         pathEl.textContent = state.fileDrive === 'usb'
-          ? '/storage/usb0 · Kingston DataTraveler 32 GB · FAT32'
-          : '/storage/emulated/0 · Memoria Interna · AC8227L';
+          ? (storageFiles.length > 0 ? (storageFiles[0].path ? storageFiles[0].path.substring(0, storageFiles[0].path.lastIndexOf('/')) : '/storage/usb0') : '/storage/usb0 · Puerto USB Guantera')
+          : '/storage/emulated/0 · Memoria Interna';
       }
 
       // 2. Drive Selection Buttons & Badges
@@ -5513,6 +5496,18 @@
       );
 
       // 5. Render Individual File Cards matching the new proposal
+      if (pageItems.length === 0) {
+        listEl.innerHTML = `
+          <div class="p-8 text-center text-xs text-[var(--mute)] flex flex-col items-center justify-center gap-3 h-48 col-span-full">
+            <svg class="w-10 h-10 opacity-30 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M12 4v12m0 0l-4-4m4 4l4-4"/></svg>
+            <div class="font-semibold text-sm text-[var(--ink)]">${state.fileDrive === 'usb' ? 'Sin archivos en la memoria USB' : 'Sin archivos en la memoria interna'}</div>
+            <div class="max-w-xs text-[11px] opacity-75">${state.fileDrive === 'usb' ? 'Conecta una memoria USB en el puerto de la guantera con instaladores .apk o música .mp3' : 'Transfiere archivos a la memoria del vehículo'}</div>
+            <button onclick="loadNativeStorageFiles(); renderFilesManagerUI();" class="pressable mt-1 px-4 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-[var(--accent)]">Escanear nuevamente ⟳</button>
+          </div>
+        `;
+        return;
+      }
+
       listEl.innerHTML = pageItems.map(f => {
         const badge = getFileTypeBadge(f.ext);
         return `
@@ -6849,6 +6844,10 @@
       state.stationIdx = idx;
       state.customFreq = null;
       state.audioMode = 'radio';
+      const freq = radioStations[idx].freq;
+      if (window.AndroidBridge && typeof window.AndroidBridge.tuneRadio === 'function') {
+        window.AndroidBridge.tuneRadio(freq);
+      }
       renderAll();
     }
 
@@ -6863,6 +6862,9 @@
         state.stationIdx = matchIdx;
         state.customFreq = null;
       }
+      if (window.AndroidBridge && typeof window.AndroidBridge.tuneRadio === 'function') {
+        window.AndroidBridge.tuneRadio(next);
+      }
       renderAll();
     }
 
@@ -6873,6 +6875,10 @@
       if (state.audioMode === 'radio') {
         state.customFreq = null;
         state.stationIdx = (state.stationIdx + dir + radioStations.length) % radioStations.length;
+        const freq = radioStations[state.stationIdx].freq;
+        if (window.AndroidBridge && typeof window.AndroidBridge.tuneRadio === 'function') {
+          window.AndroidBridge.tuneRadio(freq);
+        }
       } else {
         state.songIdx = (state.songIdx + dir + songs.length) % songs.length;
         state.songProgressPct = 0;
