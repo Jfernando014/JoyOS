@@ -15,6 +15,7 @@ import android.util.Log
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import com.joyos.launcher.services.JoyAudioDspEngine
+import com.joyos.launcher.services.JoyHardwareOptimizer
 import com.joyos.launcher.services.OtaUpdateManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,7 @@ class AndroidBridge(
     private val context: Context,
     private val dspEngine: JoyAudioDspEngine? = null,
     private val otaManager: OtaUpdateManager? = null,
+    private val hardwareOptimizer: JoyHardwareOptimizer? = null,
     private val onReloadUi: (() -> Unit)? = null,
     private val onEvaluateJs: ((String) -> Unit)? = null
 ) {
@@ -402,6 +404,30 @@ class AndroidBridge(
     fun reloadUi() {
         CoroutineScope(Dispatchers.Main).launch {
             onReloadUi?.invoke()
+        }
+    }
+
+    /**
+     * Returns true if the automotive head unit firmware is pre-rooted.
+     */
+    @JavascriptInterface
+    fun isDeviceRooted(): Boolean {
+        return hardwareOptimizer?.isDeviceRooted() ?: false
+    }
+
+    /**
+     * Executes in-app hardware & system optimizations:
+     * Disables OEM bloatware launchers, removes safe volume limiter, accelerates animations to 0.5x,
+     * opens ADB Wi-Fi port 5555, and reclaims RAM.
+     */
+    @JavascriptInterface
+    fun optimizeSystemHardware() {
+        if (hardwareOptimizer == null) return
+        CoroutineScope(Dispatchers.IO).launch {
+            val report = hardwareOptimizer.runOptimization()
+            withContext(Dispatchers.Main) {
+                onEvaluateJs?.invoke("if (typeof window.onHardwareOptimizationComplete === 'function') window.onHardwareOptimizationComplete(${report.toJson()});")
+            }
         }
     }
 

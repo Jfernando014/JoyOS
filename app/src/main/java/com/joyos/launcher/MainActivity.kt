@@ -22,6 +22,7 @@ import androidx.lifecycle.lifecycleScope
 import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
 import com.joyos.launcher.services.JoyAudioDspEngine
+import com.joyos.launcher.services.JoyHardwareOptimizer
 import com.joyos.launcher.services.ObdBleManager
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsUsbReceiver
@@ -40,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var obdManager: ObdBleManager
     private lateinit var tpmsReceiver: TpmsUsbReceiver
     private lateinit var otaManager: OtaUpdateManager
+    private lateinit var hardwareOptimizer: JoyHardwareOptimizer
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,11 +65,13 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         dspEngine = JoyAudioDspEngine(this)
         otaManager = OtaUpdateManager(this)
+        hardwareOptimizer = JoyHardwareOptimizer(this)
 
         bridge = AndroidBridge(
             context = this,
             dspEngine = dspEngine,
             otaManager = otaManager,
+            hardwareOptimizer = hardwareOptimizer,
             onReloadUi = { runOnUiThread { loadJoyOS() } },
             onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
         )
@@ -113,6 +117,7 @@ class MainActivity : AppCompatActivity() {
         loadJoyOS()
         ensureAutomotivePermissions()
         scheduleBackgroundOtaCheck()
+        scheduleBootHardwareOptimization()
 
         // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -300,6 +305,23 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: Throwable) {
                 Log.w("JoyOS", "Silent background OTA check skipped: ${e.message}")
+            }
+        }
+    }
+
+    private fun scheduleBootHardwareOptimization() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                delay(4000)
+                val report = hardwareOptimizer.runOptimization()
+                runOnUiThread {
+                    webView.evaluateJavascript(
+                        "if (typeof window.onHardwareOptimizationComplete === 'function') window.onHardwareOptimizationComplete(${report.toJson()});",
+                        null
+                    )
+                }
+            } catch (e: Throwable) {
+                Log.w("JoyOS", "Silent boot hardware optimization skipped: ${e.message}")
             }
         }
     }
