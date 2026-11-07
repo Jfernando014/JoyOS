@@ -14,6 +14,7 @@ import android.net.wifi.WifiManager
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
+import android.os.StatFs
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
@@ -1025,6 +1026,240 @@ class AndroidBridge(
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error scanning music files: ${e.message}")
             "[]"
+        }
+    }
+
+    // --- LIVE BLUETOOTH AVRCP / MEDIA SESSION TRACKING ---
+
+    @Volatile private var lastBtTitle: String = ""
+    @Volatile private var lastBtArtist: String = ""
+    @Volatile private var lastBtAlbum: String = ""
+    @Volatile private var lastBtDurationSec: Int = 210
+    @Volatile private var lastBtPlaying: Boolean = false
+    @Volatile private var lastBtActionSource: String = ""
+
+    fun updateLiveBtMetadata(
+        title: String?,
+        artist: String?,
+        album: String?,
+        durationSec: Int,
+        isPlaying: Boolean?,
+        sourceAction: String
+    ) {
+        if (!title.isNullOrBlank()) lastBtTitle = title
+        if (!artist.isNullOrBlank()) lastBtArtist = artist
+        if (!album.isNullOrBlank()) lastBtAlbum = album
+        if (durationSec > 0) lastBtDurationSec = durationSec
+        if (isPlaying != null) lastBtPlaying = isPlaying
+        lastBtActionSource = sourceAction
+
+        val json = JSONObject().apply {
+            put("title", lastBtTitle)
+            put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
+            put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
+            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
+            put("playing", lastBtPlaying)
+            put("source", lastBtActionSource)
+        }
+        onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($json);")
+    }
+
+    @JavascriptInterface
+    fun getBtMusicMetadata(): String {
+        return try {
+            val json = JSONObject().apply {
+                put("title", lastBtTitle)
+                put("artist", lastBtArtist)
+                put("album", lastBtAlbum)
+                put("durationSec", lastBtDurationSec)
+                put("playing", lastBtPlaying)
+                put("source", lastBtActionSource)
+            }
+            json.toString()
+        } catch (_: Throwable) {
+            "{}"
+        }
+    }
+
+    /**
+     * Returns real filesystem capacity (free GB, total GB, mount path, mounted state) via StatFs.
+     * Eliminates burned-in "Kingston DataTraveler 32 GB" or "24,8 GB libres" strings.
+     */
+    @JavascriptInterface
+    fun getStorageStats(driveType: String): String {
+        return try {
+            var targetDir: File? = null
+            if (driveType.equals("usb", ignoreCase = true)) {
+                val storageRoot = File("/storage")
+                if (storageRoot.exists() && storageRoot.isDirectory) {
+                    storageRoot.listFiles()?.forEach { file ->
+                        val name = file.name.lowercase()
+                        if (targetDir == null && file.isDirectory && name != "emulated" && name != "self" && file.canRead()) {
+                            targetDir = file
+                        }
+                    }
+                }
+                if (targetDir == null) {
+                    listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage", "/mnt/media_rw").forEach { p ->
+                        val f = File(p)
+                        if (targetDir == null && f.exists() && f.isDirectory && f.canRead() && (f.listFiles()?.isNotEmpty() == true)) {
+                            targetDir = f
+                        }
+                    }
+                }
+            } else {
+                targetDir = Environment.getExternalStorageDirectory()
+            }
+
+            if (targetDir == null || !targetDir!!.exists()) {
+                return JSONObject().apply {
+                    put("mounted", false)
+                    put("path", if (driveType.equals("usb", true)) "/storage/usb0" else "/storage/emulated/0")
+                    put("label", if (driveType.equals("usb", true)) "Sin unidad USB insertada" else "Almacenamiento Interno")
+                    put("freeGb", "0,0")
+                    put("totalGb", "0,0")
+                    put("usedPercent", 0)
+                }.toString()
+            }
+
+            val stat = StatFs(targetDir!!.absolutePath)
+            val totalBytes = stat.blockCountLong * stat.blockSizeLong
+            val freeBytes = stat.availableBlocksLong * stat.blockSizeLong
+            val usedBytes = (totalBytes - freeBytes).coerceAtLeast(0L)
+            val totalGb = totalBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+            val freeGb = freeBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+            val usedPct = if (totalBytes > 0) ((usedBytes * 100L) / totalBytes).toInt().coerceIn(0, 100) else 0
+
+            JSONObject().apply {
+                put("mounted", totalBytes > 0)
+                put("path", targetDir!!.absolutePath)
+                put("label", targetDir!!.name)
+                put("freeGb", String.format(Locale.US, "%.1f", freeGb).replace('.', ','))
+                put("totalGb", String.format(Locale.US, "%.1f", totalGb).replace('.', ','))
+                put("usedPercent", usedPct)
+            }.toString()
+        } catch (e: Throwable) {
+            JSONObject().apply {
+                put("mounted", false)
+                put("path", "/storage")
+                put("label", "No disponible")
+                put("freeGb", "0,0")
+                put("totalGb", "0,0")
+                put("usedPercent", 0)
+            }.toString()
+        }
+    }
+
+    /**
+     * Returns real system RAM usage (used, available, total) from ActivityManager.MemoryInfo.
+     */
+    @JavascriptInterface
+    fun getSystemRamInfo(): String {
+        return try {
+            val memInfo = ActivityManager.MemoryInfo()
+            activityManager?.getMemoryInfo(memInfo)
+            val totalBytes = memInfo.totalMem
+            val availBytes = memInfo.availMem
+            val usedBytes = (totalBytes - availBytes).coerceAtLeast(0L)
+            val usedGb = usedBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+            val totalGb = totalBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+            val availMb = availBytes / (1024 * 1024)
+            JSONObject().apply {
+                put("usedGb", String.format(Locale.US, "%.2f GB", usedGb).replace('.', ','))
+                put("totalGb", String.format(Locale.US, "%.1f GB", totalGb).replace('.', ','))
+                put("availMb", availMb)
+            }.toString()
+        } catch (_: Throwable) {
+            "{\"usedGb\":\"-- GB\",\"totalGb\":\"2,0 GB\",\"availMb\":512}"
+        }
+    }
+
+    /**
+     * In-App Reverse Engineering (REA) Hardware & Firmware Inspector for ZXDZ_01 (AC8227L / cm69 / WJ).
+     * Discovers all OEM MCU, Radio, Bluetooth, CarPlay/ZLink packages, system properties, and serial nodes
+     * directly on the head unit without requiring an external PC or USB ADB connection.
+     */
+    @JavascriptInterface
+    fun inspectOemHardware(): String {
+        return try {
+            val result = JSONObject()
+            result.put("model", Build.MODEL ?: "ZXDZ_01")
+            result.put("display", Build.DISPLAY ?: "WJ_2024.03.12")
+            result.put("board", Build.BOARD ?: "AC8227L")
+            result.put("hardware", Build.HARDWARE ?: "mt8227")
+            result.put("androidVer", Build.VERSION.RELEASE ?: "8.1.0")
+            result.put("sdkInt", Build.VERSION.SDK_INT)
+
+            // 1. Read key automotive system properties via getprop
+            val propsObj = JSONObject()
+            val propKeys = listOf(
+                "ro.build.display.id",
+                "ro.custom.build.version",
+                "sys.mcu.version",
+                "ro.product.model",
+                "ro.product.board",
+                "ro.mediatek.platform",
+                "persist.sys.mcu.version",
+                "ro.fyt.platform",
+                "ro.xyauto.platform"
+            )
+            for (key in propKeys) {
+                try {
+                    val proc = Runtime.getRuntime().exec(arrayOf("getprop", key))
+                    val line = proc.inputStream.bufferedReader().readLine()?.trim() ?: ""
+                    proc.destroy()
+                    if (line.isNotBlank()) propsObj.put(key, line)
+                } catch (_: Throwable) {}
+            }
+            result.put("properties", propsObj)
+
+            // 2. Discover installed OEM / MCU / Radio / BT / CarPlay packages
+            val oemPackages = JSONArray()
+            val allPkgs = try { packageManager.getInstalledPackages(0) } catch (_: Throwable) { emptyList() }
+            val keywords = listOf(
+                "autochips", "xyauto", "ts.", "fyt", "microntek", "radio", "fmradio",
+                "bt", "bluetooth", "mcu", "canbus", "zlink", "tlink", "carplay", "wj", "atc"
+            )
+            for (pkgInfo in allPkgs) {
+                val pkgName = pkgInfo.packageName ?: continue
+                val lower = pkgName.lowercase()
+                if (keywords.any { lower.contains(it) }) {
+                    val label = try {
+                        pkgInfo.applicationInfo?.loadLabel(packageManager)?.toString() ?: pkgName
+                    } catch (_: Throwable) { pkgName }
+                    val enabled = pkgInfo.applicationInfo?.enabled ?: true
+                    oemPackages.put(JSONObject().apply {
+                        put("package", pkgName)
+                        put("label", label)
+                        put("enabled", enabled)
+                    })
+                }
+            }
+            result.put("oemPackages", oemPackages)
+
+            // 3. Probe serial / MCU / FM hardware nodes (/dev/ttyMT*, /dev/ttyS*, /dev/fm)
+            val serialNodes = JSONArray()
+            val candidateNodes = listOf(
+                "/dev/ttyMT0", "/dev/ttyMT1", "/dev/ttyMT2", "/dev/ttyMT3",
+                "/dev/ttyS0", "/dev/ttyS1", "/dev/ttyS2", "/dev/fm", "/dev/mcu"
+            )
+            for (nodePath in candidateNodes) {
+                val f = File(nodePath)
+                if (f.exists()) {
+                    serialNodes.put(JSONObject().apply {
+                        put("path", nodePath)
+                        put("readable", f.canRead())
+                        put("writable", f.canWrite())
+                    })
+                }
+            }
+            result.put("hardwareNodes", serialNodes)
+            result.put("btMetadata", JSONObject(getBtMusicMetadata()))
+
+            result.toString()
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error in inspectOemHardware: ${e.message}")
+            "{\"model\":\"ZXDZ_01\",\"error\":\"${e.message}\"}"
         }
     }
 

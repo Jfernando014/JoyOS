@@ -57,6 +57,12 @@ class JoyHardwareOptimizer(private val context: Context) {
             "com.autochips.carplay"
         )
 
+        private val SAFE_CACHE_CLEANUP_PACKAGES = listOf(
+            "com.google.android.youtube",
+            "com.android.chrome",
+            "com.android.vending"
+        )
+
         private val KNOWN_SU_PATHS = listOf(
             "/system/bin/su",
             "/system/xbin/su",
@@ -116,8 +122,8 @@ class JoyHardwareOptimizer(private val context: Context) {
             animationsSpeedup = true
         } catch (_: Throwable) {}
 
-        // Kill background processes of known OEM bloatware launchers
-        OEM_LAUNCHER_PACKAGES.forEach { pkg ->
+        // Kill background processes of non-critical cached apps (NEVER kill com.ts.main or com.autochips.carplay)
+        SAFE_CACHE_CLEANUP_PACKAGES.forEach { pkg ->
             try {
                 activityManager?.killBackgroundProcesses(pkg)
             } catch (_: Throwable) {}
@@ -125,12 +131,10 @@ class JoyHardwareOptimizer(private val context: Context) {
 
         // 2. Layer 2: Root Shell Super Mode (If userdebug / su is available)
         if (isRooted) {
-            // Disable OEM launchers permanently so they never start on boot
+            // SAFETY GUARANTEE: Ensure factory MCU / CarPlay / Launcher packages are ALWAYS enabled
+            // (Never run pm disable-user on com.ts.main, com.autochips.carplay, or com.android.launcher3)
             OEM_LAUNCHER_PACKAGES.forEach { pkg ->
-                val success = executeRootCommand("pm disable-user --user 0 $pkg")
-                if (success) {
-                    frozenList.add(pkg)
-                }
+                try { executeRootCommand("pm enable $pkg") } catch (_: Throwable) {}
             }
 
             // Global audio limiter removal via root
@@ -160,13 +164,12 @@ class JoyHardwareOptimizer(private val context: Context) {
 
         val summary = buildString {
             if (isRooted) {
-                append("Super-optimización root aplicada con éxito: ")
-                if (frozenList.isNotEmpty()) append("${frozenList.size} launchers OEM congelados. ")
-                if (adbWifiOpened) append("Puerto Wi-Fi 5555 abierto. ")
+                append("Super-optimización segura aplicada: ")
+                if (adbWifiOpened) append("Puerto ADB Wi-Fi 5555 activo. ")
             } else {
-                append("Optimización estándar completada: Procesos en segundo plano liberados. ")
+                append("Optimización estándar completada: Caché en segundo plano liberada. ")
             }
-            append("Audio DSP a 100% de ganancia y animaciones a 0.5x.")
+            append("Servicios OEM/MCU protegidos, Audio DSP 100% y animaciones 0.5x.")
         }
 
         Log.i(TAG, "Hardware optimization finished: $summary (RAM freed: +${freedMb}MB)")

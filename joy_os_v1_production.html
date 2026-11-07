@@ -1497,7 +1497,7 @@
       transition: background 350ms ease, color 250ms ease, opacity 300ms ease;
     }
 
-    /* Elegant Floating Home Notice Pill ("Hoy puedes salir · JOY-2022") */
+    /* Elegant Floating Home Notice Pill */
     .home-float-notice {
       background: rgba(15, 21, 34, 0.86);
       backdrop-filter: blur(24px) saturate(180%);
@@ -1623,6 +1623,31 @@
       border-radius: 0 !important;
       border: 0 !important;
       box-shadow: none !important;
+    }
+
+    /* 60 FPS GPU Acceleration for MediaTek AC8227L / Mali-450 MP2 */
+    body.is-native-car .ethereal-card,
+    body.is-native-car .soft-surface,
+    body.is-native-car .dock,
+    body.is-native-car .island,
+    body.is-native-car .bt-soft-card,
+    body.is-native-car .bt-soft-item,
+    body.is-native-car [class*="backdrop-blur"] {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      transform: translateZ(0);
+    }
+    body.is-native-car .theme-dark .ethereal-card {
+      background: linear-gradient(155deg, rgba(19, 27, 42, 0.96) 0%, rgba(12, 18, 30, 0.98) 100%) !important;
+    }
+    body.is-native-car .theme-light .ethereal-card {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.96) 0%, rgba(241, 245, 249, 0.98) 100%) !important;
+    }
+    body.is-native-car #blob-primary,
+    body.is-native-car #blob-secondary {
+      filter: none !important;
+      opacity: 0.25 !important;
+      background: radial-gradient(circle, var(--accent) 0%, transparent 70%) !important;
     }
   </style>
 </head>
@@ -1896,7 +1921,7 @@
       <div id="home-floating-notice" class="hidden">
         <span id="home-notice-dot"></span>
         <span id="home-notice-title"></span>
-        <span id="home-notice-plate">JOY-2022</span>
+        <span id="home-notice-plate">SIN PLACA</span>
         <span id="home-notice-tag"></span>
       </div>
 
@@ -3025,8 +3050,8 @@
               <!-- Bottom: Connected Device Info Pill (No borders, soft shadow) -->
               <div class="relative z-10 rounded-2xl p-3.5 soft-surface transition-all flex items-center justify-between gap-3">
                 <div class="min-w-0">
-                  <div id="bt-card-phone-name" class="text-sm font-bold truncate">iPhone de Fernando</div>
-                  <div id="bt-card-phone-sub" class="text-xs text-[var(--mute)] truncate mt-0.5">Batería 88%</div>
+                  <div id="bt-card-phone-name" class="text-sm font-bold truncate">Sin dispositivo vinculado</div>
+                  <div id="bt-card-phone-sub" class="text-xs text-[var(--mute)] truncate mt-0.5">Toca para configurar Bluetooth</div>
                 </div>
                 <button onclick="event.stopPropagation(); toggleBtPower()" id="bt-card-power-sw" class="aj-sw" role="switch" aria-checked="true" aria-label="Bluetooth"></button>
               </div>
@@ -3099,7 +3124,7 @@
               <div onclick="openSettingsSubView('r5')" class="flex-1 ethereal-card ethereal-card-interactive rounded-3xl p-5 flex flex-col justify-between cursor-pointer group">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold tracking-wide text-[var(--mute)]">Información del Sistema</span>
-                  <span id="settings-sensors-badge" class="text-xs font-semibold text-emerald-500">Al día · 4/4</span>
+                  <span id="settings-sensors-badge" class="text-xs font-semibold text-[var(--mute)]">Sensores en espera</span>
                 </div>
 
                 <div class="flex flex-col text-xs tabular-nums my-auto divide-y divide-white/[0.04]">
@@ -3109,7 +3134,7 @@
                       <svg class="ic w-4 h-4 text-[var(--accent)] opacity-85" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 12h10"/></svg>
                       <span>Placa &amp; Pico y Placa</span>
                     </div>
-                    <span id="settings-r5-pico-val" class="font-semibold text-emerald-500">JOY-2022 · Libre hoy</span>
+                    <span id="settings-r5-pico-val" class="font-semibold text-emerald-500">Sin placa · Configurar</span>
                   </div>
 
                   <!-- Fila 2: Documentos Legales (SOAT, RTM & Aceite) -->
@@ -3118,7 +3143,7 @@
                       <svg class="ic w-4 h-4 text-[var(--accent)] opacity-85" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                       <span>SOAT, RTM &amp; Aceite</span>
                     </div>
-                    <span id="settings-r5-docs-val" class="font-semibold text-[var(--accent)]">214d · 1.840 km ↗</span>
+                    <span id="settings-r5-docs-val" class="font-semibold text-[var(--accent)]">Configurar en R5 ↗</span>
                   </div>
 
                   <!-- Fila 3: Sensores OBD2 & Llantas TPMS -->
@@ -3134,10 +3159,10 @@
                   <div class="flex items-center justify-between pt-2" onclick="event.stopPropagation()">
                     <div class="flex items-center gap-2.5 text-[var(--mute)]">
                       <svg class="ic w-4 h-4 text-[var(--accent)] opacity-85" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg>
-                      <span>Memoria Libre</span>
+                      <span>Memoria en Uso</span>
                     </div>
                     <div class="flex items-center gap-2">
-                      <span id="settings-ram-val" class="font-semibold">1,2 GB</span>
+                      <span id="settings-ram-val" class="font-semibold">-- GB</span>
                       <button onclick="optimizeRam()" id="btn-ram-opt" class="pressable px-2.5 py-0.5 rounded-lg bg-[var(--accent)]/20 text-[10px] font-bold text-[var(--accent)] shadow-sm hover:shadow-md">
                         Liberar
                       </button>
@@ -3210,8 +3235,8 @@
                   </div>
 
                   <div class="my-auto py-2">
-                    <div id="bt-sub-phone-title" class="font-sora text-xl font-semibold">iPhone de Fernando</div>
-                    <div id="bt-sub-phone-status" class="text-xs text-[var(--accent)] font-semibold mt-1.5">Conectado · Batería 88% · Audio HD</div>
+                    <div id="bt-sub-phone-title" class="font-sora text-xl font-semibold">Sin dispositivo vinculado</div>
+                    <div id="bt-sub-phone-status" class="text-xs text-[var(--accent)] font-semibold mt-1.5">Esperando conexión Bluetooth</div>
                   </div>
 
                   <div class="bt-soft-item p-3.5 flex flex-col gap-2.5 text-xs">
@@ -3540,7 +3565,7 @@
                       <path d="M5 16H42V6H86V16H123L116 30H86V40H42V30H12L5 16Z" fill="url(#chevyGoldGrad)" stroke="#fef08a" stroke-width="1.5" stroke-linejoin="round"/>
                     </svg>
                     <span id="r5-bowtie-plate-text" class="absolute inset-0 flex items-center justify-center font-sora font-extrabold text-[11px] tracking-wider text-slate-950 drop-shadow-[0_1px_0_rgba(255,255,255,0.6)]">
-                      JOY-2022
+                      SIN PLACA
                     </span>
                   </div>
                   <div>
@@ -3574,24 +3599,24 @@
                   <div class="flex flex-col gap-2 my-auto">
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
                       <span class="text-[var(--mute)]">Placa registrada</span>
-                      <span id="r5-sub-plate-val" class="font-sora font-bold text-sm text-[var(--accent)]">JOY-2022</span>
+                      <span id="r5-sub-plate-val" class="font-sora font-bold text-sm text-[var(--accent)]">Sin placa</span>
                     </div>
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
                       <span class="text-[var(--mute)]">Ciudad / Restricción</span>
-                      <span id="r5-sub-city-val" class="font-semibold">Medellín · Exento hoy</span>
+                      <span id="r5-sub-city-val" class="font-semibold">Bogotá · Sin restricción</span>
                     </div>
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
-                      <span class="text-[var(--mute)]">Comparendos SIMIT</span>
-                      <span id="r5-sub-simit-val" class="font-semibold text-emerald-500">0 multas · Al día</span>
+                      <span class="text-[var(--mute)]">Estado Pico y Placa</span>
+                      <span id="r5-sub-simit-val" class="font-semibold text-emerald-500">Cálculo en tiempo real</span>
                     </div>
                     <div class="flex items-center justify-between pt-1">
-                      <span class="text-[var(--mute)]">Seguro Todo Riesgo</span>
-                      <span id="r5-sub-ins-val" class="font-semibold text-emerald-500">Activo · Sura</span>
+                      <span class="text-[var(--mute)]">Póliza / Aseguradora</span>
+                      <span id="r5-sub-ins-val" class="font-semibold text-emerald-500">Sin registrar</span>
                     </div>
                   </div>
 
-                  <button onclick="togglePicoPlacaSim()" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
-                    Alternar simulación Pico y Placa hoy
+                  <button onclick="openR5RegistrationApp()" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
+                    Editar placa y ciudad en R5 ↗
                   </button>
                 </div>
 
@@ -3599,7 +3624,7 @@
                 <div class="col-span-4 bt-soft-card p-4 flex flex-col justify-between">
                   <div class="flex items-center justify-between">
                     <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Vigencias &amp; Mantenimiento</span>
-                    <span id="r5-sub-expiry-badge" class="text-[11px] font-semibold text-emerald-500">Todo vigente</span>
+                    <span id="r5-sub-expiry-badge" class="text-[11px] font-semibold text-emerald-500">Al día</span>
                   </div>
 
                   <div class="flex flex-col gap-3 my-auto">
@@ -3607,10 +3632,10 @@
                     <div>
                       <div class="flex items-center justify-between mb-1">
                         <span class="font-semibold">SOAT</span>
-                        <span id="r5-sub-soat-days" class="font-sora font-semibold text-[var(--accent)]">214 días restantes</span>
+                        <span id="r5-sub-soat-days" class="font-sora font-semibold text-[var(--accent)]">-- días restantes</span>
                       </div>
                       <div class="w-full h-1.5 rounded-full bg-current/[0.08] overflow-hidden">
-                        <div id="r5-sub-soat-bar" class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: 72%;"></div>
+                        <div id="r5-sub-soat-bar" class="h-full rounded-full bg-emerald-500 transition-all duration-300" style="width: 0%;"></div>
                       </div>
                     </div>
 
@@ -3618,10 +3643,10 @@
                     <div>
                       <div class="flex items-center justify-between mb-1">
                         <span class="font-semibold">Técnico-Mecánica</span>
-                        <span id="r5-sub-rtm-days" class="font-sora font-semibold text-[var(--accent)]">168 días restantes</span>
+                        <span id="r5-sub-rtm-days" class="font-sora font-semibold text-[var(--accent)]">-- días restantes</span>
                       </div>
                       <div class="w-full h-1.5 rounded-full bg-current/[0.08] overflow-hidden">
-                        <div id="r5-sub-rtm-bar" class="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style="width: 58%;"></div>
+                        <div id="r5-sub-rtm-bar" class="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style="width: 0%;"></div>
                       </div>
                     </div>
 
@@ -3629,16 +3654,16 @@
                     <div>
                       <div class="flex items-center justify-between mb-1">
                         <span class="font-semibold">Cambio de Aceite 5W-30</span>
-                        <span id="r5-sub-oil-km" class="font-sora font-semibold text-[var(--accent)]">en 1.840 km</span>
+                        <span id="r5-sub-oil-km" class="font-sora font-semibold text-[var(--accent)]">-- km</span>
                       </div>
                       <div class="w-full h-1.5 rounded-full bg-current/[0.08] overflow-hidden">
-                        <div id="r5-sub-oil-bar" class="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style="width: 78%;"></div>
+                        <div id="r5-sub-oil-bar" class="h-full rounded-full bg-[var(--accent)] transition-all duration-300" style="width: 0%;"></div>
                       </div>
                     </div>
                   </div>
 
-                  <button onclick="toggleR5ExpiringAlertSim()" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
-                    Simular alerta próximo a vencer (SOAT 5 días)
+                  <button onclick="openR5RegistrationApp()" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
+                    Actualizar vigencias y kilometraje ↗
                   </button>
                 </div>
 
@@ -3659,17 +3684,17 @@
                       <span id="r5-sub-tpms-txt" class="font-semibold">Sin receptor TPMS</span>
                     </div>
                     <div class="flex items-center justify-between py-1.5 border-b border-white/[0.04]">
-                      <span class="text-[var(--mute)]">Estado Batería &amp; Llantas</span>
-                      <span class="font-semibold text-emerald-500">Salud 92% · Rotación OK</span>
+                      <span class="text-[var(--mute)]">Voltaje &amp; Temperatura CPU</span>
+                      <span id="r5-sub-batt-cpu-txt" class="font-semibold text-emerald-500">-- V · -- °C</span>
                     </div>
                     <div class="flex items-center justify-between pt-1">
                       <span class="text-[var(--mute)]">Velocímetro GPS Híbrido</span>
-                      <span class="font-semibold text-emerald-500">Respaldo Activo ✓</span>
+                      <span class="font-semibold text-emerald-500">Activo en tiempo real ✓</span>
                     </div>
                   </div>
 
-                  <button onclick="toggleSensorWaitMode()" id="r5-sub-wait-btn" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
-                    Alternar Modo Sin Lector (Solo GPS)
+                  <button onclick="openBluetoothDirect()" id="r5-sub-wait-btn" class="pressable w-full py-2 rounded-xl bg-current/[0.06] hover:bg-current/[0.12] font-semibold text-[11px]">
+                    Vincular escáner OBD2 / Sensores ↗
                   </button>
                 </div>
 
@@ -3733,11 +3758,11 @@
                   <div class="flex flex-col gap-3 my-auto">
                     <div>
                       <label class="text-[11px] text-[var(--mute)] block mb-1">Placa del Vehículo</label>
-                      <input id="r5-input-plate" type="text" value="JOY-2022" maxlength="8" class="w-full px-3.5 py-2.5 rounded-xl soft-surface border border-[var(--line)] font-sora font-bold text-sm uppercase tracking-widest text-[var(--ink)] outline-none focus:border-[var(--accent)] transition-colors" />
+                      <input id="r5-input-plate" type="text" value="" placeholder="Ej: ABC-123" maxlength="8" class="w-full px-3.5 py-2.5 rounded-xl soft-surface border border-[var(--line)] font-sora font-bold text-sm uppercase tracking-widest text-[var(--ink)] outline-none focus:border-[var(--accent)] transition-colors" />
                     </div>
                     <div>
                       <label class="text-[11px] text-[var(--mute)] block mb-1">Documento Propietario (C.C. / NIT)</label>
-                      <input id="r5-input-doc" type="text" value="1037648920" class="w-full px-3.5 py-2.5 rounded-xl soft-surface border border-[var(--line)] font-sora text-xs tabular-nums text-[var(--ink)] outline-none focus:border-[var(--accent)] transition-colors" />
+                      <input id="r5-input-doc" type="text" value="" placeholder="Ingresa tu C.C. o NIT" class="w-full px-3.5 py-2.5 rounded-xl soft-surface border border-[var(--line)] font-sora text-xs tabular-nums text-[var(--ink)] outline-none focus:border-[var(--accent)] transition-colors" />
                     </div>
                     <div>
                       <label class="text-[11px] text-[var(--mute)] block mb-1">Ciudad Pico y Placa</label>
@@ -3751,15 +3776,15 @@
                   </div>
 
                   <button onclick="syncVehicleFromRunt(this)" id="btn-r5-runt-sync" class="pressable w-full py-2.5 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-lg flex items-center justify-center gap-2">
-                    <span>🔍 Consultar RUNT / Extraer Datos</span>
+                    <span>🔍 Calcular Pico y Placa / Verificar Placa</span>
                   </button>
                 </div>
 
                 <!-- Right 7 Cols: Extracted / Editable Legal & Maintenance Data with Coquettish Circular Controls -->
                 <div class="col-span-7 bt-soft-card p-4 flex flex-col justify-between">
                   <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Datos Extraídos para el Sistema</span>
-                    <span id="r5-sync-status-badge" class="text-[11px] font-semibold text-emerald-400">Sincronizado con RUNT ✓</span>
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Datos Guardados en el Vehículo</span>
+                    <span id="r5-sync-status-badge" class="text-[11px] font-semibold text-emerald-400">Persistencia local activa ✓</span>
                   </div>
 
                   <div class="grid grid-cols-2 gap-3 my-auto">
@@ -3767,7 +3792,7 @@
                     <div class="bt-soft-item p-3.5 flex items-center justify-between gap-3">
                       <div class="min-w-0 flex-1">
                         <label class="text-[10px] text-[var(--mute)] uppercase tracking-wider font-semibold block">Días restantes SOAT</label>
-                        <input id="r5-input-soat" type="number" min="0" max="365" value="214" oninput="syncR5FieldInput(this, 'soat')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--accent)] outline-none" />
+                        <input id="r5-input-soat" type="number" min="0" max="365" value="0" oninput="syncR5FieldInput(this, 'soat')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--accent)] outline-none" />
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0">
                         <button type="button" onclick="adjustR5Field('soat', -5)" class="w-7 h-7 rounded-full soft-surface soft-surface-interactive flex items-center justify-center text-xs font-bold text-[var(--ink)] hover:text-[var(--accent)] active:scale-90 transition shadow-sm" title="Bajar (-5 días)">
@@ -3783,7 +3808,7 @@
                     <div class="bt-soft-item p-3.5 flex items-center justify-between gap-3">
                       <div class="min-w-0 flex-1">
                         <label class="text-[10px] text-[var(--mute)] uppercase tracking-wider font-semibold block">Días Técnico-Mecánica</label>
-                        <input id="r5-input-rtm" type="number" min="0" max="365" value="168" oninput="syncR5FieldInput(this, 'rtm')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--accent)] outline-none" />
+                        <input id="r5-input-rtm" type="number" min="0" max="365" value="0" oninput="syncR5FieldInput(this, 'rtm')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--accent)] outline-none" />
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0">
                         <button type="button" onclick="adjustR5Field('rtm', -5)" class="w-7 h-7 rounded-full soft-surface soft-surface-interactive flex items-center justify-center text-xs font-bold text-[var(--ink)] hover:text-[var(--accent)] active:scale-90 transition shadow-sm" title="Bajar (-5 días)">
@@ -3799,7 +3824,7 @@
                     <div class="bt-soft-item p-3.5 flex items-center justify-between gap-3">
                       <div class="min-w-0 flex-1">
                         <label class="text-[10px] text-[var(--mute)] uppercase tracking-wider font-semibold block">Próximo Cambio Aceite (km)</label>
-                        <input id="r5-input-oil" type="number" min="100" max="10000" step="100" value="1840" oninput="syncR5FieldInput(this, 'oil')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--ink)] outline-none" />
+                        <input id="r5-input-oil" type="number" min="0" max="15000" step="100" value="0" oninput="syncR5FieldInput(this, 'oil')" class="w-full mt-0.5 bg-transparent font-sora font-bold text-base text-[var(--ink)] outline-none" />
                       </div>
                       <div class="flex items-center gap-1.5 shrink-0">
                         <button type="button" onclick="adjustR5Field('oil', -100)" class="w-7 h-7 rounded-full soft-surface soft-surface-interactive flex items-center justify-center text-xs font-bold text-[var(--ink)] hover:text-[var(--accent)] active:scale-90 transition shadow-sm" title="Bajar (-100 km)">
@@ -3814,7 +3839,7 @@
                     <!-- Policy Insurance text card -->
                     <div class="bt-soft-item p-3.5 flex flex-col justify-between">
                       <label class="text-[10px] text-[var(--mute)] uppercase tracking-wider font-semibold block">Aseguradora / Póliza</label>
-                      <input id="r5-input-ins" type="text" value="Seguros Sura · Todo Riesgo" class="w-full mt-1 bg-transparent font-semibold text-xs text-emerald-500 outline-none" />
+                      <input id="r5-input-ins" type="text" value="" placeholder="Ej: Sura / Bolivar / Todo Riesgo" class="w-full mt-1 bg-transparent font-semibold text-xs text-emerald-500 outline-none" />
                     </div>
                   </div>
 
@@ -3836,7 +3861,7 @@
               <div class="flex items-center justify-between pb-2 border-b border-[var(--line)] shrink-0">
                 <div>
                   <h2 class="font-sora text-base font-bold text-[var(--ink)]">Gestor de archivos y USB</h2>
-                  <p id="files-current-path" class="text-xs text-[var(--mute)] tabular-nums">/storage/usb0 · Kingston DataTraveler 32 GB · FAT32</p>
+                  <p id="files-current-path" class="text-xs text-[var(--mute)] tabular-nums">/storage/usb0 · Escaneando unidad...</p>
                 </div>
 
                 <button onclick="openAppsSubView('drawer')" class="pressable px-4 py-1.5 rounded-xl border border-[var(--line)] bg-[var(--card)]/50 hover:bg-[var(--card)] text-xs font-semibold text-[var(--ink)] transition">
@@ -3858,9 +3883,9 @@
                         <span class="font-bold text-xs text-[var(--ink)]">USB Guantera</span>
                         <span id="drive-badge-usb" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30">Activa</span>
                       </div>
-                      <div class="text-[11px] text-[var(--mute)] tabular-nums">24,8 GB libres de 32 GB</div>
+                      <div id="drive-cap-usb" class="text-[11px] text-[var(--mute)] tabular-nums">Sin memoria USB insertada</div>
                       <div class="w-full h-1.5 rounded-full bg-current/10 overflow-hidden">
-                        <div id="drive-bar-usb" class="h-full rounded-full bg-[var(--accent)] transition-all" style="width: 22.5%;"></div>
+                        <div id="drive-bar-usb" class="h-full rounded-full bg-[var(--accent)] transition-all" style="width: 0%;"></div>
                       </div>
                     </button>
 
@@ -3868,11 +3893,11 @@
                     <button onclick="selectFileDrive('internal')" id="drive-btn-internal" class="pressable p-3 rounded-2xl border text-left flex flex-col gap-2 transition file-drive-card">
                       <div class="flex items-center justify-between w-full">
                         <span class="font-bold text-xs text-[var(--ink)]">Memoria interna</span>
-                        <span id="drive-badge-internal" class="text-[10px] text-[var(--mute)] font-medium">32 GB</span>
+                        <span id="drive-badge-internal" class="text-[10px] text-[var(--mute)] font-medium">Interna</span>
                       </div>
-                      <div class="text-[11px] text-[var(--mute)] tabular-nums">18,4 GB libres de 32 GB</div>
+                      <div id="drive-cap-internal" class="text-[11px] text-[var(--mute)] tabular-nums">Calculando espacio...</div>
                       <div class="w-full h-1.5 rounded-full bg-current/10 overflow-hidden">
-                        <div id="drive-bar-internal" class="h-full rounded-full bg-[var(--accent)] transition-all" style="width: 42.5%;"></div>
+                        <div id="drive-bar-internal" class="h-full rounded-full bg-[var(--accent)] transition-all" style="width: 0%;"></div>
                       </div>
                     </button>
                   </div>
@@ -3881,11 +3906,11 @@
                   <div class="p-3.5 rounded-2xl border border-[var(--line)] bg-[var(--card)]/40 flex flex-col gap-2">
                     <div>
                       <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--mute)]">Sistema</span>
-                      <div class="font-sora font-bold text-xs text-[var(--ink)]">JoyOS v8.1</div>
-                      <div class="text-[11px] text-[var(--mute)]">Actualización lista desde el USB</div>
+                      <div id="files-sys-ver-label" class="font-sora font-bold text-xs text-[var(--ink)]">JoyOS Producción</div>
+                      <div id="files-sys-sub-label" class="text-[11px] text-[var(--mute)]">Actualizaciones vía GitHub o USB</div>
                     </div>
-                    <button onclick="triggerHotUpdateSim()" id="btn-ota-usb" class="pressable w-full py-2 px-3 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-md text-center transition flex items-center justify-center gap-1.5">
-                      <span>Actualizar ahora</span>
+                    <button onclick="triggerOtaCheck(this)" id="btn-ota-usb" class="pressable w-full py-2 px-3 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-md text-center transition flex items-center justify-center gap-1.5">
+                      <span>Buscar actualización</span>
                     </button>
                   </div>
                 </div>
@@ -3897,13 +3922,13 @@
                     <!-- Filter Pills -->
                     <div class="flex items-center gap-2">
                       <button onclick="setFileFilter('all')" id="ff-btn-all" class="pressable px-3 py-1.5 rounded-xl font-bold text-xs transition filter-pill active">
-                        Todos · 6
+                        Todos · 0
                       </button>
                       <button onclick="setFileFilter('apk')" id="ff-btn-apk" class="pressable px-3 py-1.5 rounded-xl font-semibold text-xs text-[var(--mute)] border border-transparent transition filter-pill">
-                        Instaladores · 3
+                        Instaladores · 0
                       </button>
                       <button onclick="setFileFilter('media')" id="ff-btn-media" class="pressable px-3 py-1.5 rounded-xl font-semibold text-xs text-[var(--mute)] border border-transparent transition filter-pill">
-                        Música · 3
+                        Música · 0
                       </button>
                     </div>
 
@@ -4079,49 +4104,14 @@
   <script>
     let songs = [
       {
-        artist: "Kali Uchis",
-        title: "Telepatía",
-        album: "Sin Miedo",
-        durationSec: 330,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdLYWxpIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI3NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDY0ZTNiIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjUlIiBzdG9wLWNvbG9yPSIjMDIyYzIyIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAxMTQwZSIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYXVyYUthbGkiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMxMGI5ODEiIHN0b3Atb3BhY2l0eT0iMC45Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMzUlIiBzdG9wLWNvbG9yPSIjZjU5ZTBiIiBzdG9wLW9wYWNpdHk9IjAuOTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2NSUiIHN0b3AtY29sb3I9IiMxMGI5ODEiIHN0b3Atb3BhY2l0eT0iMC42Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzA0Nzg1NyIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJjb3JlS2FsaSIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzM0ZDM5OSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjcwJSIgc3RvcC1jb2xvcj0iIzEwYjk4MSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwNTk2NjkiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8ZmlsdGVyIGlkPSJnbG93S2FsaSIgeD0iLTIwJSIgeT0iLTIwJSIgd2lkdGg9IjE0MCUiIGhlaWdodD0iMTQwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjE2IiByZXN1bHQ9ImJsdXIiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9ImJsdXIiIG9wZXJhdG9yPSJvdmVyIi8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdLYWxpKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTYwIiBmaWxsPSJ1cmwoI2F1cmFLYWxpKSIgZmlsdGVyPSJ1cmwoI2dsb3dLYWxpKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTE4IiBmaWxsPSIjZjU5ZTBiIiBvcGFjaXR5PSIwLjg4IiBmaWx0ZXI9InVybCgjZ2xvd0thbGkpIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSI3NCIgZmlsbD0idXJsKCNjb3JlS2FsaSkiIHN0cm9rZT0iIzZlZTdiNyIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2Utb3BhY2l0eT0iMC43NSIvPgo8L3N2Zz4=",
-        color1: "#10b981",
-        color2: "#f59e0b"
-      },
-      {
-        artist: "Rihanna",
-        title: "Man Down",
-        album: "Loud",
-        durationSec: 264,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdSaWgiIGN4PSI1MCUiIGN5PSI1MCUiIHI9Ijc1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzYjA3NjQiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2MCUiIHN0b3AtY29sb3I9IiMxODA0MmIiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMGEwMjE0Ii8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJoYWxvUmloIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZTExZDQ4IiBzdG9wLW9wYWNpdHk9IjAuOTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNjMDI2ZDMiIHN0b3Atb3BhY2l0eT0iMC44Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iODUlIiBzdG9wLWNvbG9yPSIjN2MzYWVkIiBzdG9wLW9wYWNpdHk9IjAuNCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM1ODFjODciIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxmaWx0ZXIgaWQ9ImJsdXJSaWgiIHg9Ii0yMCUiIHk9Ii0yMCUiIHdpZHRoPSIxNDAlIiBoZWlnaHQ9IjE0MCUiPgogICAgICA8ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIyMiIgcmVzdWx0PSJibHVyIi8+CiAgICAgIDxmZUNvbXBvc2l0ZSBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJibHVyIiBvcGVyYXRvcj0ib3ZlciIvPgogICAgPC9maWx0ZXI+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiBmaWxsPSJ1cmwoI2JnUmloKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTQ1IiBmaWxsPSJ1cmwoI2hhbG9SaWgpIiBmaWx0ZXI9InVybCgjYmx1clJpaCkiLz4KICA8cG9seWdvbiBwb2ludHM9IjIwMCwxMDUgMjg1LDE2NSAyNTIsMjY4IDE0OCwyNjggMTE1LDE2NSIgCiAgICAgICAgICAgZmlsbD0iI2E4NTVmNyIgZmlsbC1vcGFjaXR5PSIwLjE4IiAKICAgICAgICAgICBzdHJva2U9IiNmZGY0ZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW9wYWNpdHk9IjAuOTIiLz4KICA8cG9seWdvbiBwb2ludHM9IjIwMCwxMjUgMjY4LDE3MiAyNDIsMjUyIDE1OCwyNTIgMTMyLDE3MiIgCiAgICAgICAgICAgZmlsbD0ibm9uZSIgCiAgICAgICAgICAgc3Ryb2tlPSIjZjQ3MmI2IiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW9wYWNpdHk9IjAuNSIvPgo8L3N2Zz4=",
-        color1: "#f43f5e",
-        color2: "#9333ea"
-      },
-      {
-        artist: "Soda Stereo",
-        title: "De música ligera (remasterizada)",
-        album: "Canción animal",
-        durationSec: 212,
+        artist: "Bluetooth Audio",
+        title: "Esperando reproducción...",
+        album: "A2DP / AVRCP en Vivo",
+        durationSec: 210,
+        isBtStream: true,
         cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdTb2RhIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI3NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDgyZjQ5Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAyMDYxNyIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ2xvd1NvZGEiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzOGJkZjgiIHN0b3Atb3BhY2l0eT0iMC44Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMDI4NGM3IiBzdG9wLW9wYWNpdHk9IjAuMyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMzY5YTEiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTUwIiBmaWxsPSJ1cmwoI2dsb3dTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2Utb3BhY2l0eT0iMC4yNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTE1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM4YmRmOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjYiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuODUiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjQwIiBmaWxsPSIjMDI4NGM3IiBzdHJva2U9IiM3ZGQzZmMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTYiIGZpbGw9IiNmMGY5ZmYiLz4KPC9zdmc+",
         color1: "#06b6d4",
-        color2: "#4f46e5"
-      },
-      {
-        artist: "Wiz Khalifa",
-        title: "Black and Yellow",
-        album: "Rolling Papers",
-        durationSec: 217,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdXaXoiIGN4PSI1MCUiIGN5PSI1MCUiIHI9Ijc1JSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiM0MjIwMDYiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI2MCUiIHN0b3AtY29sb3I9IiMxYzEyMDQiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMDgwNjAxIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJnbG93V2l6IiBjeD0iNTAlIiBjeT0iNTAlIiByPSI1NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZjU5ZTBiIiBzdG9wLW9wYWNpdHk9IjAuOTUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1NSUiIHN0b3AtY29sb3I9IiNkOTc3MDYiIHN0b3Atb3BhY2l0eT0iMC42Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2I0NTMwOSIgc3RvcC1vcGFjaXR5PSIwIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPGZpbHRlciBpZD0iYmx1cldpeiIgeD0iLTIwJSIgeT0iLTIwJSIgd2lkdGg9IjE0MCUiIGhlaWdodD0iMTQwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIwIiByZXN1bHQ9ImJsdXIiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9ImJsdXIiIG9wZXJhdG9yPSJvdmVyIi8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdXaXopIi8+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iMjAwIiByPSIxNDUiIGZpbGw9InVybCgjZ2xvd1dpeikiIGZpbHRlcj0idXJsKCNibHVyV2l6KSIvPgogIDxwb2x5Z29uIHBvaW50cz0iMjAwLDEwMCAyNzAsMTI5IDMwMCwyMDAgMjcwLDI3MSAyMDAsMzAwIDEzMCwyNzEgMTAwLDIwMCAxMzAsMTI5IgogICAgICAgICAgIGZpbGw9IiMxODE4MWIiIAogICAgICAgICAgIHN0cm9rZT0iI2ZiYmYyNCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1vcGFjaXR5PSIwLjg1Ii8+Cjwvc3ZnPg==",
-        color1: "#eab308",
-        color2: "#ec4899"
-      },
-      {
-        artist: "Charlie Puth",
-        title: "How Long",
-        album: "Voicenotes",
-        durationSec: 200,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdDUCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNzUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzRjMDUxOSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iIzFmMDMwYSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwODAxMDMiLz4KICAgIDwvcmFkaWFsR3JhZGllbnQ+CiAgICA8cmFkaWFsR3JhZGllbnQgaWQ9Imdsb3dDUCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2Y0M2Y1ZSIgc3RvcC1vcGFjaXR5PSIwLjk1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjZmI5MjNjIiBzdG9wLW9wYWNpdHk9IjAuNyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlYTU4MGMiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxmaWx0ZXIgaWQ9ImJsdXJDUCIgeD0iLTIwJSIgeT0iLTIwJSIgd2lkdGg9IjE0MCUiIGhlaWdodD0iMTQwJSI+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIwIiByZXN1bHQ9ImJsdXIiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9ImJsdXIiIG9wZXJhdG9yPSJvdmVyIi8+CiAgICA8L2ZpbHRlcj4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdDUCkiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjE0NSIgZmlsbD0idXJsKCNnbG93Q1ApIiBmaWx0ZXI9InVybCgjYmx1ckNQKSIvPgogIDxwYXRoIGQ9Ik0yMDAgMTE1IEE0NSA0NSAwIDAgMSAyMzggMTgwIEwyNTUgMjk1IEwxNDUgMjk1IEwxNjIgMTgwIEE0NSA0NSAwIDAgMSAyMDAgMTE1IFoiCiAgICAgICAgZmlsbD0iIzBmMTcyYSIgc3Ryb2tlPSIjZmI3MTg1IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW9wYWNpdHk9IjAuODUiLz4KPC9zdmc+",
-        color1: "#e11d48",
-        color2: "#f59e0b"
+        color2: "#3b82f6"
       }
     ];
 
@@ -5042,32 +5032,55 @@
       const rEl = document.getElementById('r5-input-rtm');
       const oEl = document.getElementById('r5-input-oil');
       const iEl = document.getElementById('r5-input-ins');
-      if (pEl) pEl.value = r5State.plate || 'JOY-2022';
-      if (dEl) dEl.value = r5State.ownerDoc || '1020789451';
+      if (pEl) pEl.value = r5State.plate || '';
+      if (dEl) dEl.value = r5State.ownerDoc || '';
       if (cEl) cEl.value = r5State.city || 'Bogotá';
-      if (sEl) sEl.value = r5State.soatDays;
-      if (rEl) rEl.value = r5State.rtmDays;
-      if (oEl) oEl.value = r5State.oilKmLeft || r5State.oilKm;
-      if (iEl) iEl.value = r5State.insurer || 'Seguros Mundial';
+      if (sEl) sEl.value = r5State.soatDays || 0;
+      if (rEl) rEl.value = r5State.rtmDays || 0;
+      if (oEl) oEl.value = r5State.oilKmLeft || r5State.oilKm || 0;
+      if (iEl) iEl.value = r5State.insurer || r5State.insurance || '';
       renderAll();
+    }
+
+    function computeRealPicoYPlaca(plate, city) {
+      if (!plate || plate.length < 3) return false;
+      const digits = plate.replace(/[^0-9]/g, '');
+      if (!digits) return false;
+      const lastDigit = parseInt(digits[digits.length - 1], 10);
+      if (isNaN(lastDigit)) return false;
+      const now = new Date();
+      const dow = now.getDay(); // 0=Dom, 1=Lun..5=Vie, 6=Sab
+      if (dow === 0 || dow === 6) return false;
+      const dateNum = now.getDate();
+      const c = (city || 'Bogotá').toLowerCase();
+      if (c.includes('bogot')) {
+        // Bogotá: días impares pueden circular 1,2,3,4,5 (restringidos 6,7,8,9,0); días pares restringidos 1,2,3,4,5
+        const isOddDay = (dateNum % 2) === 1;
+        return isOddDay ? [6, 7, 8, 9, 0].includes(lastDigit) : [1, 2, 3, 4, 5].includes(lastDigit);
+      }
+      // Medellín / Cali / Bucaramanga (2 dígitos por día hábil)
+      const map = { 1: [5, 8], 2: [1, 4], 3: [2, 0], 4: [3, 6], 5: [7, 9] };
+      return (map[dow] || []).includes(lastDigit);
     }
 
     function adjustR5Field(field, delta) {
       if (field === 'soat') {
-        r5State.soatDays = Math.max(0, Math.min(365, (r5State.soatDays || 214) + delta));
+        r5State.soatDays = Math.max(0, Math.min(365, (r5State.soatDays || 0) + delta));
         const el = document.getElementById('r5-input-soat');
         if (el) el.value = r5State.soatDays;
       } else if (field === 'rtm') {
-        r5State.rtmDays = Math.max(0, Math.min(365, (r5State.rtmDays || 168) + delta));
+        r5State.rtmDays = Math.max(0, Math.min(365, (r5State.rtmDays || 0) + delta));
         const el = document.getElementById('r5-input-rtm');
         if (el) el.value = r5State.rtmDays;
       } else if (field === 'oil') {
-        const cur = r5State.oilKmLeft || r5State.oilKm || 1840;
+        const cur = r5State.oilKmLeft || r5State.oilKm || 0;
         r5State.oilKmLeft = Math.max(0, Math.min(15000, cur + delta));
         r5State.oilKm = r5State.oilKmLeft;
         const el = document.getElementById('r5-input-oil');
         if (el) el.value = r5State.oilKmLeft;
       }
+      r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15);
+      safeSetStorage('joyos_v8_r5_vehicle', r5State);
       renderAll();
     }
 
@@ -5081,32 +5094,39 @@
         r5State.oilKmLeft = Math.max(0, val);
         r5State.oilKm = r5State.oilKmLeft;
       }
+      r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15);
+      safeSetStorage('joyos_v8_r5_vehicle', r5State);
       renderAll();
     }
 
     function syncVehicleFromRunt() {
       const pEl = document.getElementById('r5-input-plate');
-      const plate = (pEl && pEl.value ? pEl.value.trim().toUpperCase() : r5State.plate) || 'JOY-2022';
+      const cEl = document.getElementById('r5-input-city');
+      const plate = (pEl && pEl.value ? pEl.value.trim().toUpperCase() : r5State.plate) || '';
+      if (!plate) {
+        enqueueNotification({
+          type: 'alert',
+          dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0',
+          title: 'Ingresa la placa de tu vehículo',
+          tag: 'Escribe la placa para calcular Pico y Placa y guardar vigencias',
+          tagClass: 'text-[11px] font-semibold text-amber-400 pl-1'
+        });
+        return;
+      }
       r5State.plate = plate;
-      const seed = plate.charCodeAt(plate.length - 1) || 50;
-      r5State.soatDays = 110 + (seed % 180);
-      r5State.rtmDays = 95 + ((seed * 3) % 210);
-      r5State.oilKmLeft = 1800 + ((seed * 47) % 2800);
-      const sEl = document.getElementById('r5-input-soat');
-      const rEl = document.getElementById('r5-input-rtm');
-      const oEl = document.getElementById('r5-input-oil');
-      if (sEl) sEl.value = r5State.soatDays;
-      if (rEl) rEl.value = r5State.rtmDays;
-      if (oEl) oEl.value = r5State.oilKmLeft;
-      const badge = document.getElementById('r5-app-sync-status');
-      if (badge) badge.textContent = `Sincronizado RUNT · ${plate} ✓`;
-      renderR5State();
+      if (cEl && cEl.value) r5State.city = cEl.value;
+      r5State.picoRestricted = computeRealPicoYPlaca(r5State.plate, r5State.city);
+      r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15);
+      safeSetStorage('joyos_v8_r5_vehicle', r5State);
+      const badge = document.getElementById('r5-sync-status-badge');
+      if (badge) badge.textContent = `Placa verificada · ${plate} ✓`;
+      renderAll();
       enqueueNotification({
         type: 'info',
-        dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] shrink-0',
-        title: `R5 · RUNT sincronizado (${plate})`,
-        tag: `SOAT ${r5State.soatDays}d · RTM ${r5State.rtmDays}d · Información del Sistema actualizada`,
-        tagClass: 'text-[11px] font-semibold text-amber-400 pl-1',
+        dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
+        title: `Placa ${plate} sincronizada (${r5State.city})`,
+        tag: r5State.picoRestricted ? '⚠️ Hoy tienes restricción de Pico y Placa' : '✓ Hoy estás libre de Pico y Placa',
+        tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
         targetTab: 'settings',
         targetSubView: 'r5'
       });
@@ -5130,7 +5150,13 @@
         r5State.oilKmLeft = Math.max(0, +oEl.value);
         r5State.oilKm = r5State.oilKmLeft;
       }
-      if (iEl && iEl.value.trim()) r5State.insurer = iEl.value.trim();
+      if (iEl && iEl.value.trim()) {
+        r5State.insurer = iEl.value.trim();
+        r5State.insurance = r5State.insurer;
+      }
+      r5State.picoRestricted = computeRealPicoYPlaca(r5State.plate, r5State.city);
+      r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15);
+      safeSetStorage('joyos_v8_r5_vehicle', r5State);
 
       state.tab = 'settings';
       state.settingsSubView = 'r5';
@@ -5138,7 +5164,7 @@
       enqueueNotification({
         type: 'info',
         dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
-        title: `Vehículo ${r5State.plate} guardado en Información del Sistema`,
+        title: `Vehículo ${r5State.plate || 'Joy'} guardado`,
         tag: `${r5State.city} · SOAT ${r5State.soatDays} días · RTM ${r5State.rtmDays} días`,
         tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
         targetTab: 'settings',
@@ -5325,18 +5351,8 @@
       return { lbl: 'DAT', cls: 'badge-dat' };
     }
 
-    function triggerHotUpdateSim() {
-      const fOta = storageFiles.find(f => f.id === 'f_ota');
-      if (fOta) fOta.installed = true;
-      renderFilesManagerUI();
-      enqueueNotification({
-        type: 'info',
-        dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
-        title: 'JoyOS v8.1 actualizado',
-        tag: 'Hot-Update aplicado correctamente',
-        tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
-        targetTab: 'apps'
-      });
+    function triggerRealOtaCheck() {
+      checkManualOtaUpdate();
     }
 
     function loadNativeStorageFiles() {
@@ -5416,11 +5432,36 @@
       const nextBtn = document.getElementById('files-next-btn');
       if (!listEl) return;
 
-      // 1. Path Breadcrumb
+      // 1. Path Breadcrumb & Real Storage Capacity via AndroidBridge.getStorageStats
+      let usbStats = { mounted: false, path: '/storage/usb0', freeGb: '0,0', totalGb: '0,0', usedPercent: 0 };
+      let intStats = { mounted: false, path: '/storage/emulated/0', freeGb: '--', totalGb: '--', usedPercent: 0 };
+      if (window.AndroidBridge && typeof window.AndroidBridge.getStorageStats === 'function') {
+        try { usbStats = JSON.parse(window.AndroidBridge.getStorageStats('usb') || '{}'); } catch (e) {}
+        try { intStats = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}'); } catch (e) {}
+      }
+
+      const capUsb = document.getElementById('drive-cap-usb');
+      const barUsb = document.getElementById('drive-bar-usb');
+      if (capUsb) {
+        capUsb.textContent = usbStats.mounted
+          ? `${usbStats.freeGb} GB libres de ${usbStats.totalGb} GB`
+          : 'Sin memoria USB insertada';
+      }
+      if (barUsb) barUsb.style.width = (usbStats.mounted ? (usbStats.usedPercent || 0) : 0) + '%';
+
+      const capInt = document.getElementById('drive-cap-internal');
+      const barInt = document.getElementById('drive-bar-internal');
+      if (capInt) {
+        capInt.textContent = intStats.mounted
+          ? `${intStats.freeGb} GB libres de ${intStats.totalGb} GB`
+          : 'Almacenamiento del sistema';
+      }
+      if (barInt) barInt.style.width = (intStats.mounted ? (intStats.usedPercent || 0) : 0) + '%';
+
       if (pathEl) {
         pathEl.textContent = state.fileDrive === 'usb'
-          ? (storageFiles.length > 0 ? (storageFiles[0].path ? storageFiles[0].path.substring(0, storageFiles[0].path.lastIndexOf('/')) : '/storage/usb0') : '/storage/usb0 · Puerto USB Guantera')
-          : '/storage/emulated/0 · Memoria Interna';
+          ? (usbStats.mounted ? `${usbStats.path} · USB OTG (${usbStats.freeGb} GB libres)` : '/storage/usb0 · Sin unidad USB en guantera')
+          : `${intStats.path || '/storage/emulated/0'} · Memoria Interna (${intStats.freeGb} GB libres)`;
       }
 
       // 2. Drive Selection Buttons & Badges
@@ -5429,11 +5470,11 @@
           btnUsb.classList.add('active');
           btnInt.classList.remove('active');
           if (badgeUsb) {
-            badgeUsb.textContent = 'Activa';
+            badgeUsb.textContent = usbStats.mounted ? 'Activa' : 'Sin USB';
             badgeUsb.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
           }
           if (badgeInt) {
-            badgeInt.textContent = '32 GB';
+            badgeInt.textContent = intStats.mounted ? `${intStats.totalGb} GB` : 'Interna';
             badgeInt.className = 'text-[10px] text-[var(--mute)] font-medium';
           }
         } else {
@@ -5444,7 +5485,7 @@
             badgeInt.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
           }
           if (badgeUsb) {
-            badgeUsb.textContent = 'Conectada';
+            badgeUsb.textContent = usbStats.mounted ? `${usbStats.totalGb} GB` : 'Sin USB';
             badgeUsb.className = 'text-[10px] text-[var(--mute)] font-medium';
           }
         }
@@ -6031,23 +6072,26 @@
         {t:'info',l:'Versión instalada de JoyOS',v:'v1.0.0 Producción (Chevrolet Joy)'},
         {t:'act',l:'Buscar actualizaciones en GitHub',b:'Buscar'},
         {t:'tog',l:'Buscar actualizaciones vía Wi-Fi',v:true,d:'Comprueba nuevos lanzamientos al encender'},
+        {h:'Ingeniería Inversa (REA · ZXDZ_01 / AC8227L)'},
+        {t:'act',l:'🔬 Ejecutar Inspector REA de Hardware',b:'Escanear',d:'Inspecciona paquetes OEM (Radio/BT/MCU cm69), puertos serie y propiedades del kernel'},
+        {t:'info',l:'Paquetes OEM detectados',v:'Toca Escanear'},
+        {t:'info',l:'Nodos serie MCU / FM',v:'Toca Escanear'},
+        {t:'info',l:'Último evento AVRCP / Audio BT',v:'Esperando stream A2DP'},
         {h:'Optimización de Hardware & Audio'},
-        {t:'act',l:'⚡ Optimizar Hardware al 100% (Super Mode)',b:'Optimizar',d:'Ejecuta script root nativo: audio sin límite, suspende launchers OEM y acelera RAM'},
+        {t:'act',l:'⚡ Optimizar Hardware al 100% (Super Mode)',b:'Optimizar',d:'Audio DSP al 100%, animaciones a 0.5x y limpieza segura de RAM (protege servicios OEM)'},
         {h:'Seguridad & Salidas del Sistema'},
         {t:'act',l:'Abrir Ajustes de Android',b:'Abrir',d:'Acceso directo a la configuración original de la tablet'},
         {t:'act',l:'Cambiar Launcher de Inicio (Salir)',b:'Elegir',d:'Permite cambiar al launcher de fábrica u otro'},
-        {t:'act',l:'Restaurar Launchers de Fábrica',b:'Restaurar',d:'Descongela todos los launchers de fábrica originales'},
+        {t:'act',l:'Restaurar Launchers de Fábrica',b:'Restaurar',d:'Verifica y habilita todos los servicios y launchers originales'},
         {h:'Especificaciones de la Tablet'},
-        {t:'info',l:'Versión de Android',v:'13.1'},
-        {t:'info',l:'Memoria corriente',v:'4.0G'},
-        {t:'info',l:'Capacidad de almacenamiento',v:'32G'},
-        {t:'info',l:'Plataforma del sistema',v:'ac8227l'},
-        {t:'info',l:'Protocolo CAN',v:'Sin protocolo (OBD2 BLE)'},
-        {t:'info',l:'Número de versión CAN',v:'101.0.1.20240306'},
+        {t:'info',l:'Versión de Android',v:'8.1.0 (API 27 / Oreo)'},
+        {t:'info',l:'Memoria RAM (Uso / Total)',v:'Calculando...'},
+        {t:'info',l:'Almacenamiento Interno',v:'Calculando...'},
+        {t:'info',l:'Plataforma del sistema',v:'MediaTek AC8227L'},
+        {t:'info',l:'Protocolo CAN / Telemetría',v:'OBD2 BLE + GPS Híbrido'},
         {t:'info',l:'Número de versión del sistema',v:'WJ_2024.03.12.09_2234'},
-        {t:'info',l:'Versión mcu',v:'CVD1810-WJ_23.11.27_339'},
+        {t:'info',l:'Versión mcu',v:'CVD1810-WJ_23.11.27_339 (cm69)'},
         {t:'info',l:'Resolution info',v:'1280*720_YT090IBNK12018-A12'},
-        {t:'info',l:'Protocolo TP',v:'GT9xx_1080x600'},
         {h:'Mantenimiento del Sistema'},
         {t:'act',l:'Liberar RAM',b:'Liberar'},
         {t:'act',l:'Reiniciar sistema',b:'Reiniciar'}
@@ -6057,6 +6101,72 @@
     let ajCur = 'pan';
     let ajQuery = '';
     const ajFlat = ajData.flatMap(c => c.it);
+
+    function runReaHardwareInspector(btnEl, xItem) {
+      if (btnEl) btnEl.textContent = 'Escaneando...';
+      if (window.AndroidBridge && typeof window.AndroidBridge.inspectOemHardware === 'function') {
+        try {
+          const raw = window.AndroidBridge.inspectOemHardware();
+          const data = JSON.parse(raw || '{}');
+          const hwCat = ajData.find(c => c.id === 'info_hw');
+          if (hwCat) {
+            const pkgItem = hwCat.it.find(i => i.l === 'Paquetes OEM detectados');
+            const nodeItem = hwCat.it.find(i => i.l === 'Nodos serie MCU / FM');
+            const btItem = hwCat.it.find(i => i.l === 'Último evento AVRCP / Audio BT');
+            const andItem = hwCat.it.find(i => i.l === 'Versión de Android');
+            const sysItem = hwCat.it.find(i => i.l === 'Número de versión del sistema');
+            const mcuItem = hwCat.it.find(i => i.l === 'Versión mcu');
+
+            const pkgs = Array.isArray(data.oemPackages) ? data.oemPackages : [];
+            if (pkgItem) {
+              pkgItem.v = pkgs.length > 0
+                ? `${pkgs.length} activos (${pkgs.slice(0, 3).map(p => p.package.split('.').pop()).join(', ')})`
+                : 'Estándar Android';
+              pkgItem.d = pkgs.map(p => `${p.label} [${p.package}]`).join(' · ');
+            }
+            const nodes = Array.isArray(data.hardwareNodes) ? data.hardwareNodes : [];
+            if (nodeItem) {
+              nodeItem.v = nodes.length > 0 ? nodes.map(n => n.path).join(', ') : 'Control vía Broadcast MCU';
+            }
+            if (btItem && data.btMetadata) {
+              btItem.v = data.btMetadata.title
+                ? `${data.btMetadata.title} (${data.btMetadata.artist || 'BT'})`
+                : 'Listo · Escuchando AVRCP';
+            }
+            if (andItem && data.androidVer) {
+              andItem.v = `Android ${data.androidVer} (SDK ${data.sdkInt || 27})`;
+            }
+            if (sysItem && data.display) {
+              sysItem.v = data.display;
+            }
+            if (mcuItem && data.properties && (data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version'])) {
+              mcuItem.v = data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version'];
+            }
+          }
+          if (btnEl) {
+            btnEl.textContent = 'Completado';
+            setTimeout(() => { if (btnEl && xItem) btnEl.textContent = xItem.b; }, 2000);
+          }
+          renderMoreSettings();
+          enqueueNotification({
+            type: 'info',
+            dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
+            title: `🔬 Radiografía REA completada (${data.model || 'ZXDZ_01'})`,
+            tag: `${(data.oemPackages || []).length} módulos OEM y ${(data.hardwareNodes || []).length} puertos de hardware detectados`,
+            tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
+            targetTab: 'settings'
+          });
+          return;
+        } catch (e) {
+          console.warn('REA inspect error:', e);
+        }
+      }
+      if (btnEl) {
+        btnEl.textContent = 'Escaneado';
+        setTimeout(() => { if (btnEl && xItem) btnEl.textContent = xItem.b; }, 1600);
+      }
+      renderMoreSettings();
+    }
 
     function ajCtl(x) {
       if (x.t === 'seg') return `<div class="aj-seg">${x.o.map((o, i) => `<button data-a="s" aria-pressed="${i === x.v}" data-i="${i}">${o}</button>`).join('')}</div>`;
@@ -6138,9 +6248,16 @@
             state.fanMode = fModes[x.v] || 'auto';
             const fanCat = ajData.find(c => c.id === 'fan');
             const tItem = fanCat?.it.find(i => i.l === 'Temperatura del procesador');
-            const rItem = fanCat?.it.find(i => i.l === 'Velocidad actual del cooler');
-            if (tItem) tItem.v = state.fanMode === 'turbo' ? '38 °C' : (state.fanMode === 'silent' ? '50 °C' : '44 °C');
-            if (rItem) rItem.v = state.fanMode === 'turbo' ? '4.800 RPM' : (state.fanMode === 'silent' ? '1.800 RPM' : '3.200 RPM');
+            const rItem = fanCat?.it.find(i => i.l === 'Velocidad del disipador');
+            if (window.AndroidBridge && typeof window.AndroidBridge.getCpuTemperature === 'function') {
+              try {
+                const realCpu = window.AndroidBridge.getCpuTemperature();
+                if (tItem && realCpu > 0) tItem.v = `${realCpu} °C`;
+              } catch (e) {}
+            }
+            if (rItem) {
+              rItem.v = state.fanMode === 'turbo' ? 'Modo Turbo Activo' : (state.fanMode === 'silent' ? 'Modo Silencioso' : 'Control térmico automático');
+            }
           }
           renderMoreSettings();
           renderAll();
@@ -6164,6 +6281,10 @@
           renderAll();
         }
         if (b.dataset.a === 'b') {
+          if (x.l.includes('Inspector REA')) {
+            runReaHardwareInspector(b, x);
+            return;
+          }
           if (x.l.includes('Buscar actualizaciones')) {
             b.textContent = 'Buscando...';
             triggerOtaCheck(b, x);
@@ -6190,13 +6311,13 @@
             return;
           }
           if (x.l.includes('Restaurar Launchers')) {
-            if (confirm('¿Restaurar y descongelar todos los launchers de fábrica originales?')) {
+            if (confirm('¿Verificar y habilitar todos los launchers y servicios de fábrica originales?')) {
               b.textContent = 'Restaurando...';
               if (window.AndroidBridge && typeof window.AndroidBridge.restoreFactoryLaunchers === 'function') {
                 const ok = window.AndroidBridge.restoreFactoryLaunchers();
-                b.textContent = ok ? 'Listo ✓' : 'Fallo';
+                b.textContent = ok ? 'Restaurado' : 'Fallo';
               } else {
-                b.textContent = 'Listo ✓';
+                b.textContent = 'Restaurado';
               }
               setTimeout(() => { b.textContent = x.b; }, 2000);
             }
@@ -6208,11 +6329,13 @@
               return;
             }
           }
-          if (x.l.includes('Bluetooth') || x.l.includes('OBD2') || x.l.includes('Probar')) {
+          if (x.l.includes('Bluetooth') || x.l.includes('OBD2') || x.l.includes('Vincular')) {
             if (window.AndroidBridge && typeof window.AndroidBridge.openBluetoothSettings === 'function') {
               window.AndroidBridge.openBluetoothSettings();
               return;
             }
+            openBluetoothDirect();
+            return;
           }
           if (x.l.includes('Z-Link')) {
             launchOsApp('zlink');
@@ -6229,9 +6352,12 @@
             }
             return;
           }
-          b.textContent = 'Listo ✓';
-          if (x.l.includes('Liberar RAM')) optimizeRam();
-          setTimeout(() => { b.textContent = x.b; }, 1400);
+          if (x.l.includes('Liberar RAM')) {
+            b.textContent = 'Liberando...';
+            optimizeRam();
+            setTimeout(() => { b.textContent = x.b; }, 1400);
+            return;
+          }
         }
       });
 
@@ -6807,7 +6933,7 @@
     function optimizeRam() {
       const ramEl = document.getElementById('settings-ram-val');
       const btnEl = document.getElementById('btn-ram-opt');
-      let freedRamLabel = '1,55 GB';
+      let freedRamLabel = '-- GB';
       if (window.AndroidBridge && typeof window.AndroidBridge.optimizeSystemRam === 'function') {
         try {
           const nativeRam = window.AndroidBridge.optimizeSystemRam();
@@ -6819,8 +6945,10 @@
         ramEl.className = 'font-bold text-emerald-400';
       }
       if (btnEl) {
-        btnEl.textContent = '✓ Listo';
+        btnEl.textContent = 'Optimizado ✓';
+        setTimeout(() => { if (btnEl) btnEl.textContent = 'Liberar'; }, 2500);
       }
+      updateHardwareStatus();
       if (state.settingsSubView === 'more') renderMoreSettings();
     }
 
@@ -6929,7 +7057,57 @@
           console.warn("Error loading music files:", e);
         }
       }
+      if (window.AndroidBridge && typeof window.AndroidBridge.getBtMusicMetadata === 'function') {
+        try {
+          const btRaw = window.AndroidBridge.getBtMusicMetadata();
+          const btMeta = JSON.parse(btRaw || '{}');
+          if (btMeta && btMeta.title && btMeta.title !== 'Bluetooth Audio') {
+            window.onBtMusicMetadata(btMeta);
+          }
+        } catch (e) {}
+      }
     }
+
+    // --- LIVE BLUETOOTH AVRCP / A2DP METADATA & MCU RADIO RECEIVER ---
+    window.onBtMusicMetadata = function(meta) {
+      if (!meta) return;
+      if (typeof meta === 'string') {
+        try { meta = JSON.parse(meta); } catch (e) { return; }
+      }
+      const title = meta.title && meta.title.trim() ? meta.title.trim() : 'Audio Bluetooth';
+      const artist = meta.artist && meta.artist.trim() ? meta.artist.trim() : (state.btDeviceName || 'Teléfono Bluetooth');
+      const album = meta.album && meta.album.trim() ? meta.album.trim() : 'Bluetooth A2DP / AVRCP';
+      const dur = (typeof meta.durationSec === 'number' && meta.durationSec > 0) ? meta.durationSec : 210;
+
+      const btTrackObj = {
+        artist: artist,
+        title: title,
+        album: album,
+        durationSec: dur,
+        isLiveBt: true,
+        cover: generateCarCoverSvg(title, 0),
+        color1: '#06b6d4',
+        color2: '#3b82f6'
+      };
+
+      if (songs.length > 0 && (songs[0].isLiveBt || !songs[0].audioUri)) {
+        songs[0] = btTrackObj;
+      } else {
+        songs.unshift(btTrackObj);
+      }
+      state.songIdx = 0;
+      if (typeof meta.playing === 'boolean') {
+        state.playing = meta.playing;
+      }
+      renderAll();
+    };
+
+    window.onMcuRadioUpdate = function(freqMhz) {
+      if (typeof freqMhz === 'number' && freqMhz >= 87.5 && freqMhz <= 108.0) {
+        state.customFreq = Math.round(freqMhz * 10) / 10;
+        renderAll();
+      }
+    };
 
     function playDirectAudioTrack(track) {
       if (!track) return;
@@ -8033,53 +8211,107 @@
       document.getElementById('ck-fs-temp').className = (state.obdConnected && state.engineHot) ? 'font-bold text-amber-500' : 'font-semibold';
 
       // --- SYNC ACOPLAMIENTO INFORMACIÓN DEL SISTEMA + CORBATÍN CHEVROLET CON PLACA ---
-      const activePlate = r5State.plate || 'JOY-2022';
+      const hasPlate = !!(r5State.plate && r5State.plate.trim().length > 0);
+      const activePlate = hasPlate ? r5State.plate.trim() : 'SIN PLACA';
+      const picoStatus = hasPlate && typeof computeRealPicoYPlaca === 'function' ? computeRealPicoYPlaca(activePlate, r5State.city) : { restricted: false, label: 'Registra placa en R5' };
       const r5BowtiePlate = document.getElementById('r5-bowtie-plate-text');
       if (r5BowtiePlate) r5BowtiePlate.textContent = activePlate;
       const r5CityLbl = document.getElementById('r5-sub-city-label');
-      if (r5CityLbl) r5CityLbl.textContent = `${r5State.city || 'Bogotá'} · Chevrolet Joy`;
+      if (r5CityLbl) r5CityLbl.textContent = hasPlate ? `${r5State.city || 'Colombia'} · Chevrolet Joy` : 'Sin vehículo registrado · Chevrolet Joy';
+
+      const r5SubPlateVal = document.getElementById('r5-sub-plate-val');
+      if (r5SubPlateVal) r5SubPlateVal.textContent = hasPlate ? activePlate : 'Sin registrar';
+      const r5SubCityVal = document.getElementById('r5-sub-city-val');
+      if (r5SubCityVal) r5SubCityVal.textContent = hasPlate ? `${r5State.city || 'Colombia'} · ${picoStatus.label}` : 'Sin configurar';
+      const r5SubInsVal = document.getElementById('r5-sub-ins-val');
+      if (r5SubInsVal) r5SubInsVal.textContent = r5State.insurer || (hasPlate ? 'Póliza SOAT registrada' : 'Sin póliza');
+
+      const r5StatusBadge = document.getElementById('r5-card-status-badge');
+      if (r5StatusBadge) {
+        r5StatusBadge.textContent = hasPlate ? (r5State.expiringAlert ? 'Próximo a vencer !' : 'Al día · Configurado') : 'Pendiente registro';
+        r5StatusBadge.className = hasPlate ? (r5State.expiringAlert ? 'text-xs font-bold text-amber-500' : 'text-xs font-semibold text-emerald-500') : 'text-xs font-semibold text-[var(--mute)]';
+      }
 
       const r5PicoVal = document.getElementById('settings-r5-pico-val');
       if (r5PicoVal) {
-        r5PicoVal.textContent = r5State.picoRestricted ? `${activePlate} · Pico y Placa !` : `${activePlate} · Libre hoy`;
-        r5PicoVal.className = r5State.picoRestricted ? 'font-bold text-amber-500' : 'font-semibold text-emerald-500';
+        if (!hasPlate) {
+          r5PicoVal.textContent = 'Toca para registrar placa ↗';
+          r5PicoVal.className = 'font-semibold text-[var(--accent)]';
+        } else {
+          const isRest = r5State.picoRestricted || picoStatus.restricted;
+          r5PicoVal.textContent = isRest ? `${activePlate} · Pico y Placa !` : `${activePlate} · ${picoStatus.label}`;
+          r5PicoVal.className = isRest ? 'font-bold text-amber-500' : 'font-semibold text-emerald-500';
+        }
       }
 
       const r5DocsVal = document.getElementById('settings-r5-docs-val');
       if (r5DocsVal) {
-        r5DocsVal.textContent = r5State.expiringAlert ? '⚠️ SOAT vence en 5d ↗' : `${r5State.soatDays}d · ${(r5State.oilKmLeft || r5State.oilKm).toLocaleString('es-CO')} km ↗`;
-        r5DocsVal.className = r5State.expiringAlert ? 'font-bold text-amber-500 animate-pulse' : 'font-semibold text-[var(--accent)]';
+        if (!hasPlate && !r5State.soatDays) {
+          r5DocsVal.textContent = 'Configurar SOAT / RTM ↗';
+          r5DocsVal.className = 'font-semibold text-[var(--mute)]';
+        } else {
+          r5DocsVal.textContent = r5State.expiringAlert ? '⚠️ SOAT vence pronto ↗' : `${r5State.soatDays || 0}d · ${(r5State.oilKmLeft || r5State.oilKm || 0).toLocaleString('es-CO')} km ↗`;
+          r5DocsVal.className = r5State.expiringAlert ? 'font-bold text-amber-500 animate-pulse' : 'font-semibold text-[var(--accent)]';
+        }
       }
 
       const subPicoPill = document.getElementById('r5-sub-pico-pill');
       if (subPicoPill) {
-        subPicoPill.textContent = r5State.picoRestricted ? 'No puedes salir hoy' : 'Hoy puedes salir';
-        subPicoPill.className = r5State.picoRestricted
-          ? 'px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-bold'
-          : 'px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 text-[10px] font-bold';
+        if (!hasPlate) {
+          subPicoPill.textContent = 'Sin placa registrada';
+          subPicoPill.className = 'px-2.5 py-0.5 rounded-full bg-current/10 text-[var(--mute)] text-[10px] font-bold';
+        } else {
+          const isRest = r5State.picoRestricted || picoStatus.restricted;
+          subPicoPill.textContent = isRest ? 'No puedes salir hoy' : picoStatus.label;
+          subPicoPill.className = isRest
+            ? 'px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-bold'
+            : 'px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 text-[10px] font-bold';
+        }
       }
 
       const expBadge = document.getElementById('r5-sub-expiry-badge');
       if (expBadge) {
-        expBadge.textContent = r5State.expiringAlert ? '⚠️ Próximo a vencer' : 'Todo vigente';
-        expBadge.className = r5State.expiringAlert ? 'text-[11px] font-bold text-amber-500' : 'text-[11px] font-semibold text-emerald-500';
+        expBadge.textContent = !hasPlate ? 'Sin datos' : (r5State.expiringAlert ? '⚠️ Próximo a vencer' : 'Todo vigente');
+        expBadge.className = !hasPlate ? 'text-[11px] font-semibold text-[var(--mute)]' : (r5State.expiringAlert ? 'text-[11px] font-bold text-amber-500' : 'text-[11px] font-semibold text-emerald-500');
       }
 
       const soatDaysEl = document.getElementById('r5-sub-soat-days');
       const soatBarEl = document.getElementById('r5-sub-soat-bar');
       if (soatDaysEl) {
-        soatDaysEl.textContent = `${r5State.soatDays} días restantes`;
+        soatDaysEl.textContent = r5State.soatDays > 0 ? `${r5State.soatDays} días restantes` : 'Sin configurar';
         soatDaysEl.className = r5State.expiringAlert ? 'font-sora font-bold text-amber-500' : 'font-sora font-semibold text-[var(--accent)]';
       }
       if (soatBarEl) {
-        soatBarEl.style.width = r5State.expiringAlert ? '8%' : '72%';
+        const soatPct = r5State.soatDays > 0 ? Math.min(100, Math.max(5, Math.round((r5State.soatDays / 365) * 100))) : 0;
+        soatBarEl.style.width = `${soatPct}%`;
         soatBarEl.className = r5State.expiringAlert ? 'h-full rounded-full bg-amber-500 transition-all duration-300' : 'h-full rounded-full bg-emerald-500 transition-all duration-300';
+      }
+
+      const rtmDaysEl = document.getElementById('r5-sub-rtm-days');
+      const rtmBarEl = document.getElementById('r5-sub-rtm-bar');
+      if (rtmDaysEl) {
+        rtmDaysEl.textContent = r5State.rtmDays > 0 ? `${r5State.rtmDays} días restantes` : 'Sin configurar';
+      }
+      if (rtmBarEl) {
+        const rtmPct = r5State.rtmDays > 0 ? Math.min(100, Math.max(5, Math.round((r5State.rtmDays / 365) * 100))) : 0;
+        rtmBarEl.style.width = `${rtmPct}%`;
       }
 
       const oilKmEl = document.getElementById('r5-sub-oil-km');
       const oilBarEl = document.getElementById('r5-sub-oil-bar');
-      if (oilKmEl) oilKmEl.textContent = `en ${(r5State.oilKmLeft || r5State.oilKm).toLocaleString('es-CO')} km`;
-      if (oilBarEl) oilBarEl.style.width = r5State.expiringAlert ? '14%' : '78%';
+      const oilLeft = r5State.oilKmLeft || r5State.oilKm || 0;
+      if (oilKmEl) oilKmEl.textContent = oilLeft > 0 ? `en ${oilLeft.toLocaleString('es-CO')} km` : 'Sin configurar';
+      if (oilBarEl) {
+        const oilPct = oilLeft > 0 ? Math.min(100, Math.max(5, Math.round((oilLeft / 5000) * 100))) : 0;
+        oilBarEl.style.width = `${oilPct}%`;
+      }
+
+      const subBattCpuTxt = document.getElementById('r5-sub-batt-cpu-txt');
+      if (subBattCpuTxt) {
+        const vStr = state.voltage ? `${state.voltage.toFixed(1)} V` : '-- V';
+        const cStr = state.cpuTemp ? `${state.cpuTemp} °C` : '-- °C';
+        subBattCpuTxt.textContent = `${vStr} · CPU ${cStr}`;
+      }
 
       // Simulator buttons highlight
       const simPico = document.getElementById('sim-btn-pico');
@@ -8422,12 +8654,36 @@
         }
       } catch (e) {}
 
-      // 4. CPU Temp
+      // 4. CPU Temp, RAM & Storage
       try {
         if (typeof window.AndroidBridge.getCpuTemperature === 'function') {
           const cpuT = window.AndroidBridge.getCpuTemperature();
-          const fanItem = ajData.find(c => c.id === 'fan')?.it?.find(i => i.l === 'Temperatura del procesador');
-          if (fanItem && cpuT > 0) fanItem.v = `${cpuT} °C`;
+          if (cpuT > 0) {
+            state.cpuTemp = cpuT;
+            const fanItem = ajData.find(c => c.id === 'fan')?.it?.find(i => i.l === 'Temperatura del procesador');
+            if (fanItem) fanItem.v = `${cpuT} °C`;
+            const subBattCpuTxt = document.getElementById('r5-sub-batt-cpu-txt');
+            if (subBattCpuTxt) {
+              const vStr = state.voltage ? `${state.voltage.toFixed(1)} V` : '-- V';
+              subBattCpuTxt.textContent = `${vStr} · CPU ${cpuT} °C`;
+            }
+          }
+        }
+        if (typeof window.AndroidBridge.getSystemRamInfo === 'function') {
+          const ramInfo = JSON.parse(window.AndroidBridge.getSystemRamInfo() || '{}');
+          if (ramInfo && ramInfo.usedGb) {
+            const ramEl = document.getElementById('settings-ram-val');
+            if (ramEl) ramEl.textContent = `${ramInfo.usedGb} / ${ramInfo.totalGb} GB`;
+            const hwRamItem = ajData.find(c => c.id === 'info_hw')?.it?.find(i => i.l.includes('Memoria RAM'));
+            if (hwRamItem) hwRamItem.v = `${ramInfo.usedGb} GB en uso de ${ramInfo.totalGb} GB (${ramInfo.availMb} MB libres)`;
+          }
+        }
+        if (typeof window.AndroidBridge.getStorageStats === 'function') {
+          const stInfo = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}');
+          if (stInfo && stInfo.mounted) {
+            const hwStItem = ajData.find(c => c.id === 'info_hw')?.it?.find(i => i.l.includes('Almacenamiento Interno'));
+            if (hwStItem) hwStItem.v = `${stInfo.freeGb} GB libres de ${stInfo.totalGb} GB (${stInfo.usedPercent}% usado)`;
+          }
         }
       } catch (e) {}
     }
