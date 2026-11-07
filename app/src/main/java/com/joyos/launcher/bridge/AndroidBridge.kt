@@ -17,9 +17,11 @@ import android.os.Environment
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
+import android.media.MediaMetadataRetriever
 import android.webkit.JavascriptInterface
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import com.joyos.launcher.services.GpsData
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
 import com.joyos.launcher.services.OtaUpdateManager
@@ -41,6 +43,7 @@ class AndroidBridge(
     private val dspEngine: JoyAudioDspEngine? = null,
     private val otaManager: OtaUpdateManager? = null,
     private val hardwareOptimizer: JoyHardwareOptimizer? = null,
+    private val getGpsData: (() -> GpsData)? = null,
     private val onReloadUi: (() -> Unit)? = null,
     private val onEvaluateJs: ((String) -> Unit)? = null
 ) {
@@ -883,6 +886,144 @@ class AndroidBridge(
             fileList.toString()
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error scanning storage files: ${e.message}")
+            "[]"
+        }
+    }
+
+    /**
+     * Returns real-time GPS location, bearing, speed, and fix state.
+     */
+    @JavascriptInterface
+    fun getGpsLocation(): String {
+        return try {
+            val data = getGpsData?.invoke() ?: GpsData()
+            val json = JSONObject().apply {
+                put("latitude", data.latitude)
+                put("longitude", data.longitude)
+                put("speed", data.speedKmh)
+                put("bearing", data.bearing)
+                put("altitude", data.altitude)
+                put("hasFix", data.hasFix)
+                put("tripKm", data.tripKm)
+            }
+            json.toString()
+        } catch (_: Throwable) {
+            "{\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0}"
+        }
+    }
+
+    /**
+     * Scans automotive USB flash drives and internal storage for audio files.
+     * Extracts title, artist, album, duration, and file URI for the embedded player.
+     */
+    @JavascriptInterface
+    fun getMusicFiles(): String {
+        return try {
+            val musicList = JSONArray()
+            val targetDirs = mutableListOf<File>()
+
+            // 1. Removable USB paths
+            try {
+                val extDirs = androidx.core.content.ContextCompat.getExternalFilesDirs(context, null)
+                for (dir in extDirs) {
+                    if (dir != null && Environment.isExternalStorageRemovable(dir)) {
+                        var root: File? = dir
+                        while (root?.parentFile != null && root.parentFile?.absolutePath != "/storage") {
+                            root = root.parentFile
+                        }
+                        if (root != null && root.canRead() && !targetDirs.contains(root)) {
+                            targetDirs.add(root)
+                        }
+                    }
+                }
+            } catch (_: Throwable) {}
+
+            listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage", "/mnt/media_rw").forEach { p ->
+                val f = File(p)
+                if (f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
+                    targetDirs.add(f)
+                }
+            }
+
+            // 2. Internal storage music & download folders
+            listOf(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                File("/storage/emulated/0/Music"),
+                File("/storage/emulated/0/Download")
+            ).forEach { f ->
+                if (f != null && f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
+                    targetDirs.add(f)
+                }
+            }
+
+            val validAudioExts = setOf("mp3", "flac", "wav", "m4a", "aac", "ogg")
+            val foundAudio = mutableListOf<File>()
+
+            fun scanDir(dir: File, depth: Int) {
+                if (depth > 4 || foundAudio.size >= 120) return
+                val entries = dir.listFiles() ?: return
+                for (entry in entries) {
+                    if (entry.isDirectory && !entry.name.startsWith(".")) {
+                        scanDir(entry, depth + 1)
+                    } else if (entry.isFile) {
+                        val ext = entry.extension.lowercase()
+                        if (validAudioExts.contains(ext)) {
+                            foundAudio.add(entry)
+                        }
+                    }
+                }
+            }
+
+            for (dir in targetDirs) {
+                scanDir(dir, 0)
+            }
+
+            val mmr = MediaMetadataRetriever()
+            for (file in foundAudio) {
+                var title = file.nameWithoutExtension
+                var artist = "Desconocido"
+                var album = if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "Memoria USB" else "Almacenamiento Local"
+                var durationSec = 210
+
+                try {
+                    mmr.setDataSource(file.absolutePath)
+                    val metaTitle = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                    val metaArtist = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
+                    val metaAlbum = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+                    val metaDur = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+
+                    if (!metaTitle.isNullOrBlank()) title = metaTitle.trim()
+                    if (!metaArtist.isNullOrBlank()) artist = metaArtist.trim()
+                    if (!metaAlbum.isNullOrBlank()) album = metaAlbum.trim()
+                    val durMs = metaDur?.toLongOrNull() ?: 0L
+                    if (durMs > 0) durationSec = (durMs / 1000).toInt()
+                } catch (_: Throwable) {
+                    if (title.contains(" - ")) {
+                        val parts = title.split(" - ", limit = 2)
+                        artist = parts[0].trim()
+                        title = parts[1].trim()
+                    }
+                }
+
+                val item = JSONObject().apply {
+                    put("id", "m_" + file.absolutePath.hashCode())
+                    put("title", title)
+                    put("artist", artist)
+                    put("album", album)
+                    put("durationSec", durationSec)
+                    put("path", file.absolutePath)
+                    put("uri", "file://" + file.absolutePath)
+                    put("source", if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "usb" else "internal")
+                    put("size", formatFileSize(file.length()))
+                }
+                musicList.put(item)
+            }
+            try { mmr.release() } catch (_: Throwable) {}
+
+            musicList.toString()
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error scanning music files: ${e.message}")
             "[]"
         }
     }

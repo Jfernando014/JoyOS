@@ -67,28 +67,33 @@ class MainActivity : AppCompatActivity() {
         otaManager = OtaUpdateManager(this)
         hardwareOptimizer = JoyHardwareOptimizer(this)
 
-        bridge = AndroidBridge(
-            context = this,
-            dspEngine = dspEngine,
-            otaManager = otaManager,
-            hardwareOptimizer = hardwareOptimizer,
-            onReloadUi = { runOnUiThread { loadJoyOS() } },
-            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
-        )
-
-        gpsManager = GpsTelemetryManager(this) { speedKmh, tripKm ->
+        gpsManager = GpsTelemetryManager(this) { data ->
             try {
-                dspEngine.onSpeedUpdated(speedKmh)
+                dspEngine.onSpeedUpdated(data.speedKmh)
             } catch (_: Throwable) {}
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
-                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: $speedKmh, tripKm: ${"%.1f".format(tripKm)} });",
+                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: ${"%.1f".format(data.tripKm)}, lat: ${data.latitude}, lon: ${data.longitude}, bearing: ${data.bearing}, altitude: ${data.altitude}, hasFix: ${data.hasFix} });",
+                        null
+                    )
+                    webView.evaluateJavascript(
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: ${data.speedKmh}, tripKm: ${"%.1f".format(data.tripKm)} });",
                         null
                     )
                 } catch (_: Throwable) {}
             }
         }
+
+        bridge = AndroidBridge(
+            context = this,
+            dspEngine = dspEngine,
+            otaManager = otaManager,
+            hardwareOptimizer = hardwareOptimizer,
+            getGpsData = { gpsManager.currentGpsData },
+            onReloadUi = { runOnUiThread { loadJoyOS() } },
+            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
+        )
 
         obdManager = ObdBleManager(this) { rpm, coolantTempC, _, connected ->
             runOnUiThread {
