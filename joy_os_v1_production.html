@@ -6147,8 +6147,18 @@
         }
         if (b.dataset.a === 't') {
           x.v = !x.v;
-          if (x.l === 'Bluetooth') state.btEnabled = x.v;
-          if (x.l === 'Wi-Fi') state.wifiEnabled = x.v;
+          if (x.l === 'Bluetooth') {
+            state.btEnabled = x.v;
+            if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
+              try { window.AndroidBridge.setBluetoothPower(x.v); } catch (e) {}
+            }
+          }
+          if (x.l === 'Wi-Fi') {
+            state.wifiEnabled = x.v;
+            if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+              window.AndroidBridge.openWifiSettings();
+            }
+          }
           if (x.l === 'Reproducir al conectar') state.btAutoPlay = x.v;
           renderMoreSettings();
           renderAll();
@@ -6231,7 +6241,12 @@
           const x = ajFlat[b.closest('.aj-row').dataset.k];
           x.v = +b.value;
           b.nextElementSibling.textContent = x.v + x.u;
-          if (x.l === 'Brillo') state.brightness = x.v;
+          if (x.l === 'Brillo') {
+            state.brightness = x.v;
+            if (window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
+              try { window.AndroidBridge.setSystemBrightness(x.v); } catch (e) {}
+            }
+          }
         }
       });
 
