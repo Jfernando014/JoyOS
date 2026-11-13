@@ -4553,6 +4553,148 @@
       color: #0f172a;
     }
 
+    /* Automotive Hands-Free Call Overlay & Dialpad */
+    .joy-call-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 82;
+      background: rgba(2, 6, 23, 0.56);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .joy-call-backdrop.hidden {
+      display: none !important;
+    }
+
+    .joy-call-card {
+      width: 100%;
+      max-width: 470px;
+      border-radius: 30px;
+      padding: 24px 26px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(160deg, rgba(16, 24, 42, 0.96), rgba(8, 13, 24, 0.98));
+      box-shadow: 0 30px 75px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(92, 225, 230, 0.12);
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .theme-light .joy-call-card {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.97), rgba(241, 245, 249, 0.99));
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      box-shadow: 0 28px 65px rgba(15, 23, 42, 0.22);
+    }
+
+    .joy-call-avatar-ring {
+      width: 76px;
+      height: 76px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(92, 225, 230, 0.22), rgba(56, 189, 248, 0.12));
+      border: 2px solid rgba(92, 225, 230, 0.55);
+      overflow: hidden;
+      position: relative;
+      font-family: 'Sora', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #5ce1e6;
+    }
+
+    .theme-light .joy-call-avatar-ring {
+      color: #0284c7;
+      border-color: rgba(2, 132, 199, 0.45);
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.14), rgba(56, 189, 248, 0.08));
+    }
+
+    .joy-call-avatar-ring.ringing {
+      animation: joyCallPulse 1.3s ease-in-out infinite;
+    }
+
+    @keyframes joyCallPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+      50% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+    }
+
+    .joy-call-mini-pill {
+      position: absolute;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 78;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      color: #f8fafc;
+      cursor: pointer;
+    }
+
+    .theme-light .joy-call-mini-pill {
+      background: rgba(255, 255, 255, 0.96);
+      color: #0f172a;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .joy-call-mini-pill.hidden {
+      display: none !important;
+    }
+
+    .joy-dialpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .joy-dial-key {
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+      font-family: 'Sora', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+
+    .joy-dial-key:active {
+      transform: scale(0.95);
+      background: rgba(92, 225, 230, 0.18);
+    }
+
+    .joy-dial-key small {
+      font-size: 8px;
+      font-weight: 500;
+      opacity: 0.55;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    .theme-light .joy-dial-key {
+      background: rgba(15, 23, 42, 0.04);
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
     .joy-sys-title {
       font-family: 'Sora', sans-serif;
       font-size: 17px;
@@ -6734,7 +6876,7 @@
             </svg>
 
             <!-- Dynamic Phone + Battery % from Connected Phone -->
-            <div id="top-phone-wrap" onclick="openBluetoothDirect()"
+            <div id="top-phone-wrap" onclick="openBluetoothDirect('phone')"
               class="phone opacity-30 cursor-pointer transition-opacity duration-200" title="Teléfono no conectado">
               <svg class="ic" viewBox="0 0 24 24">
                 <rect x="6" y="3" width="12" height="18" rx="2.5" />
@@ -8429,21 +8571,72 @@
                   </div>
                 </div>
 
-                <!-- Columna Derecha: Lista Dinámica Apilable de Dispositivos Vinculados -->
+                <!-- Columna Derecha: Dispositivos Vinculados / Marcador Telefónico HFP -->
                 <div class="col-span-7 bt-soft-card p-5 flex flex-col justify-between min-h-0">
-                  <div class="flex items-center justify-between shrink-0 mb-3">
-                    <span id="bt-linked-count-label"
-                      class="text-xs font-semibold uppercase tracking-wider text-[var(--mute)]">Dispositivos Vinculados
-                      (3)</span>
-                    <button onclick="scanBtDevices(this)" id="btn-bt-scan"
-                      class="pressable px-4 py-1.5 rounded-full bt-soft-item text-xs font-semibold text-[var(--accent)]">
-                      Buscar dispositivos
-                    </button>
+                  <div class="flex items-center justify-between gap-2 shrink-0 mb-3">
+                    <div class="inline-flex items-center gap-1 p-1 rounded-full bt-soft-item">
+                      <button type="button" id="bt-right-tab-devices" onclick="switchBtRightTab('devices')"
+                        class="pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950">
+                        Dispositivos
+                      </button>
+                      <button type="button" id="bt-right-tab-phone" onclick="switchBtRightTab('phone')"
+                        class="pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]">
+                        Teléfono
+                      </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span id="bt-linked-count-label"
+                        class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Vinculados
+                        (0)</span>
+                      <button onclick="scanBtDevices(this)" id="btn-bt-scan"
+                        class="pressable px-3.5 py-1.5 rounded-full bt-soft-item text-xs font-semibold text-[var(--accent)]">
+                        Buscar dispositivos
+                      </button>
+                    </div>
                   </div>
 
                   <div id="bt-devices-list-container"
-                    class="flex flex-col gap-3.5 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]">
+                    class="flex flex-col gap-3 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]">
                     <!-- Populated dynamically by renderBluetoothDevicesList() so discovered devices stack smoothly! -->
+                  </div>
+
+                  <div id="bt-dialpad-pane" class="hidden flex-col justify-between gap-2.5 flex-1 min-h-0">
+                    <div class="bt-soft-item px-4 py-2 flex items-center justify-between gap-2">
+                      <input id="bt-dial-input" type="text" readonly placeholder="Ingresa un número..."
+                        class="bg-transparent border-0 outline-none w-full font-sora text-lg font-semibold tracking-wider text-[var(--ink)] tabular-nums" />
+                      <button type="button" onclick="backspaceDialKey()" title="Borrar dígito"
+                        class="pressable px-2.5 py-1 rounded-xl text-sm font-bold text-[var(--mute)] hover:text-[var(--ink)]">⌫</button>
+                      <button type="button" onclick="clearDialDigits()" title="Limpiar"
+                        class="pressable px-2 py-1 rounded-xl text-[11px] font-semibold text-[var(--mute)] hover:text-[var(--ink)]">Limpiar</button>
+                    </div>
+
+                    <div class="joy-dialpad-grid">
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('1')"><span>1</span><small>&nbsp;</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('2')"><span>2</span><small>ABC</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('3')"><span>3</span><small>DEF</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('4')"><span>4</span><small>GHI</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('5')"><span>5</span><small>JKL</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('6')"><span>6</span><small>MNO</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('7')"><span>7</span><small>PQRS</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('8')"><span>8</span><small>TUV</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('9')"><span>9</span><small>WXYZ</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('*')"><span>*</span><small>&nbsp;</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('0')"><span>0</span><small>+</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('#')"><span>#</span><small>&nbsp;</small></button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-0.5">
+                      <div id="bt-recent-calls" class="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0"></div>
+                      <button type="button" onclick="pressDialKey('+')"
+                        class="pressable px-3 py-2 rounded-2xl bt-soft-item text-xs font-bold shrink-0">+</button>
+                      <button type="button" id="bt-dial-call-btn" onclick="placeDialCall()"
+                        class="pressable px-5 py-2 rounded-2xl bg-emerald-500 text-slate-950 font-sora font-bold text-xs flex items-center gap-2 shadow-md shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <span>Llamar</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -9479,6 +9672,56 @@
         </div>
       </div>
 
+      <!-- ================================================================= -->
+      <!-- 2A-CALL. OVERLAY FLOTANTE DE LLAMADAS HFP / ANDROID               -->
+      <!-- ================================================================= -->
+      <div id="joy-call-overlay" class="joy-call-backdrop hidden">
+        <div class="joy-call-card" role="dialog" aria-modal="true" aria-labelledby="joy-call-name">
+          <div id="joy-call-badge"
+            class="px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/35">
+            Llamada entrante
+          </div>
+          <div id="joy-call-avatar-ring" class="joy-call-avatar-ring ringing">
+            <img id="joy-call-avatar-img" src="" alt="Contacto" class="hidden w-full h-full object-cover" />
+            <span id="joy-call-avatar-fallback">📞</span>
+          </div>
+          <div class="w-full min-w-0">
+            <div id="joy-call-name" class="font-sora text-2xl font-bold truncate">Llamada entrante</div>
+            <div id="joy-call-number" class="text-sm text-[var(--mute)] mt-1 tabular-nums truncate">Bluetooth Manos Libres</div>
+            <div id="joy-call-timer" class="hidden font-sora text-lg font-semibold text-emerald-400 mt-1.5 tabular-nums">00:00</div>
+          </div>
+          <div class="flex items-center justify-center gap-3 w-full pt-2 flex-wrap">
+            <button type="button" id="joy-call-btn-answer" onclick="answerJoyCall()"
+              class="pressable flex-1 min-w-[130px] py-3 px-4 rounded-2xl bg-emerald-500 text-slate-950 font-sora font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>Contestar</span>
+            </button>
+            <button type="button" id="joy-call-btn-mute" onclick="toggleJoyCallMute()"
+              class="pressable hidden py-3 px-4 rounded-2xl soft-surface border border-white/10 font-sora font-semibold text-sm flex items-center justify-center gap-2">
+              <span id="joy-call-mute-label">Silenciar</span>
+            </button>
+            <button type="button" id="joy-call-btn-minimize" onclick="minimizeJoyCall()"
+              class="pressable py-3 px-4 rounded-2xl soft-surface border border-white/10 font-sora font-semibold text-xs text-[var(--mute)]">
+              Minimizar
+            </button>
+            <button type="button" id="joy-call-btn-end" onclick="endJoyCall()"
+              class="pressable flex-1 min-w-[130px] py-3 px-4 rounded-2xl bg-rose-500 text-white font-sora font-bold text-sm shadow-lg flex items-center justify-center gap-2">
+              <span id="joy-call-end-label">Rechazar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="joy-call-mini-pill" class="joy-call-mini-pill hidden" onclick="expandJoyCall()">
+        <span id="joy-call-mini-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span id="joy-call-mini-name" class="text-xs font-sora font-semibold max-w-[160px] truncate">En llamada</span>
+        <span id="joy-call-mini-timer" class="text-xs font-mono font-bold text-emerald-400 tabular-nums">00:00</span>
+        <button type="button" onclick="event.stopPropagation(); endJoyCall();" title="Colgar llamada"
+          class="pressable ml-1 px-2.5 py-1 rounded-full bg-rose-500 text-white text-[11px] font-bold">
+          Colgar
+        </button>
+      </div>
+
       <input type="file" id="joy-backup-file-input" accept=".json,application/json" class="hidden" onchange="handleBackupFileSelected(event)">
       <input type="file" id="ss-file-input" accept="image/*" class="hidden" onchange="handleScreensaverFileSelected(event)">
 
@@ -10166,7 +10409,26 @@
       tab: 'home',
       settingsSubView: 'cards', // 'cards' | 'bt' | 'eq' | 'more' | 'r5'
       btEnabled: true,
+      btConnected: false,
+      btDeviceName: '',
       btDeviceIdx: 0,
+      btRightTab: 'devices', // 'devices' | 'phone'
+      phoneConnected: false,
+      obdConnected: false,
+      phoneBattery: -1,
+      phoneSignal: -1,
+      callState: 'idle', // 'idle' | 'ringing' | 'dialing' | 'active'
+      callName: '',
+      callNumber: '',
+      callAvatar: '',
+      callSource: '',
+      callStartedAt: 0,
+      callDurationSec: 0,
+      callMuted: false,
+      callMinimized: false,
+      dialDigits: '',
+      recentCalls: [],
+      _callPausedMusic: false,
       btAutoPlay: false,
       weatherTemp: 22,
       speedVolActive: false,
@@ -12784,6 +13046,10 @@
           target.closest('#sound-stage-box') ||
           target.closest('#notification-stack-container') ||
           target.closest('#screensaver-overlay') ||
+          target.closest('#joy-call-overlay') ||
+          target.closest('#joy-call-mini-pill') ||
+          target.closest('#joy-sys-dialog') ||
+          target.closest('#joy-pin-dialog') ||
           target.closest('input') ||
           target.closest('select') ||
           target.closest('#profile-selector-overlay') ||
@@ -12845,9 +13111,13 @@
       }
     }
 
-    function openBluetoothDirect() {
+    function openBluetoothDirect(rightTab) {
       state.tab = 'settings';
       state.settingsSubView = 'bt';
+      if (rightTab === 'phone' || rightTab === 'devices') {
+        state.btRightTab = rightTab;
+      }
+      renderBtDialer();
       renderAll();
     }
 
@@ -12874,35 +13144,72 @@
     }
 
     function toggleBtPower() {
-      state.btEnabled = !state.btEnabled;
-      const btCat = ajData.find(c => c.id === 'con');
-      const btItem = btCat && btCat.it ? btCat.it.find(x => x.l === 'Bluetooth') : null;
-      if (btItem) btItem.v = state.btEnabled;
+      const target = !state.btEnabled;
+      let toggledSync = !window.AndroidBridge;
       if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
-        try { window.AndroidBridge.setBluetoothPower(state.btEnabled); } catch (e) { }
+        try {
+          toggledSync = !!window.AndroidBridge.setBluetoothPower(target);
+        } catch (e) {
+          toggledSync = false;
+        }
       }
-      renderAll();
-      const activeBtDev = btDevices[state.btDeviceIdx];
-      enqueueNotification({
-        type: 'info',
-        dotClass: state.btEnabled
-          ? 'w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)] shrink-0'
-          : 'w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0',
-        title: state.btEnabled ? 'Bluetooth activado' : 'Bluetooth apagado',
-        tag: state.btEnabled ? ((activeBtDev && activeBtDev.name) || 'Dispositivo conectado') : 'Sin conexión inalámbrica',
-        tagClass: state.btEnabled ? 'text-[11px] font-semibold text-[var(--accent)] pl-1' : 'text-[11px] font-semibold text-slate-400 pl-1',
-        duration: 2200
-      });
+      if (toggledSync) {
+        state.btEnabled = target;
+        const btCat = ajData.find(c => c.id === 'con');
+        const btItem = btCat && btCat.it ? btCat.it.find(x => x.l === 'Bluetooth') : null;
+        if (btItem) btItem.v = state.btEnabled;
+        renderAll();
+        const activeBtDev = btDevices[state.btDeviceIdx];
+        enqueueNotification({
+          type: 'info',
+          dotClass: state.btEnabled
+            ? 'w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)] shrink-0'
+            : 'w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0',
+          title: state.btEnabled ? 'Bluetooth activado' : 'Bluetooth apagado',
+          tag: state.btEnabled ? ((activeBtDev && activeBtDev.name) || 'Listo para conectar') : 'Sin conexión inalámbrica',
+          tagClass: state.btEnabled ? 'text-[11px] font-semibold text-[var(--accent)] pl-1' : 'text-[11px] font-semibold text-slate-400 pl-1',
+          duration: 2200
+        });
+      } else {
+        showJoyToast('Bluetooth Android', target ? 'Confirma encender Bluetooth en el diálogo del sistema' : 'Cambia Bluetooth desde el ajuste del sistema', 'info');
+      }
+      if (window.AndroidBridge) {
+        setTimeout(updateHardwareStatus, 1000);
+        setTimeout(updateHardwareStatus, 2500);
+      }
     }
 
     function selectBtDevice(idx) {
-      if (!btDevices[idx]) return;
-      if (btDevices[idx].isTelemetry) return;
+      const dev = btDevices[idx];
+      if (!dev || dev.isTelemetry || dev.type === 'obd') return;
       state.btDeviceIdx = idx;
-      state.btEnabled = true;
-      state.phoneSignal = btDevices[idx].signal || 4;
-      state.phoneBattery = btDevices[idx].battery || 85;
+      if (window.AndroidBridge && typeof window.AndroidBridge.connectBluetoothDevice === 'function' && dev.address) {
+        try {
+          const res = JSON.parse(window.AndroidBridge.connectBluetoothDevice(dev.address) || '{}');
+          showJoyToast('Bluetooth', res.message || ('Conectando a ' + dev.name + '...'), res.ok ? 'info' : 'warn');
+        } catch (e) { }
+        setTimeout(updateHardwareStatus, 1200);
+        setTimeout(updateHardwareStatus, 3000);
+      } else {
+        state.btEnabled = true;
+        if (typeof dev.signal === 'number' && dev.signal >= 0) state.phoneSignal = dev.signal;
+        if (typeof dev.battery === 'number' && dev.battery >= 0) state.phoneBattery = dev.battery;
+      }
       renderAll();
+    }
+
+    function disconnectBtDevice(idx, ev) {
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      const dev = btDevices[idx];
+      if (!dev || !dev.address) return;
+      if (window.AndroidBridge && typeof window.AndroidBridge.disconnectBluetoothDevice === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.disconnectBluetoothDevice(dev.address) || '{}');
+          showJoyToast('Bluetooth', res.message || ('Desconectando ' + dev.name + '...'), 'info');
+        } catch (e) { }
+        setTimeout(updateHardwareStatus, 1000);
+        setTimeout(updateHardwareStatus, 2500);
+      }
     }
 
     function toggleBtAutoPlay() {
@@ -12914,10 +13221,305 @@
       renderAll();
     }
 
+    function switchBtRightTab(tab) {
+      state.btRightTab = tab === 'phone' ? 'phone' : 'devices';
+      renderBtDialer();
+      renderAll();
+    }
+
+    function pressDialKey(ch) {
+      if (!ch) return;
+      if (state.dialDigits.length >= 24) return;
+      state.dialDigits += String(ch);
+      renderBtDialer();
+    }
+
+    function backspaceDialKey() {
+      if (!state.dialDigits) return;
+      state.dialDigits = state.dialDigits.slice(0, -1);
+      renderBtDialer();
+    }
+
+    function clearDialDigits() {
+      state.dialDigits = '';
+      renderBtDialer();
+    }
+
+    function loadRecentCalls() {
+      if (Array.isArray(state.recentCalls) && state.recentCalls.length > 0) return;
+      const saved = safeGetStorage('joyos_v8_recent_calls');
+      if (Array.isArray(saved)) {
+        state.recentCalls = saved.filter(n => typeof n === 'string' && n.trim().length > 0).slice(0, 4);
+      }
+    }
+
+    function recordRecentCall(num) {
+      if (!num) return;
+      loadRecentCalls();
+      const filtered = state.recentCalls.filter(n => n !== num);
+      filtered.unshift(num);
+      state.recentCalls = filtered.slice(0, 4);
+      safeSetStorage('joyos_v8_recent_calls', state.recentCalls);
+      renderBtDialer();
+    }
+
+    function selectRecentCall(num) {
+      state.dialDigits = String(num || '');
+      renderBtDialer();
+    }
+
+    function placeDialCall() {
+      const num = String(state.dialDigits || '').trim();
+      if (!num) {
+        showJoyToast('Marcador HFP', 'Ingresa un número para realizar la llamada', 'warn');
+        return;
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.dialPhoneNumber === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.dialPhoneNumber(num) || '{}');
+          if (res.ok) {
+            recordRecentCall(res.number || num);
+            showJoyToast('Llamada saliente', res.message || ('Llamando a ' + num), 'ok');
+            setTimeout(updateHardwareStatus, 800);
+          } else {
+            showJoyToast('Marcador Android', res.message || 'No se pudo iniciar la llamada en esta unidad', 'warn');
+          }
+        } catch (e) {
+          showJoyToast('Marcador Android', 'Error invocando marcador telefónico', 'warn');
+        }
+      } else {
+        showJoyToast('Marcador HFP', 'La marcación telefónica real requiere la tablet Android con HFP / Dialer', 'info');
+      }
+    }
+
+    function renderBtDialer() {
+      loadRecentCalls();
+      const inp = document.getElementById('bt-dial-input');
+      if (inp) inp.value = state.dialDigits || '';
+      const rec = document.getElementById('bt-recent-calls');
+      if (rec) {
+        if (!state.recentCalls || state.recentCalls.length === 0) {
+          rec.innerHTML = '<span class="text-[11px] text-[var(--mute)] opacity-75">Sin recientes</span>';
+        } else {
+          rec.innerHTML = state.recentCalls.map(num => {
+            const esc = String(num).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            return `<button type="button" onclick="selectRecentCall('${esc}')" class="pressable px-2.5 py-1 rounded-full bt-soft-item text-[11px] font-mono text-[var(--ink)] shrink-0">${esc}</button>`;
+          }).join('');
+        }
+      }
+    }
+
+    function formatCallTimer(sec) {
+      const total = Math.max(0, Math.floor(Number(sec) || 0));
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function refreshCallTimers() {
+      let elapsed = state.callDurationSec || 0;
+      if (state.callState === 'active' && state.callStartedAt > 0) {
+        elapsed = Math.max(0, Math.floor((Date.now() - state.callStartedAt) / 1000));
+        state.callDurationSec = elapsed;
+      }
+      const txt = formatCallTimer(elapsed);
+      const timerEl = document.getElementById('joy-call-timer');
+      if (timerEl) timerEl.textContent = txt;
+      const miniTimerEl = document.getElementById('joy-call-mini-timer');
+      if (miniTimerEl) miniTimerEl.textContent = state.callState === 'active' ? txt : (state.callState === 'ringing' ? 'Entrante' : 'Marcando');
+    }
+
+    function renderCallOverlay() {
+      const overlay = document.getElementById('joy-call-overlay');
+      const mini = document.getElementById('joy-call-mini-pill');
+      const active = state.callState && state.callState !== 'idle';
+      if (!active) {
+        if (overlay) overlay.classList.add('hidden');
+        if (mini) mini.classList.add('hidden');
+        return;
+      }
+
+      if (overlay) overlay.classList.toggle('hidden', !!state.callMinimized);
+      if (mini) mini.classList.toggle('hidden', !state.callMinimized);
+
+      const badge = document.getElementById('joy-call-badge');
+      const ring = document.getElementById('joy-call-avatar-ring');
+      const img = document.getElementById('joy-call-avatar-img');
+      const fb = document.getElementById('joy-call-avatar-fallback');
+      const nameEl = document.getElementById('joy-call-name');
+      const numEl = document.getElementById('joy-call-number');
+      const timerEl = document.getElementById('joy-call-timer');
+      const ansBtn = document.getElementById('joy-call-btn-answer');
+      const muteBtn = document.getElementById('joy-call-btn-mute');
+      const muteLbl = document.getElementById('joy-call-mute-label');
+      const endLbl = document.getElementById('joy-call-end-label');
+      const miniName = document.getElementById('joy-call-mini-name');
+      const miniDot = document.getElementById('joy-call-mini-dot');
+
+      const displayName = (state.callName && state.callName.trim())
+        ? state.callName.trim()
+        : ((state.callNumber && state.callNumber.trim()) ? state.callNumber.trim() : 'Llamada Bluetooth');
+      const subParts = [];
+      if (state.callName && state.callNumber && state.callNumber !== displayName) subParts.push(state.callNumber);
+      if (state.callSource === 'hfp') subParts.push('Manos libres HFP');
+      else if (state.callSource === 'notification') subParts.push('Audio / Llamada Android');
+      else subParts.push('Telefonía');
+
+      if (nameEl) nameEl.textContent = displayName;
+      if (numEl) numEl.textContent = subParts.join(' · ');
+      if (miniName) miniName.textContent = displayName;
+
+      if (img && fb) {
+        if (state.callAvatar) {
+          img.src = state.callAvatar;
+          img.classList.remove('hidden');
+          fb.classList.add('hidden');
+        } else {
+          img.classList.add('hidden');
+          fb.classList.remove('hidden');
+          const firstCh = displayName.charAt(0).toUpperCase();
+          fb.textContent = /[A-ZÁÉÍÓÚÑ0-9]/i.test(firstCh) ? firstCh : '📞';
+        }
+      }
+
+      if (state.callState === 'ringing') {
+        if (badge) {
+          badge.textContent = 'Llamada entrante';
+          badge.className = 'px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/35';
+        }
+        if (ring) ring.classList.add('ringing');
+        if (ansBtn) ansBtn.classList.remove('hidden');
+        if (muteBtn) muteBtn.classList.add('hidden');
+        if (timerEl) timerEl.classList.add('hidden');
+        if (endLbl) endLbl.textContent = 'Rechazar';
+        if (miniDot) miniDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0';
+      } else if (state.callState === 'dialing') {
+        if (badge) {
+          badge.textContent = 'Marcando...';
+          badge.className = 'px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-sky-500/20 text-sky-300 border border-sky-400/35';
+        }
+        if (ring) ring.classList.add('ringing');
+        if (ansBtn) ansBtn.classList.add('hidden');
+        if (muteBtn) muteBtn.classList.remove('hidden');
+        if (timerEl) timerEl.classList.add('hidden');
+        if (endLbl) endLbl.textContent = 'Colgar';
+        if (miniDot) miniDot.className = 'w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse shrink-0';
+      } else {
+        if (badge) {
+          badge.textContent = 'Llamada en curso';
+          badge.className = 'px-3.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-widest bg-emerald-500/20 text-emerald-300 border border-emerald-400/35';
+        }
+        if (ring) ring.classList.remove('ringing');
+        if (ansBtn) ansBtn.classList.add('hidden');
+        if (muteBtn) muteBtn.classList.remove('hidden');
+        if (timerEl) timerEl.classList.remove('hidden');
+        if (endLbl) endLbl.textContent = 'Colgar';
+        if (miniDot) miniDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0';
+      }
+
+      if (muteLbl) muteLbl.textContent = state.callMuted ? 'Micrófono silenciado' : 'Silenciar';
+      if (muteBtn) {
+        muteBtn.className = state.callMuted
+          ? 'pressable py-3 px-4 rounded-2xl bg-amber-500/20 border border-amber-400/45 text-amber-300 font-sora font-semibold text-sm flex items-center justify-center gap-2'
+          : 'pressable py-3 px-4 rounded-2xl soft-surface border border-white/10 font-sora font-semibold text-sm flex items-center justify-center gap-2';
+      }
+      refreshCallTimers();
+    }
+
+    window.onCallStateChanged = function (data) {
+      if (!data || typeof data !== 'object') return;
+      const prev = state.callState || 'idle';
+      const next = (data.state && typeof data.state === 'string') ? data.state : (data.active ? 'active' : 'idle');
+
+      state.callState = next;
+      state.callName = data.name || '';
+      state.callNumber = data.number || '';
+      state.callAvatar = data.avatar || '';
+      state.callSource = data.source || '';
+      state.callStartedAt = typeof data.startedAt === 'number' ? data.startedAt : 0;
+      state.callDurationSec = typeof data.durationSec === 'number' ? data.durationSec : 0;
+      state.callMuted = !!data.muted;
+
+      if (prev === 'idle' && next !== 'idle') {
+        state.callMinimized = false;
+        const localAudioPlaying = typeof joyAudio !== 'undefined' && joyAudio && joyAudio.src && !joyAudio.paused;
+        if (localAudioPlaying) {
+          try { joyAudio.pause(); } catch (e) { }
+          state.playing = false;
+          state._callPausedMusic = true;
+          renderAll();
+        }
+      } else if (prev !== 'idle' && next === 'idle') {
+        state.callMinimized = false;
+        if (state._callPausedMusic && typeof joyAudio !== 'undefined' && joyAudio && joyAudio.src) {
+          try {
+            joyAudio.play().then(() => {
+              state.playing = true;
+              renderAll();
+            }).catch(() => { });
+          } catch (e) { }
+        }
+        state._callPausedMusic = false;
+      }
+      renderCallOverlay();
+    };
+
+    function answerJoyCall() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.answerActiveCall === 'function') {
+        const ok = !!window.AndroidBridge.answerActiveCall();
+        if (!ok) {
+          showJoyToast('Llamada entrante', 'Contesta directamente desde tu teléfono si el Bluetooth HFP lo bloqueó', 'info');
+        }
+        setTimeout(updateHardwareStatus, 500);
+      } else {
+        window.onCallStateChanged({
+          state: 'active',
+          name: state.callName,
+          number: state.callNumber,
+          avatar: state.callAvatar,
+          source: state.callSource || 'hfp',
+          startedAt: Date.now(),
+          durationSec: 0,
+          muted: state.callMuted
+        });
+      }
+    }
+
+    function endJoyCall() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.endActiveCall === 'function') {
+        const ok = !!window.AndroidBridge.endActiveCall();
+        if (!ok) {
+          showJoyToast('Llamada activa', 'Si la unidad no permite colgar remotamente, finaliza en el teléfono', 'info');
+        }
+        setTimeout(updateHardwareStatus, 500);
+      } else {
+        window.onCallStateChanged({ state: 'idle', active: false });
+      }
+    }
+
+    function toggleJoyCallMute() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.toggleCallMute === 'function') {
+        state.callMuted = !!window.AndroidBridge.toggleCallMute();
+      } else {
+        state.callMuted = !state.callMuted;
+      }
+      renderCallOverlay();
+    }
+
+    function minimizeJoyCall() {
+      state.callMinimized = true;
+      renderCallOverlay();
+    }
+
+    function expandJoyCall() {
+      state.callMinimized = false;
+      renderCallOverlay();
+    }
+
     function renderBluetoothDevicesList() {
       const container = document.getElementById('bt-devices-list-container');
       const countEl = document.getElementById('bt-linked-count-label');
-      if (countEl) countEl.textContent = `Dispositivos Vinculados (${btDevices.length})`;
+      if (countEl) countEl.textContent = `Vinculados (${btDevices.length})`;
       if (!container) return;
 
       if (btDevices.length === 0) {
@@ -12944,14 +13546,26 @@
             </div>
           `;
         }
-        const isActive = state.btEnabled && state.btDeviceIdx === idx;
+        const isActive = state.btEnabled && (!!dev.connected || (state.phoneConnected && state.btDeviceIdx === idx));
+        const profileTags = [];
+        if (dev.a2dpConnected) profileTags.push('A2DP');
+        if (dev.hfpConnected) profileTags.push('HFP');
+        const battTag = (typeof dev.battery === 'number' && dev.battery >= 0) ? ` · Bat ${dev.battery}%` : '';
+        const subText = isActive && profileTags.length > 0
+          ? `${profileTags.join(' / ')} activo${battTag}`
+          : `${dev.sub}${battTag}`;
         return `
           <div onclick="selectBtDevice(${idx})" class="bt-soft-item pressable px-5 py-3.5 flex items-center justify-between gap-4 cursor-pointer">
             <div class="min-w-0 flex-1">
               <div class="font-sora font-semibold text-sm text-[var(--ink)] truncate">${dev.name}</div>
-              <div class="text-xs text-[var(--mute)] mt-1 truncate">${dev.sub}</div>
+              <div class="text-xs text-[var(--mute)] mt-1 truncate">${subText}</div>
             </div>
-            <span class="text-xs font-bold shrink-0 ${isActive ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--mute)]'}">${isActive ? 'Conectado ✓' : 'Conectar'}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              ${isActive && dev.address
+                ? `<button type="button" onclick="disconnectBtDevice(${idx}, event)" class="pressable px-2.5 py-1 rounded-xl border border-rose-400/35 bg-rose-500/10 text-rose-300 text-[11px] font-semibold">Desconectar</button>`
+                : ''}
+              <span class="text-xs font-bold ${isActive ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--mute)]'}">${isActive ? 'Conectado ✓' : 'Conectar'}</span>
+            </div>
           </div>
         `;
       }).join('');
@@ -13373,6 +13987,7 @@
           { t: 'info', l: 'Brillo del Sistema (WRITE_SETTINGS)', v: 'Vista previa web' },
           { t: 'info', l: 'Instalar Actualizaciones APK', v: 'Vista previa web' },
           { t: 'info', l: 'Lectura de Música y Portadas (Notif.)', v: 'Vista previa web' },
+          { t: 'info', l: 'Telefonía y Llamadas (HFP)', v: 'Vista previa web' },
           { t: 'act', l: 'Conceder permisos faltantes', b: 'Conceder', cls: 'accent', d: 'Solicita permisos de ejecución o abre el ajuste faltante' },
           { t: 'act', l: 'Activar lector de portadas (Spotify / YT)', b: 'Configurar', d: 'Habilita Acceso a Notificaciones para leer canción, progreso y carátula real' },
           { t: 'act', l: 'Ajustes de la App JoyOS en Android', b: 'Abrir', d: 'Revisa permisos, almacenamiento e instalación de origen desconocido' },
@@ -13547,6 +14162,7 @@
             setAjCatInfo('info_hw', 'Brillo del Sistema (WRITE_SETTINGS)', p.writeSettings ? 'Concedido' : 'Requiere activar');
             setAjCatInfo('info_hw', 'Instalar Actualizaciones APK', p.installPackages ? 'Concedido' : 'Requiere activar');
             setAjCatInfo('info_hw', 'Lectura de Música y Portadas (Notif.)', p.notificationListener ? 'Concedido' : 'Requiere activar');
+            setAjCatInfo('info_hw', 'Telefonía y Llamadas (HFP)', p.phone ? 'Concedido' : 'Pendiente');
           }
         } catch (e) { }
       } else {
@@ -13873,25 +14489,54 @@
           } else if (x.l === 'Animación de arranque') {
             state.bootAnimEnabled = x.v;
           } else if (x.l === 'Bluetooth') {
-            state.btEnabled = x.v;
+            let btDoneSync = !window.AndroidBridge;
             if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
-              try { window.AndroidBridge.setBluetoothPower(x.v); } catch (e) { }
+              try { btDoneSync = !!window.AndroidBridge.setBluetoothPower(x.v); } catch (e) { btDoneSync = false; }
             }
+            if (btDoneSync) {
+              state.btEnabled = x.v;
+            } else {
+              x.v = state.btEnabled;
+              showJoyToast('Bluetooth Android', 'Confirma el cambio en el ajuste de Bluetooth', 'info');
+            }
+            if (window.AndroidBridge) setTimeout(updateHardwareStatus, 1000);
           } else if (x.l === 'Wi-Fi') {
-            state.wifiEnabled = x.v;
-            let handled = false;
+            let handled = !window.AndroidBridge;
             if (window.AndroidBridge && typeof window.AndroidBridge.setWifiEnabled === 'function') {
-              try { handled = !!window.AndroidBridge.setWifiEnabled(x.v); } catch (e) { }
+              try { handled = !!window.AndroidBridge.setWifiEnabled(x.v); } catch (e) { handled = false; }
             }
-            if (!handled && window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
-              window.AndroidBridge.openWifiSettings();
+            if (handled) {
+              state.wifiEnabled = x.v;
+            } else {
+              x.v = state.wifiEnabled;
+              if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+                window.AndroidBridge.openWifiSettings();
+              }
+              showJoyToast('Wi-Fi Android', 'Android bloqueó el cambio directo; abierto panel Wi-Fi', 'info');
             }
+            if (window.AndroidBridge) setTimeout(updateHardwareStatus, 1000);
           } else if (x.l === 'Punto de acceso Wi-Fi (Hotspot)') {
-            state.wifiHotspot = x.v;
-            if (window.AndroidBridge && typeof window.AndroidBridge.openHotspotSettings === 'function') {
+            if (window.AndroidBridge && typeof window.AndroidBridge.setHotspotEnabled === 'function') {
+              try {
+                const hsRes = JSON.parse(window.AndroidBridge.setHotspotEnabled(x.v) || '{}');
+                state.wifiHotspot = !!hsRes.active;
+                x.v = !!hsRes.active;
+                if (hsRes.openedSettings) {
+                  showJoyToast('Hotspot Wi-Fi', hsRes.message || 'Ajuste de Hotspot abierto en Android', 'info');
+                }
+              } catch (e) {
+                x.v = state.wifiHotspot;
+              }
+              setTimeout(updateHardwareStatus, 1200);
+              setTimeout(updateHardwareStatus, 2600);
+            } else if (window.AndroidBridge && typeof window.AndroidBridge.openHotspotSettings === 'function') {
+              x.v = state.wifiHotspot;
               window.AndroidBridge.openHotspotSettings();
             } else if (window.AndroidBridge && typeof window.AndroidBridge.openAndroidSettings === 'function') {
+              x.v = state.wifiHotspot;
               window.AndroidBridge.openAndroidSettings();
+            } else {
+              state.wifiHotspot = x.v;
             }
           } else if (x.l === 'Enfriamiento continuo con pantalla encendida') {
             state.fanContinuous = x.v;
@@ -17322,7 +17967,11 @@
       applyJoyMapStyle(false);
 
       // --- TOP BAR: BLUETOOTH ACTIVO/APAGADO, SEÑAL Y BATERÍA DEL TELÉFONO, CLIMA ---
-      const curDev = (btDevices && btDevices.length > 0) ? (btDevices[state.btDeviceIdx] || btDevices[0]) : null;
+      const activePhoneDev = (btDevices || []).find((d, i) => d && d.type !== 'obd' && !d.isTelemetry && (d.connected || i === state.btDeviceIdx))
+        || (btDevices || []).find(d => d && d.type !== 'obd' && !d.isTelemetry)
+        || null;
+      const curDev = activePhoneDev;
+      const phoneOnline = !!state.phoneConnected || !!(curDev && curDev.connected);
       const topBt = document.getElementById('top-bt-icon');
       const topSig = document.getElementById('top-signal-icon');
       const topBatt = document.getElementById('top-phone-batt');
@@ -17335,27 +17984,37 @@
         topBt.style.setProperty('stroke', state.btEnabled ? 'var(--accent)' : '#71717a', 'important');
         topBt.style.setProperty('opacity', state.btEnabled ? '1' : '0.35', 'important');
         topBt.style.setProperty('filter', state.btEnabled ? 'none' : 'grayscale(100%)', 'important');
-        topBt.setAttribute('title', state.btEnabled ? (state.btConnected ? `Bluetooth: ${state.btDeviceName || 'Conectado'}` : 'Bluetooth activado') : 'Bluetooth desactivado (Apagado)');
+        topBt.setAttribute('title', state.btEnabled ? ((state.btConnected || phoneOnline) ? `Bluetooth: ${state.btDeviceName || (curDev && curDev.name) || 'Conectado'}` : 'Bluetooth activado') : 'Bluetooth desactivado (Apagado)');
       }
-      const sigBars = state.btConnected ? ((curDev && curDev.signal) || state.phoneSignal || 4) : 0;
+      const realSig = (curDev && typeof curDev.signal === 'number' && curDev.signal >= 0)
+        ? curDev.signal
+        : (typeof state.phoneSignal === 'number' ? state.phoneSignal : -1);
+      const sigBars = phoneOnline && realSig >= 0 ? Math.max(0, Math.min(4, realSig)) : 0;
       if (topSig) {
-        topSig.className = state.btConnected ? 'opacity-90 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300';
+        topSig.className = (phoneOnline && realSig >= 0)
+          ? 'opacity-90 transition-opacity duration-300'
+          : (phoneOnline ? 'opacity-40 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300');
       }
       [1, 2, 3, 4].forEach(b => {
         const barEl = document.getElementById('sig-bar-' + b);
-        if (barEl) barEl.setAttribute('opacity', b <= sigBars ? '1' : '0.22');
+        if (barEl) barEl.setAttribute('opacity', (phoneOnline && realSig >= 0 && b <= sigBars) ? '1' : '0.22');
       });
       const topPhoneWrap = document.getElementById('top-phone-wrap');
       if (topPhoneWrap) {
-        topPhoneWrap.className = state.btConnected
+        topPhoneWrap.className = phoneOnline
           ? 'phone cursor-pointer opacity-90 transition-opacity duration-300'
           : 'phone cursor-pointer opacity-25 transition-opacity duration-300';
       }
       if (topBatt) {
-        if (state.btConnected) {
-          const battVal = (curDev && curDev.battery) || state.phoneBattery || 100;
-          topBatt.textContent = `${battVal}%`;
+        const realBatt = (curDev && typeof curDev.battery === 'number' && curDev.battery >= 0)
+          ? curDev.battery
+          : (typeof state.phoneBattery === 'number' ? state.phoneBattery : -1);
+        if (phoneOnline && realBatt >= 0) {
+          topBatt.textContent = `${realBatt}%`;
           topBatt.className = 'text-[11px] font-semibold text-[var(--ink)] tabular-nums transition-opacity duration-300';
+        } else if (phoneOnline) {
+          topBatt.textContent = 'BT';
+          topBatt.className = 'text-[11px] font-semibold text-[var(--accent)] opacity-80 tabular-nums transition-opacity duration-300';
         } else {
           topBatt.textContent = '--%';
           topBatt.className = 'text-[11px] font-semibold text-[var(--mute)] opacity-35 tabular-nums transition-opacity duration-300';
@@ -17769,17 +18428,52 @@
           : 'w-20 h-28 rounded-[38px] bg-slate-700/60 shadow-none flex items-center justify-center transition-all duration-300 opacity-60';
       }
       const btName = document.getElementById('bt-card-phone-name');
-      if (btName) btName.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin dispositivo vinculado') : 'Bluetooth desactivado');
+      if (btName) btName.textContent = (state.btEnabled && phoneOnline) ? ((curDev && curDev.name) || state.btDeviceName || 'Teléfono conectado') : (state.btEnabled ? (state.obdConnected ? 'Solo escáner OBD2 activo' : 'Sin dispositivo vinculado') : 'Bluetooth desactivado');
       const btSub = document.getElementById('bt-card-phone-sub');
-      if (btSub) btSub.textContent = (state.btEnabled && curDev) ? (curDev.sub || 'Conectado') : (state.btEnabled ? 'Toca para vincular teléfono' : 'Toca para activar');
+      if (btSub) {
+        if (state.btEnabled && phoneOnline) {
+          const battInfo = (typeof state.phoneBattery === 'number' && state.phoneBattery >= 0) ? ` · Batería ${state.phoneBattery}%` : '';
+          btSub.textContent = `Conectado${battInfo}`;
+        } else {
+          btSub.textContent = state.btEnabled ? (curDev ? `Vinculado: ${curDev.name} (toca para conectar)` : 'Toca para vincular teléfono') : 'Toca para activar';
+        }
+      }
       const btSw = document.getElementById('bt-card-power-sw');
       if (btSw) btSw.setAttribute('aria-checked', state.btEnabled);
       const btSubSw = document.getElementById('bt-sub-power-sw');
       if (btSubSw) btSubSw.setAttribute('aria-checked', state.btEnabled);
       const btSubTitle = document.getElementById('bt-sub-phone-title');
-      if (btSubTitle) btSubTitle.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin vincular') : 'Sin conexión');
+      if (btSubTitle) btSubTitle.textContent = (state.btEnabled && phoneOnline) ? ((curDev && curDev.name) || state.btDeviceName || 'Teléfono conectado') : (state.btEnabled ? (curDev ? curDev.name : 'Sin vincular') : 'Sin conexión');
       const btSubStatus = document.getElementById('bt-sub-phone-status');
-      if (btSubStatus) btSubStatus.textContent = (state.btEnabled && curDev) ? `Conectado · Batería ${curDev.battery || 100}% · Audio HD` : (state.btEnabled ? (state.btConnected ? 'Conectado' : 'Esperando conexión...') : 'Bluetooth apagado');
+      if (btSubStatus) {
+        if (!state.btEnabled) {
+          btSubStatus.textContent = 'Bluetooth apagado';
+        } else if (phoneOnline) {
+          const bStr = (typeof state.phoneBattery === 'number' && state.phoneBattery >= 0) ? ` · Batería ${state.phoneBattery}%` : '';
+          btSubStatus.textContent = `Conectado${bStr} · Audio / Llamadas`;
+        } else if (state.obdConnected) {
+          btSubStatus.textContent = 'OBD2 conectado · Esperando teléfono';
+        } else {
+          btSubStatus.textContent = 'Esperando conexión Bluetooth';
+        }
+      }
+      const isPhoneTab = state.btRightTab === 'phone';
+      const tabDevBtn = document.getElementById('bt-right-tab-devices');
+      const tabPhoneBtn = document.getElementById('bt-right-tab-phone');
+      const devListEl = document.getElementById('bt-devices-list-container');
+      const dialPaneEl = document.getElementById('bt-dialpad-pane');
+      const countLblEl = document.getElementById('bt-linked-count-label');
+      const scanBtBtnEl = document.getElementById('btn-bt-scan');
+      if (tabDevBtn) tabDevBtn.className = !isPhoneTab
+        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
+      if (tabPhoneBtn) tabPhoneBtn.className = isPhoneTab
+        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
+      if (devListEl) devListEl.className = isPhoneTab ? 'hidden' : 'flex flex-col gap-3 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]';
+      if (dialPaneEl) dialPaneEl.className = isPhoneTab ? 'flex flex-col justify-between gap-2.5 flex-1 min-h-0' : 'hidden';
+      if (countLblEl) countLblEl.style.display = isPhoneTab ? 'none' : '';
+      if (scanBtBtnEl) scanBtBtnEl.style.display = isPhoneTab ? 'none' : '';
 
       [0, 1].forEach(i => {
         const dBtn = document.getElementById('bt-dev-btn-' + i);
@@ -18344,13 +19038,17 @@
       try {
         if (typeof window.AndroidBridge.getBluetoothStatus === 'function') {
           const b = JSON.parse(window.AndroidBridge.getBluetoothStatus() || '{}');
-          const wasBtConnected = !!state._prevBtConnected;
+          const wasPhoneConnected = !!state._prevBtConnected;
           state.btEnabled = typeof b.enabled === 'boolean' ? b.enabled : state.btEnabled;
-          state.btConnected = !!b.connected;
-          state._prevBtConnected = state.btConnected;
+          state.phoneConnected = typeof b.phoneConnected === 'boolean' ? b.phoneConnected : !!b.connected;
+          state.btConnected = !!b.connected || state.phoneConnected;
+          state.obdConnected = typeof b.obdConnected === 'boolean' ? b.obdConnected : state.obdConnected;
+          state.phoneBattery = typeof b.phoneBattery === 'number' ? b.phoneBattery : -1;
+          state.phoneSignal = typeof b.phoneSignal === 'number' ? b.phoneSignal : -1;
+          state._prevBtConnected = state.phoneConnected;
           state.btDeviceName = b.device || 'Sin dispositivo';
           setAjItemVal('con', 'Bluetooth', !!state.btEnabled);
-          if (!wasBtConnected && state.btConnected && state.btAutoPlay) {
+          if (!wasPhoneConnected && state.phoneConnected && state.btAutoPlay) {
             try {
               if (typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
                 window.AndroidBridge.sendMediaKeyEvent('play');
@@ -18365,10 +19063,10 @@
           const phoneWrap = document.getElementById('top-phone-wrap');
           const sigIco = document.getElementById('top-signal-icon');
           if (btIco) {
-            if (b.connected) {
+            if (state.btConnected) {
               btIco.classList.remove('opacity-35');
               btIco.classList.add('on', 'text-[var(--accent)]');
-              btIco.setAttribute('title', `Bluetooth: ${b.device}`);
+              btIco.setAttribute('title', `Bluetooth: ${b.device || 'Conectado'}`);
             } else {
               btIco.classList.add('opacity-35');
               btIco.classList.remove('on', 'text-[var(--accent)]');
@@ -18376,7 +19074,7 @@
             }
           }
           if (phoneWrap) {
-            if (b.connected) {
+            if (state.phoneConnected) {
               phoneWrap.classList.remove('opacity-30');
               phoneWrap.setAttribute('title', `Teléfono: ${b.device}`);
             } else {
@@ -18385,7 +19083,7 @@
             }
           }
           if (sigIco) {
-            if (b.connected) sigIco.classList.remove('opacity-30');
+            if (state.phoneConnected && state.phoneSignal >= 0) sigIco.classList.remove('opacity-30');
             else sigIco.classList.add('opacity-30');
           }
         }
@@ -18397,18 +19095,32 @@
             bonded.forEach(d => {
               btDevices.push({
                 name: d.name,
+                address: d.address || '',
                 sub: d.type === 'obd' ? 'Telemetría ECU OBD2' : 'Audio y llamadas Bluetooth',
-                battery: 100,
-                signal: 4,
+                battery: typeof d.battery === 'number' ? d.battery : -1,
+                signal: typeof d.signal === 'number' ? d.signal : -1,
+                connected: !!d.connected,
+                a2dpConnected: !!d.a2dpConnected,
+                hfpConnected: !!d.hfpConnected,
                 type: d.type
               });
             });
+            const connIdx = btDevices.findIndex(d => d && d.connected && d.type !== 'obd');
+            if (connIdx >= 0) state.btDeviceIdx = connIdx;
             renderBluetoothDevicesList();
+          }
+        }
+        if (typeof window.AndroidBridge.getCallStatus === 'function') {
+          const cs = JSON.parse(window.AndroidBridge.getCallStatus() || '{}');
+          if (cs && typeof window.onCallStateChanged === 'function') {
+            if (cs.active || (state.callState && state.callState !== 'idle')) {
+              window.onCallStateChanged(cs);
+            }
           }
         }
       } catch (e) { }
 
-      // 3. Battery / Voltage
+      // 3. Battery / Voltage (Car / Tablet voltage only — phone battery comes strictly from BT HFP)
       try {
         if (typeof window.AndroidBridge.getBatteryStatus === 'function') {
           const bat = JSON.parse(window.AndroidBridge.getBatteryStatus() || '{}');
@@ -18418,10 +19130,6 @@
             if (battEl && !isNaN(state.voltage)) battEl.textContent = `${state.voltage.toFixed(1)} V`;
             const ckBattEl = document.getElementById('ck-fs-batt');
             if (ckBattEl && !isNaN(state.voltage)) ckBattEl.textContent = `${state.voltage.toFixed(1)} V`;
-          }
-          if (typeof bat.level === 'number') {
-            const pb = document.getElementById('top-phone-batt');
-            if (pb && state.btConnected) pb.textContent = `${bat.level}%`;
           }
         }
       } catch (e) { }
@@ -18568,7 +19276,7 @@
       if (typeof data.vol === 'number') {
         state.vol = data.vol;
       }
-      if (typeof data.btConnected === 'boolean') state.btEnabled = data.btConnected;
+      if (typeof data.btConnected === 'boolean') state.btConnected = data.btConnected;
       if (typeof data.btEnabled === 'boolean') state.btEnabled = data.btEnabled;
       if (typeof data.phoneBattery === 'number') state.phoneBattery = data.phoneBattery;
       if (typeof data.phoneSignal === 'number') state.phoneSignal = data.phoneSignal;
@@ -18650,6 +19358,9 @@
 
     // 1-second audio progress tick during playback
     setInterval(() => {
+      if (state.callState && state.callState !== 'idle' && typeof refreshCallTimers === 'function') {
+        refreshCallTimers();
+      }
       if (state.playing && state.audioMode !== 'radio') {
         const curSong = songs[state.songIdx] || songs[0];
         const joyAudioPlaying = (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused);
