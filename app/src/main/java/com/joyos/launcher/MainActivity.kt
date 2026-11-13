@@ -231,10 +231,10 @@ class MainActivity : AppCompatActivity() {
                 bridge.updateCallState("idle", source = "notification")
             } else {
                 bridge.updateCallState(
-                    state = callInfo.state,
+                    state = callInfo.status,
                     name = callInfo.callerName,
                     number = callInfo.callerNumber,
-                    avatar = callInfo.avatarBase64,
+                    avatar = callInfo.photoDataUri,
                     source = "notification"
                 )
             }
@@ -687,7 +687,11 @@ class MainActivity : AppCompatActivity() {
                             sig = 0
                             lastKnownPhoneSignal = 0
                         }
-                        bridge.updateBluetoothTelemetry(battery = bat, signal = sig, hfp = true)
+                        bridge.updateBluetoothTelemetry(
+                            battery = if (bat >= 0) bat else null,
+                            signal = if (sig >= 0) sig else null,
+                            hfp = true
+                        )
                     }
                     "android.bluetooth.headsetclient.profile.action.AG_CALL_CHANGED" -> {
                         @Suppress("DEPRECATION")
@@ -736,6 +740,7 @@ class MainActivity : AppCompatActivity() {
                             ?: extras?.getString("contact")
                             ?: ""
                         val intState = listOf("state", "call_state", "status", "callstate").firstNotNullOfOrNull { k ->
+                            @Suppress("DEPRECATION")
                             val v = extras?.get(k)
                             when (v) {
                                 is Int -> v

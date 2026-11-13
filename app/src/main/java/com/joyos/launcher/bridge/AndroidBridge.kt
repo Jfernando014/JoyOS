@@ -107,12 +107,25 @@ class AndroidBridge(
 
     @Volatile private var hfpBatteryPct: Int = -1
     @Volatile private var hfpSignalBars: Int = -1
+    @Volatile private var hfpActiveName: String = ""
     @Volatile private var hfpActiveAddress: String = ""
+    @Volatile private var hfpA2dpConnected: Boolean = false
+    @Volatile private var hfpClientConnected: Boolean = false
 
-    fun updateBluetoothTelemetry(batteryPct: Int? = null, signalBars: Int? = null, deviceAddress: String? = null) {
-        if (batteryPct != null) hfpBatteryPct = batteryPct.coerceIn(-1, 100)
-        if (signalBars != null) hfpSignalBars = signalBars.coerceIn(-1, 4)
+    fun updateBluetoothTelemetry(
+        battery: Int? = null,
+        signal: Int? = null,
+        deviceName: String? = null,
+        deviceAddress: String? = null,
+        a2dp: Boolean? = null,
+        hfp: Boolean? = null
+    ) {
+        if (battery != null) hfpBatteryPct = battery.coerceIn(-1, 100)
+        if (signal != null) hfpSignalBars = signal.coerceIn(-1, 4)
+        if (deviceName != null) hfpActiveName = deviceName
         if (deviceAddress != null) hfpActiveAddress = deviceAddress
+        if (a2dp != null) hfpA2dpConnected = a2dp
+        if (hfp != null) hfpClientConnected = hfp
     }
 
     private fun isHotspotActive(): Boolean {
@@ -326,22 +339,33 @@ class AndroidBridge(
                 hfpClientState == BluetoothProfile.STATE_CONNECTED
 
             val obdConnected = getObdState?.invoke()?.connected == true
-            val phoneConnected = activeBondedPhone != null || audioHfpConnected || lastBtPlaying || hfpBatteryPct >= 0
+            val a2dpOn = a2dpState == BluetoothProfile.STATE_CONNECTED ||
+                a2dpSinkState == BluetoothProfile.STATE_CONNECTED ||
+                hfpA2dpConnected
+            val hfpOn = hfpState == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientState == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientConnected
+            val phoneConnected = activeBondedPhone != null || audioHfpConnected || a2dpOn || hfpOn || lastBtPlaying || hfpBatteryPct >= 0
             val isConnected = phoneConnected || obdConnected || gattConnected != null
 
             if (!phoneConnected) {
                 hfpBatteryPct = -1
                 hfpSignalBars = -1
+                hfpActiveName = ""
+                hfpActiveAddress = ""
+                hfpA2dpConnected = false
+                hfpClientConnected = false
             }
 
             val fallbackPhone = bonded.firstOrNull { !isObdName(it.name) } ?: bonded.firstOrNull()
-            val targetPhone = activeBondedPhone ?: (if (audioHfpConnected) fallbackPhone else null)
+            val targetPhone = activeBondedPhone ?: (if (audioHfpConnected || a2dpOn || hfpOn) fallbackPhone else null)
             val realPhoneBatt = (targetPhone?.let { getBtDeviceBatteryLevel(it) } ?: -1).let {
                 if (it >= 0) it else hfpBatteryPct
             }
 
             val deviceName = activeBondedPhone?.name
-                ?: (if (audioHfpConnected) fallbackPhone?.name else null)
+                ?: hfpActiveName.ifBlank { null }
+                ?: (if (audioHfpConnected || a2dpOn || hfpOn) fallbackPhone?.name else null)
                 ?: (if (lastBtPlaying) (fallbackPhone?.name ?: "Audio Bluetooth") else null)
                 ?: activeBondedAny?.name
                 ?: gattConnected?.name
@@ -353,8 +377,8 @@ class AndroidBridge(
             json.put("connected", isConnected)
             json.put("phoneConnected", phoneConnected)
             json.put("obdConnected", obdConnected)
-            json.put("a2dpConnected", a2dpState == BluetoothProfile.STATE_CONNECTED || a2dpSinkState == BluetoothProfile.STATE_CONNECTED)
-            json.put("hfpConnected", hfpState == BluetoothProfile.STATE_CONNECTED || hfpClientState == BluetoothProfile.STATE_CONNECTED)
+            json.put("a2dpConnected", a2dpOn)
+            json.put("hfpConnected", hfpOn)
             json.put("device", deviceName)
             json.put("deviceAddress", targetPhone?.address ?: hfpActiveAddress)
             json.put("phoneBattery", realPhoneBatt)
@@ -374,17 +398,28 @@ class AndroidBridge(
     fun getBluetoothBondedDevices(): String {
         return try {
             val bonded = try { bluetoothAdapter?.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
+            val a2dpOnGlobal = (try { bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                (try { bluetoothAdapter?.getProfileConnectionState(11) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                hfpA2dpConnected
+            val hfpOnGlobal = (try { bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                (try { bluetoothAdapter?.getProfileConnectionState(16) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientConnected
             val arr = JSONArray()
             for (dev in bonded) {
                 val obj = JSONObject()
                 val name = dev.name ?: "Dispositivo Bluetooth"
-                val active = isBtDeviceActivelyConnected(dev)
+                val addr = dev.address ?: ""
+                val isObd = isObdName(name)
+                val active = isBtDeviceActivelyConnected(dev) || (!isObd && addr.isNotEmpty() && addr.equals(hfpActiveAddress, ignoreCase = true) && (a2dpOnGlobal || hfpOnGlobal))
                 val batt = getBtDeviceBatteryLevel(dev)
                 obj.put("name", name)
-                obj.put("address", dev.address ?: "")
+                obj.put("address", addr)
                 obj.put("connected", active)
-                obj.put("battery", if (batt >= 0) batt else if (active && !isObdName(name)) hfpBatteryPct else -1)
-                obj.put("type", if (isObdName(name)) "obd" else "phone")
+                obj.put("a2dpConnected", active && !isObd && a2dpOnGlobal)
+                obj.put("hfpConnected", active && !isObd && hfpOnGlobal)
+                obj.put("battery", if (batt >= 0) batt else if (active && !isObd) hfpBatteryPct else -1)
+                obj.put("signal", if (active && !isObd) hfpSignalBars else -1)
+                obj.put("type", if (isObd) "obd" else "phone")
                 arr.put(obj)
             }
             arr.toString()
@@ -408,14 +443,18 @@ class AndroidBridge(
         }
         if (ok) {
             result.put("ok", true)
+            result.put("requested", true)
             result.put("address", cleanAddr)
             result.put("openedSettings", false)
+            result.put("message", "Conectando perfil Bluetooth A2DP/HFP...")
             return result.toString()
         }
         val opened = openBluetoothSettings()
         result.put("ok", false)
+        result.put("requested", false)
         result.put("address", cleanAddr)
         result.put("openedSettings", opened)
+        result.put("message", "Abriendo Ajustes de Bluetooth del sistema...")
         return result.toString()
     }
 
@@ -429,7 +468,9 @@ class AndroidBridge(
             false
         }
         result.put("ok", ok)
+        result.put("requested", ok)
         result.put("address", cleanAddr)
+        result.put("message", if (ok) "Desconectando perfil Bluetooth..." else "Desconecta desde Ajustes Bluetooth de Android")
         return result.toString()
     }
 
