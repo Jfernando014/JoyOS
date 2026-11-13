@@ -6301,16 +6301,22 @@
     <div id="tablet-viewport"
       class="theme-dark relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500">
 
-      <!-- DYNAMIC AMBIENT COLOR BLOBS FOR MUSIC COVERFLOW VIEW (Screenshot 3!) -->
+      <!-- DYNAMIC AMBIENT COLOR BLOBS & BLURRED COVER ART BACKDROP FOR MUSIC VIEW -->
       <div id="music-ambient-bg"
         class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 overflow-hidden z-0">
+        <img id="music-cover-blur-img" alt=""
+          class="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style="transform: scale(1.28); filter: blur(52px) saturate(1.55) brightness(0.86); opacity: 0; transition: opacity 0.65s ease, filter 0.65s ease;" />
+        <div id="music-ambient-grad" class="absolute inset-0 pointer-events-none"
+          style="opacity: 0.45; transition: background 0.7s ease;"></div>
         <div id="blob-primary"
           class="absolute left-[18%] top-[12%] w-96 h-96 rounded-full blur-[95px] opacity-65 transition-colors duration-700"
-          style="background: #e11d48;"></div>
+          style="background: #06b6d4;"></div>
         <div id="blob-secondary"
           class="absolute right-[16%] top-[20%] w-80 h-80 rounded-full blur-[90px] opacity-55 transition-colors duration-700"
-          style="background: #eab308;"></div>
-        <div class="absolute inset-0 bg-black/35"></div>
+          style="background: #3b82f6;"></div>
+        <div id="music-ambient-scrim" class="absolute inset-0 transition-colors duration-500"
+          style="background: rgba(6, 9, 17, 0.42);"></div>
       </div>
 
       <!-- ================================================================= -->
@@ -7512,30 +7518,38 @@
         <!-- =============================================================== -->
         <div id="view-music" class="hidden flex-col items-center justify-between h-full py-2">
 
-          <!-- Top Segmented Mode Switcher: [ Bluetooth ] vs [ Radio FM ] vs [ USB ] -->
-          <div class="ethereal-pill rounded-full p-1 flex items-center gap-1 shadow-md select-none shrink-0">
-            <button onclick="setAudioMode('bt')" id="music-tab-bt"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5" />
-              </svg>
-              <span>Bluetooth</span>
-            </button>
-            <button onclick="setAudioMode('radio')" id="music-tab-radio"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="2" />
-                <path
-                  d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
-              </svg>
-              <span>Radio FM</span>
-            </button>
-            <button onclick="openAppsDirect('files')" id="music-tab-usb"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all opacity-70 hover:opacity-100">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <path d="M4 20h16M12 4v12m0 0l-4-4m4 4l4-4" />
-              </svg>
-              <span>USB</span>
+          <!-- Top Segmented Mode Switcher: [ Bluetooth ] vs [ Radio FM ] vs [ USB ] + Visual Theme Pill -->
+          <div class="relative w-full flex items-center justify-center shrink-0">
+            <div class="ethereal-pill rounded-full p-1 flex items-center gap-1 shadow-md select-none shrink-0">
+              <button onclick="setAudioMode('bt')" id="music-tab-bt"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5" />
+                </svg>
+                <span>Bluetooth</span>
+              </button>
+              <button onclick="setAudioMode('radio')" id="music-tab-radio"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="2" />
+                  <path
+                    d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+                </svg>
+                <span>Radio FM</span>
+              </button>
+              <button onclick="openAppsDirect('files')" id="music-tab-usb"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all opacity-70 hover:opacity-100">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <path d="M4 20h16M12 4v12m0 0l-4-4m4 4l4-4" />
+                </svg>
+                <span>USB</span>
+              </button>
+            </div>
+            <button type="button" id="music-art-theme-btn" onclick="cycleMusicVisualTheme(event)"
+              class="pressable absolute right-0 ethereal-pill rounded-full px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 shadow-sm transition-all opacity-85 hover:opacity-100"
+              title="Cambiar estilo visual / portada de respaldo">
+              <span id="music-art-theme-dot" class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background: #06b6d4;"></span>
+              <span id="music-art-theme-label" class="hidden sm:inline">Ondas Cian</span>
             </button>
           </div>
 
@@ -9715,6 +9729,116 @@
       return 0;
     }
 
+    const musicArtThemes = [
+      { id: 'cyan', label: 'Ondas Cian', bg1: '#082f49', bg2: '#020617', color1: '#06b6d4', color2: '#3b82f6' },
+      { id: 'amber', label: 'Horizonte Ámbar', bg1: '#451a03', bg2: '#1c0a13', color1: '#f59e0b', color2: '#e11d48' },
+      { id: 'violet', label: 'Prisma Violeta', bg1: '#2e1065', bg2: '#0f0720', color1: '#8b5cf6', color2: '#ec4899' },
+      { id: 'emerald', label: 'Pulso Esmeralda', bg1: '#022c22', bg2: '#041418', color1: '#10b981', color2: '#06b6d4' },
+      { id: 'crimson', label: 'Carbono Rojo RS', bg1: '#4c0519', bg2: '#110709', color1: '#f43f5e', color2: '#fb923c' },
+      { id: 'indigo', label: 'Órbita Índigo', bg1: '#1e1b4b', bg2: '#060c24', color1: '#6366f1', color2: '#38bdf8' },
+      { id: 'aurora', label: 'Aurora Boreal', bg1: '#0f2e2b', bg2: '#1a0b2e', color1: '#14b8a6', color2: '#a855f7' },
+      { id: 'gold', label: 'Vinilo Dorado', bg1: '#3a2705', bg2: '#140c02', color1: '#eab308', color2: '#f97316' }
+    ];
+
+    function getSavedIdleCoverThemeIdx() {
+      try {
+        const raw = window.localStorage ? window.localStorage.getItem('joyos_music_idle_theme') : null;
+        const n = parseInt(raw, 10);
+        if (!isNaN(n) && n >= 0 && n < musicArtThemes.length) return n;
+      } catch (e) { }
+      return 0;
+    }
+
+    function escapeXmlText(s) {
+      return String(s || '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c] || ''));
+    }
+
+    function hashTrackThemeIdx(title, artist) {
+      const str = (String(title || '') + '|' + String(artist || '')).toLowerCase();
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+      }
+      return Math.abs(h) % musicArtThemes.length;
+    }
+
+    function generateCarCoverSvg(title, idx, artist, forcedThemeIdx) {
+      const themeIdx = (typeof forcedThemeIdx === 'number' && forcedThemeIdx >= 0)
+        ? (forcedThemeIdx % musicArtThemes.length)
+        : (Math.abs(idx || 0) % musicArtThemes.length);
+      const t = musicArtThemes[themeIdx] || musicArtThemes[0];
+      const safeTitle = escapeXmlText((title || '').trim().slice(0, 22));
+      const safeArtist = escapeXmlText((artist || '').trim().slice(0, 24));
+      const gid = 'g' + themeIdx;
+      let pattern = '';
+
+      if (themeIdx === 0) {
+        pattern = '<circle cx="150" cy="142" r="96" fill="none" stroke="' + t.color1 + '" stroke-width="2" opacity="0.32"/>' +
+          '<circle cx="150" cy="142" r="72" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.52"/>' +
+          '<circle cx="150" cy="142" r="46" fill="none" stroke="' + t.color2 + '" stroke-width="3.5" opacity="0.78"/>' +
+          '<circle cx="150" cy="142" r="22" fill="url(#' + gid + 'a)"/>';
+      } else if (themeIdx === 1) {
+        pattern = '<circle cx="150" cy="128" r="68" fill="url(#' + gid + 'a)" opacity="0.9"/>' +
+          '<rect x="30" y="136" width="240" height="5" fill="' + t.bg2 + '" opacity="0.85"/>' +
+          '<rect x="45" y="150" width="210" height="6" fill="' + t.bg2 + '" opacity="0.85"/>' +
+          '<rect x="65" y="166" width="170" height="8" fill="' + t.bg2 + '" opacity="0.9"/>' +
+          '<path d="M20 212 Q90 185 150 205 T280 198" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.65"/>';
+      } else if (themeIdx === 2) {
+        pattern = '<polygon points="150,42 238,195 62,195" fill="none" stroke="url(#' + gid + 'a)" stroke-width="5" opacity="0.85"/>' +
+          '<polygon points="150,72 212,180 88,180" fill="url(#' + gid + 'a)" opacity="0.22"/>' +
+          '<line x1="25" y1="158" x2="122" y2="128" stroke="#f8fafc" stroke-width="2.5" opacity="0.55"/>' +
+          '<line x1="178" y1="128" x2="275" y2="152" stroke="' + t.color2 + '" stroke-width="3.5" opacity="0.8"/>';
+      } else if (themeIdx === 3) {
+        pattern = '<rect x="68" y="102" width="14" height="72" rx="7" fill="' + t.color1 + '" opacity="0.5"/>' +
+          '<rect x="94" y="76" width="14" height="124" rx="7" fill="' + t.color1 + '" opacity="0.78"/>' +
+          '<rect x="120" y="54" width="16" height="162" rx="8" fill="url(#' + gid + 'a)"/>' +
+          '<rect x="148" y="68" width="16" height="136" rx="8" fill="url(#' + gid + 'a)" opacity="0.9"/>' +
+          '<rect x="176" y="88" width="14" height="100" rx="7" fill="' + t.color2 + '" opacity="0.78"/>' +
+          '<rect x="202" y="110" width="14" height="58" rx="7" fill="' + t.color2 + '" opacity="0.55"/>';
+      } else if (themeIdx === 4) {
+        pattern = '<path d="M-20 220 L110 60 L152 60 L22 220 Z" fill="' + t.color1 + '" opacity="0.28"/>' +
+          '<path d="M90 220 L220 60 L262 60 L132 220 Z" fill="' + t.color2 + '" opacity="0.24"/>' +
+          '<circle cx="150" cy="138" r="64" fill="none" stroke="url(#' + gid + 'a)" stroke-width="6"/>' +
+          '<circle cx="150" cy="138" r="32" fill="url(#' + gid + 'a)" opacity="0.88"/>';
+      } else if (themeIdx === 5) {
+        pattern = '<ellipse cx="150" cy="138" rx="108" ry="40" transform="rotate(-26 150 138)" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.72"/>' +
+          '<ellipse cx="150" cy="138" rx="108" ry="40" transform="rotate(26 150 138)" fill="none" stroke="' + t.color2 + '" stroke-width="3" opacity="0.72"/>' +
+          '<circle cx="150" cy="138" r="28" fill="url(#' + gid + 'a)"/>' +
+          '<circle cx="222" cy="96" r="8" fill="#f8fafc" opacity="0.88"/>';
+      } else if (themeIdx === 6) {
+        pattern = '<path d="M0 155 C70 95, 130 205, 200 130 C240 88, 275 110, 300 95 L300 225 L0 225 Z" fill="url(#' + gid + 'a)" opacity="0.34"/>' +
+          '<path d="M0 180 C80 128, 160 218, 300 142" fill="none" stroke="' + t.color1 + '" stroke-width="4" opacity="0.85"/>' +
+          '<path d="M0 135 C95 190, 185 88, 300 165" fill="none" stroke="' + t.color2 + '" stroke-width="3" opacity="0.65"/>';
+      } else {
+        pattern = '<circle cx="150" cy="136" r="92" fill="#090d16" stroke="' + t.color1 + '" stroke-width="3" opacity="0.9"/>' +
+          '<circle cx="150" cy="136" r="74" fill="none" stroke="#fef08a" stroke-width="1.2" opacity="0.25"/>' +
+          '<circle cx="150" cy="136" r="56" fill="none" stroke="' + t.color1 + '" stroke-width="1.5" opacity="0.4"/>' +
+          '<circle cx="150" cy="136" r="34" fill="url(#' + gid + 'a)"/>' +
+          '<circle cx="150" cy="136" r="10" fill="#090d16"/>';
+      }
+
+      const labelHtml = safeTitle
+        ? '<text x="150" y="252" font-family="sans-serif" font-size="15" font-weight="700" fill="#f8fafc" text-anchor="middle">' + safeTitle + '</text>' +
+          (safeArtist ? '<text x="150" y="274" font-family="sans-serif" font-size="12" font-weight="500" fill="#cbd5e1" opacity="0.82" text-anchor="middle">' + safeArtist + '</text>' : '')
+        : '<text x="150" y="264" font-family="sans-serif" font-size="13" font-weight="600" fill="#e2e8f0" opacity="0.85" text-anchor="middle">' + escapeXmlText(t.label) + '</text>';
+
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">' +
+        '<defs>' +
+        '<radialGradient id="' + gid + 'bg" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="' + t.bg1 + '"/><stop offset="100%" stop-color="' + t.bg2 + '"/></radialGradient>' +
+        '<linearGradient id="' + gid + 'a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="' + t.color1 + '"/><stop offset="100%" stop-color="' + t.color2 + '"/></linearGradient>' +
+        '<radialGradient id="' + gid + 'glow" cx="50%" cy="44%" r="48%"><stop offset="0%" stop-color="' + t.color1 + '" stop-opacity="0.42"/><stop offset="100%" stop-color="' + t.color2 + '" stop-opacity="0"/></radialGradient>' +
+        '</defs>' +
+        '<rect width="300" height="300" fill="url(#' + gid + 'bg)"/>' +
+        '<rect width="300" height="300" fill="url(#' + gid + 'glow)"/>' +
+        pattern +
+        '<rect x="0" y="218" width="300" height="82" fill="' + t.bg2 + '" opacity="0.48"/>' +
+        labelHtml +
+        '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    const _initialMusicThemeIdx = getSavedIdleCoverThemeIdx();
+    const _initialMusicTheme = musicArtThemes[_initialMusicThemeIdx] || musicArtThemes[0];
     let songs = [
       {
         artist: "Bluetooth Audio",
@@ -9722,9 +9846,12 @@
         album: "A2DP / AVRCP en Vivo",
         durationSec: 210,
         isBtStream: true,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdTb2RhIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI3NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDgyZjQ5Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAyMDYxNyIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ2xvd1NvZGEiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzOGJkZjgiIHN0b3Atb3BhY2l0eT0iMC44Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMDI4NGM3IiBzdG9wLW9wYWNpdHk9IjAuMyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMzY5YTEiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTUwIiBmaWxsPSJ1cmwoI2dsb3dTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2Utb3BhY2l0eT0iMC4yNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTE1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM4YmRmOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjYiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuODUiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjQwIiBmaWxsPSIjMDI4NGM3IiBzdHJva2U9IiM3ZGQzZmMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTYiIGZpbGw9IiNmMGY5ZmYiLz4KPC9zdmc+",
-        color1: "#06b6d4",
-        color2: "#3b82f6"
+        isWaitingPlaceholder: true,
+        hasRealCover: false,
+        themeIdx: _initialMusicThemeIdx,
+        cover: generateCarCoverSvg("", _initialMusicThemeIdx, "", _initialMusicThemeIdx),
+        color1: _initialMusicTheme.color1,
+        color2: _initialMusicTheme.color2
       }
     ];
 
@@ -10067,6 +10194,7 @@
       audioMode: 'bt',
       songIdx: 0,
       songProgressPct: 0,
+      idleCoverThemeIdx: _initialMusicThemeIdx,
       stationIdx: 1,
       customFreq: null,
       sourceIdx: 0,
@@ -13247,7 +13375,9 @@
           { t: 'info', l: 'Almacenamiento de Archivos / Copias', v: 'Vista previa web' },
           { t: 'info', l: 'Brillo del Sistema (WRITE_SETTINGS)', v: 'Vista previa web' },
           { t: 'info', l: 'Instalar Actualizaciones APK', v: 'Vista previa web' },
+          { t: 'info', l: 'Lectura de Música y Portadas (Notif.)', v: 'Vista previa web' },
           { t: 'act', l: 'Conceder permisos faltantes', b: 'Conceder', cls: 'accent', d: 'Solicita permisos de ejecución o abre el ajuste faltante' },
+          { t: 'act', l: 'Activar lector de portadas (Spotify / YT)', b: 'Configurar', d: 'Habilita Acceso a Notificaciones para leer canción, progreso y carátula real' },
           { t: 'act', l: 'Ajustes de la App JoyOS en Android', b: 'Abrir', d: 'Revisa permisos, almacenamiento e instalación de origen desconocido' },
           { h: 'Ingeniería Inversa (REA · ZXDZ_01 / AC8227L)' },
           { t: 'act', l: '🔬 Ejecutar Inspector REA de Hardware', b: 'Escanear', d: 'Inspecciona paquetes OEM (Radio/BT/MCU cm69), puertos USB/serie y propiedades del kernel' },
@@ -13419,6 +13549,7 @@
             setAjCatInfo('info_hw', 'Almacenamiento de Archivos / Copias', p.storage ? 'Concedido' : 'Pendiente');
             setAjCatInfo('info_hw', 'Brillo del Sistema (WRITE_SETTINGS)', p.writeSettings ? 'Concedido' : 'Requiere activar');
             setAjCatInfo('info_hw', 'Instalar Actualizaciones APK', p.installPackages ? 'Concedido' : 'Requiere activar');
+            setAjCatInfo('info_hw', 'Lectura de Música y Portadas (Notif.)', p.notificationListener ? 'Concedido' : 'Requiere activar');
           }
         } catch (e) { }
       } else {
@@ -13845,6 +13976,8 @@
                   window.AndroidBridge.openWriteSettingsPermission();
                 } else if (!p.installPackages && typeof window.AndroidBridge.openInstallUnknownAppsPermission === 'function') {
                   window.AndroidBridge.openInstallUnknownAppsPermission();
+                } else if (!p.notificationListener && typeof window.AndroidBridge.openNotificationListenerSettings === 'function') {
+                  window.AndroidBridge.openNotificationListenerSettings();
                 }
               } catch (e) { }
               setTimeout(() => {
@@ -13853,6 +13986,14 @@
               }, 800);
             } else {
               showJoyToast('Permisos Android', 'En la tablet concede Ubicación, BT y Modificar ajustes', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('lector de portadas')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openNotificationListenerSettings === 'function') {
+              window.AndroidBridge.openNotificationListenerSettings();
+            } else {
+              showJoyToast('Lector MediaSession', 'Disponible instalado en tablet Android', 'info');
             }
             return;
           }
@@ -14853,57 +14994,254 @@
       }
     }
 
-    function generateCarCoverSvg(title, idx) {
-      const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
-      const c = colors[idx % colors.length];
-      return "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%"><rect width="300" height="300" fill="#090d16"/><circle cx="150" cy="150" r="100" fill="none" stroke="' + c + '" stroke-width="4" opacity="0.6"/><circle cx="150" cy="150" r="70" fill="none" stroke="' + c + '" stroke-width="2" opacity="0.4"/><circle cx="150" cy="150" r="30" fill="' + c + '" opacity="0.8"/><text x="150" y="270" font-family="sans-serif" font-size="16" font-weight="bold" fill="#f8fafc" text-anchor="middle">' + ((title || '').slice(0, 20)) + '</text></svg>');
+    const _coverColorCache = {};
+
+    function rgbToHsvJs(r, g, b) {
+      const rr = r / 255, gg = g / 255, bb = b / 255;
+      const mx = Math.max(rr, gg, bb), mn = Math.min(rr, gg, bb), d = mx - mn;
+      let h = 0;
+      if (d !== 0) {
+        if (mx === rr) h = ((gg - bb) / d) % 6;
+        else if (mx === gg) h = (bb - rr) / d + 2;
+        else h = (rr - gg) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+      }
+      const s = mx === 0 ? 0 : d / mx;
+      return [h, s, mx];
+    }
+
+    function hsvToHexJs(h, s, v) {
+      const hh = ((h % 360) + 360) % 360;
+      const c = v * s;
+      const x = c * (1 - Math.abs(((hh / 60) % 2) - 1));
+      const m = v - c;
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (hh < 60) { r1 = c; g1 = x; }
+      else if (hh < 120) { r1 = x; g1 = c; }
+      else if (hh < 180) { g1 = c; b1 = x; }
+      else if (hh < 240) { g1 = x; b1 = c; }
+      else if (hh < 300) { r1 = x; b1 = c; }
+      else { r1 = c; b1 = x; }
+      const toH = n => Math.max(0, Math.min(255, Math.round((n + m) * 255))).toString(16).padStart(2, '0');
+      return '#' + toH(r1) + toH(g1) + toH(b1);
+    }
+
+    function extractColorsFromCoverSrc(src, onReady) {
+      if (!src || src.indexOf('data:image/svg') === 0) return;
+      if (_coverColorCache[src]) {
+        if (typeof onReady === 'function') onReady(_coverColorCache[src]);
+        return;
+      }
+      try {
+        const img = new Image();
+        img.onload = function () {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 16;
+            canvas.height = 16;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.drawImage(img, 0, 0, 16, 16);
+            const data = ctx.getImageData(0, 0, 16, 16).data;
+            const buckets = new Array(12).fill(0);
+            const sumR = new Array(12).fill(0), sumG = new Array(12).fill(0), sumB = new Array(12).fill(0);
+            const sumW = new Array(12).fill(0);
+            for (let i = 0; i < data.length; i += 4) {
+              if (data[i + 3] < 128) continue;
+              const r = data[i], g = data[i + 1], b = data[i + 2];
+              const hsv = rgbToHsvJs(r, g, b);
+              if (hsv[2] < 0.12 || (hsv[2] > 0.94 && hsv[1] < 0.14)) continue;
+              const w = (0.25 + hsv[1] * 1.8) * (hsv[2] >= 0.22 && hsv[2] <= 0.88 ? 1.25 : 0.7);
+              const bIdx = Math.max(0, Math.min(11, Math.floor(hsv[0] / 30)));
+              buckets[bIdx] += w;
+              sumR[bIdx] += r * w;
+              sumG[bIdx] += g * w;
+              sumB[bIdx] += b * w;
+              sumW[bIdx] += w;
+            }
+            let best = -1, bestScore = 0;
+            for (let k = 0; k < 12; k++) {
+              if (buckets[k] > bestScore) { bestScore = buckets[k]; best = k; }
+            }
+            if (best === -1 || sumW[best] <= 0) return;
+            const avgHex = idx => {
+              const hsv = rgbToHsvJs(sumR[idx] / sumW[idx], sumG[idx] / sumW[idx], sumB[idx] / sumW[idx]);
+              return hsvToHexJs(hsv[0], Math.max(0.44, Math.min(0.95, hsv[1] * 1.15)), Math.max(0.56, Math.min(0.92, hsv[2])));
+            };
+            const c1 = avgHex(best);
+            let second = -1, secondScore = 0;
+            for (let k = 0; k < 12; k++) {
+              if (k === best) continue;
+              const dist = Math.min(Math.abs(k - best), 12 - Math.abs(k - best));
+              if (dist >= 2 && buckets[k] > secondScore) { secondScore = buckets[k]; second = k; }
+            }
+            let c2;
+            if (second !== -1 && secondScore > bestScore * 0.22) {
+              c2 = avgHex(second);
+            } else {
+              const hsv1 = rgbToHsvJs(sumR[best] / sumW[best], sumG[best] / sumW[best], sumB[best] / sumW[best]);
+              c2 = hsvToHexJs((hsv1[0] + 38) % 360, Math.max(0.55, hsv1[1]), Math.max(0.62, Math.min(0.92, hsv1[2])));
+            }
+            const res = { color1: c1, color2: c2 };
+            _coverColorCache[src] = res;
+            if (typeof onReady === 'function') onReady(res);
+          } catch (e) { }
+        };
+        img.src = src;
+      } catch (e) { }
+    }
+
+    function applyMusicThemeToSong(songObj, themeIdx) {
+      if (!songObj) return;
+      const cleanIdx = ((themeIdx % musicArtThemes.length) + musicArtThemes.length) % musicArtThemes.length;
+      const t = musicArtThemes[cleanIdx] || musicArtThemes[0];
+      songObj.themeIdx = cleanIdx;
+      songObj.color1 = t.color1;
+      songObj.color2 = t.color2;
+      if (!songObj.hasRealCover) {
+        const displayTitle = songObj.isWaitingPlaceholder ? '' : songObj.title;
+        const displayArtist = songObj.isWaitingPlaceholder ? '' : songObj.artist;
+        songObj.cover = generateCarCoverSvg(displayTitle, cleanIdx, displayArtist, cleanIdx);
+      }
+    }
+
+    function selectMusicVisualTheme(themeIdx) {
+      const cleanIdx = ((themeIdx % musicArtThemes.length) + musicArtThemes.length) % musicArtThemes.length;
+      state.idleCoverThemeIdx = cleanIdx;
+      try {
+        if (window.localStorage) window.localStorage.setItem('joyos_music_idle_theme', String(cleanIdx));
+      } catch (e) { }
+      const curSong = songs[state.songIdx];
+      if (curSong && !curSong.hasRealCover) {
+        applyMusicThemeToSong(curSong, cleanIdx);
+      } else if (curSong && curSong.hasRealCover) {
+        showJoyToast('Estilo "' + musicArtThemes[cleanIdx].label + '" guardado para pistas sin portada');
+      }
+      renderAll();
+    }
+
+    function cycleMusicVisualTheme(ev) {
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      const curSong = songs[state.songIdx];
+      if (curSong && curSong.hasRealCover) {
+        showJoyToast('Usando portada real y colores de la canción');
+        return;
+      }
+      const curIdx = (curSong && typeof curSong.themeIdx === 'number') ? curSong.themeIdx : (state.idleCoverThemeIdx || 0);
+      selectMusicVisualTheme((curIdx + 1) % musicArtThemes.length);
+    }
+
+    function ensureTrackArtwork(idx) {
+      const s = songs[idx];
+      if (!s || !s.needsLazyArtwork || !s.path || s._artworkFetched) return;
+      s._artworkFetched = true;
+      if (!window.AndroidBridge || typeof window.AndroidBridge.getTrackArtwork !== 'function') return;
+      try {
+        const raw = window.AndroidBridge.getTrackArtwork(s.path);
+        const parsed = JSON.parse(raw || '{}');
+        if (parsed && parsed.ok && parsed.coverDataUri) {
+          s.cover = parsed.coverDataUri;
+          s.hasRealCover = true;
+          s.needsLazyArtwork = false;
+          if (parsed.color1) s.color1 = parsed.color1;
+          if (parsed.color2) s.color2 = parsed.color2;
+          if (!parsed.color1 || !parsed.color2) {
+            extractColorsFromCoverSrc(s.cover, cols => {
+              s.color1 = cols.color1;
+              s.color2 = cols.color2;
+              renderAll();
+            });
+          } else {
+            renderAll();
+          }
+        }
+      } catch (e) { }
     }
 
     function refreshMusicFromDevice() {
+      let songsUpdated = false;
       if (window.AndroidBridge && typeof window.AndroidBridge.getMusicFiles === 'function') {
         try {
           const raw = window.AndroidBridge.getMusicFiles();
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const mappedSongs = parsed.map((t, idx) => ({
-              artist: t.artist || (t.source === 'usb' ? 'Memoria USB' : 'Almacenamiento'),
-              title: t.title || ('Pista ' + (idx + 1)),
-              album: t.album || 'Audio del Vehículo',
-              durationSec: t.durationSec || 210,
-              audioUri: t.uri,
-              path: t.path,
-              cover: generateCarCoverSvg(t.title, idx),
-              color1: '#06b6d4',
-              color2: '#3b82f6'
-            }));
-            songs = mappedSongs;
+            const mappedSongs = parsed.map((t, idx) => {
+              const title = t.title || ('Pista ' + (idx + 1));
+              const artist = t.artist || (t.source === 'usb' ? 'Memoria USB' : 'Almacenamiento');
+              const themeIdx = hashTrackThemeIdx(title, artist);
+              const themeObj = musicArtThemes[themeIdx] || musicArtThemes[0];
+              const hasReal = !!(t.coverDataUri && t.coverDataUri.length > 32);
+              return {
+                artist: artist,
+                title: title,
+                album: t.album || 'Audio del Vehículo',
+                durationSec: t.durationSec || 210,
+                audioUri: t.uri,
+                path: t.path,
+                hasRealCover: hasReal,
+                needsLazyArtwork: !hasReal && !!t.hasEmbeddedArt,
+                themeIdx: themeIdx,
+                cover: hasReal ? t.coverDataUri : generateCarCoverSvg(title, themeIdx, artist, themeIdx),
+                color1: (t.color1 && t.color1.length >= 4) ? t.color1 : themeObj.color1,
+                color2: (t.color2 && t.color2.length >= 4) ? t.color2 : themeObj.color2
+              };
+            });
+            const prevLive = Array.isArray(songs) ? songs.filter(x => x && x.isLiveBt).slice(0, 6) : [];
+            songs = prevLive.length > 0
+              ? prevLive.concat(mappedSongs.filter(m => !prevLive.some(l => l.title === m.title)))
+              : mappedSongs;
+            if (state.songIdx >= songs.length || state.songIdx < 0) state.songIdx = 0;
+            songsUpdated = true;
             console.log('Loaded ' + songs.length + ' tracks from device');
           }
         } catch (e) {
           console.warn("Error loading music files:", e);
         }
       }
+      let btRendered = false;
       if (window.AndroidBridge && typeof window.AndroidBridge.getBtMusicMetadata === 'function') {
         try {
           const btRaw = window.AndroidBridge.getBtMusicMetadata();
           const btMeta = JSON.parse(btRaw || '{}');
           if (btMeta && btMeta.title && btMeta.title !== 'Bluetooth Audio') {
             window.onBtMusicMetadata(btMeta);
+            btRendered = true;
           }
         } catch (e) { }
       }
+      if (songsUpdated && !btRendered && typeof renderAll === 'function') {
+        renderAll();
+      }
     }
 
-    // --- LIVE BLUETOOTH AVRCP / A2DP METADATA & MCU RADIO RECEIVER ---
+    // --- LIVE BLUETOOTH AVRCP / A2DP / MEDIASESSION METADATA RECEIVER ---
     window.onBtMusicMetadata = function (meta) {
       if (!meta) return;
       if (typeof meta === 'string') {
         try { meta = JSON.parse(meta); } catch (e) { return; }
       }
-      const title = meta.title && meta.title.trim() ? meta.title.trim() : 'Audio Bluetooth';
-      const artist = meta.artist && meta.artist.trim() ? meta.artist.trim() : (state.btDeviceName || 'Teléfono Bluetooth');
+      const rawTitle = meta.title && meta.title.trim() ? meta.title.trim() : '';
+      const rawArtist = meta.artist && meta.artist.trim() ? meta.artist.trim() : '';
       const album = meta.album && meta.album.trim() ? meta.album.trim() : 'Bluetooth A2DP / AVRCP';
       const dur = (typeof meta.durationSec === 'number' && meta.durationSec > 0) ? meta.durationSec : 210;
+
+      // Ignore empty metadata pings that only carry play/pause state when we're still in placeholder
+      if (!rawTitle && songs.length > 0 && songs[0].isWaitingPlaceholder) {
+        if (typeof meta.playing === 'boolean') {
+          state.playing = meta.playing;
+          renderAll();
+        }
+        return;
+      }
+
+      const title = rawTitle || (songs[state.songIdx] && !songs[state.songIdx].isWaitingPlaceholder ? songs[state.songIdx].title : 'Audio Bluetooth');
+      const artist = rawArtist || (state.btDeviceName || 'Bluetooth Audio');
+      const hasReal = !!(meta.coverDataUri && meta.coverDataUri.length > 32);
+      const fallbackThemeIdx = (rawTitle && !rawTitle.toLowerCase().includes('esperando'))
+        ? hashTrackThemeIdx(title, artist)
+        : (state.idleCoverThemeIdx || 0);
+      const themeObj = musicArtThemes[fallbackThemeIdx] || musicArtThemes[0];
 
       const btTrackObj = {
         artist: artist,
@@ -14911,19 +15249,54 @@
         album: album,
         durationSec: dur,
         isLiveBt: true,
-        cover: generateCarCoverSvg(title, 0),
-        color1: '#06b6d4',
-        color2: '#3b82f6'
+        isWaitingPlaceholder: false,
+        hasRealCover: hasReal,
+        sourceApp: meta.sourceApp || '',
+        themeIdx: fallbackThemeIdx,
+        cover: hasReal ? meta.coverDataUri : generateCarCoverSvg(title, fallbackThemeIdx, artist, fallbackThemeIdx),
+        color1: (meta.color1 && meta.color1.length >= 4) ? meta.color1 : themeObj.color1,
+        color2: (meta.color2 && meta.color2.length >= 4) ? meta.color2 : themeObj.color2
       };
 
-      if (songs.length > 0 && (songs[0].isLiveBt || !songs[0].audioUri)) {
+      const isSameAsTop = songs.length > 0 && songs[0] && !songs[0].isWaitingPlaceholder &&
+        songs[0].title === btTrackObj.title && songs[0].artist === btTrackObj.artist;
+
+      if (isSameAsTop) {
+        // Keep user's selected fallback theme if updating playstate without new real artwork
+        if (!hasReal && songs[0].hasRealCover) {
+          btTrackObj.cover = songs[0].cover;
+          btTrackObj.color1 = songs[0].color1;
+          btTrackObj.color2 = songs[0].color2;
+          btTrackObj.hasRealCover = true;
+        }
         songs[0] = btTrackObj;
       } else {
+        // Drop initial waiting placeholder once real music arrives, keep up to 8 recent live tracks
+        songs = songs.filter(s => !s.isWaitingPlaceholder && !(s.isLiveBt && s.title === btTrackObj.title && s.artist === btTrackObj.artist));
         songs.unshift(btTrackObj);
+        if (songs.length > 16) {
+          const liveTracks = songs.filter(s => s.isLiveBt).slice(0, 8);
+          const localTracks = songs.filter(s => !s.isLiveBt);
+          songs = liveTracks.concat(localTracks);
+        }
       }
+
       state.songIdx = 0;
+      if (typeof meta.positionSec === 'number' && meta.positionSec >= 0 && dur > 0) {
+        state.songProgressPct = Math.max(0, Math.min(100, (meta.positionSec / dur) * 100));
+      } else if (!isSameAsTop) {
+        state.songProgressPct = 0;
+      }
       if (typeof meta.playing === 'boolean') {
         state.playing = meta.playing;
+      }
+
+      if (hasReal && (!meta.color1 || !meta.color2)) {
+        extractColorsFromCoverSrc(btTrackObj.cover, cols => {
+          btTrackObj.color1 = cols.color1;
+          btTrackObj.color2 = cols.color2;
+          renderAll();
+        });
       }
       renderAll();
     };
@@ -15207,19 +15580,27 @@
 
       let existIdx = songs.findIndex(s => s.audioUri === uri || s.path === track.path);
       if (existIdx === -1) {
+        const directArtist = track.artist || (track.drive === 'usb' ? 'Memoria USB' : 'Almacenamiento Local');
+        const tIdx = hashTrackThemeIdx(cleanTitle, directArtist);
+        const tObj = musicArtThemes[tIdx] || musicArtThemes[0];
+        songs = songs.filter(s => !s.isWaitingPlaceholder);
         songs.unshift({
           title: cleanTitle,
-          artist: track.artist || (track.drive === 'usb' ? 'Memoria USB' : 'Almacenamiento Local'),
+          artist: directArtist,
           album: track.album || 'Música del Vehículo',
           durationSec: track.durationSec || 210,
-          cover: generateCarCoverSvg(cleanTitle, 0),
+          hasRealCover: false,
+          needsLazyArtwork: !!track.path,
+          themeIdx: tIdx,
+          cover: generateCarCoverSvg(cleanTitle, tIdx, directArtist, tIdx),
           audioUri: uri,
           path: track.path,
-          color1: '#06b6d4',
-          color2: '#3b82f6'
+          color1: tObj.color1,
+          color2: tObj.color2
         });
         existIdx = 0;
       }
+      ensureTrackArtwork(existIdx);
 
       state.audioMode = 'bt';
       state.songIdx = existIdx;
@@ -15285,10 +15666,20 @@
         state.customFreq = null;
         const nextIdx = (state.stationIdx + dir + radioStations.length) % radioStations.length;
         selectStation(nextIdx);
+      } else if (songs.length <= 1) {
+        const curSong = songs[0];
+        if (curSong && curSong.isWaitingPlaceholder) {
+          const nextTheme = ((state.idleCoverThemeIdx || 0) + dir + musicArtThemes.length) % musicArtThemes.length;
+          selectMusicVisualTheme(nextTheme);
+        }
+        if (window.AndroidBridge && typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
+          window.AndroidBridge.sendMediaKeyEvent(dir > 0 ? 'next' : 'prev');
+        }
       } else {
         state.songIdx = (state.songIdx + dir + songs.length) % songs.length;
         state.songProgressPct = 0;
         const nextSongObj = songs[state.songIdx];
+        ensureTrackArtwork(state.songIdx);
         if (nextSongObj && nextSongObj.audioUri) {
           joyAudio.src = nextSongObj.audioUri;
           if (state.playing) {
@@ -15310,6 +15701,7 @@
       state.songIdx = idx;
       state.songProgressPct = 0;
       const curSong = songs[state.songIdx];
+      ensureTrackArtwork(state.songIdx);
       if (curSong && curSong.audioUri) {
         joyAudio.src = curSong.audioUri;
         if (state.playing) {
@@ -16616,8 +17008,9 @@
       const dur = curSong.durationSec || 210;
       const pct = Math.max(0, Math.min(100, state.songProgressPct));
       const curSec = Math.round((pct / 100) * dur);
-      const curStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(curSec);
-      const totStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(dur);
+      const isWaiting = !!(curSong && curSong.isWaitingPlaceholder);
+      const curStr = (isWaiting && pct === 0 && !state.playing) ? '--:--' : formatTimeSec(curSec);
+      const totStr = (isWaiting && !state.playing) ? '--:--' : formatTimeSec(dur);
 
       ['home-progress-fill', 'cockpit-pill-bar', 'map-progress-fill', 'music-seek-fill'].forEach(id => {
         const el = document.getElementById(id);
@@ -16636,9 +17029,12 @@
     function startSeekAudio(e, barEl) {
       if (!barEl) return;
       e.stopPropagation();
+      let lastRel = 0;
       function seekFromEvent(ev) {
         const rect = barEl.getBoundingClientRect();
+        if (!rect.width) return;
         const rel = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+        lastRel = rel;
         state.songProgressPct = Math.round(rel * 100);
         updateAudioProgressUI();
       }
@@ -16647,6 +17043,13 @@
       function onUp() {
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
+        const curSong = songs[state.songIdx] || songs[0];
+        if (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused && joyAudio.duration) {
+          try { joyAudio.currentTime = lastRel * joyAudio.duration; } catch (err) { }
+        } else if (curSong && !curSong.isWaitingPlaceholder && window.AndroidBridge && typeof window.AndroidBridge.seekActiveMedia === 'function') {
+          const targetSec = Math.round(lastRel * (curSong.durationSec || 210));
+          try { window.AndroidBridge.seekActiveMedia(targetSec); } catch (err) { }
+        }
       }
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
@@ -16684,7 +17087,20 @@
       });
     }
 
-    // --- 5-CARD 3D FAN COVERFLOW RENDERER (Matches Image 3!) ---
+    // --- 5-CARD 3D FAN COVERFLOW RENDERER (Real Covers + Non-Flat Curated Ambient Variants) ---
+    function getMusicFallbackCardForOffset(baseThemeIdx, off) {
+      const tIdx = ((baseThemeIdx + off) % musicArtThemes.length + musicArtThemes.length) % musicArtThemes.length;
+      const t = musicArtThemes[tIdx] || musicArtThemes[0];
+      return {
+        isThemePreview: true,
+        themeIdx: tIdx,
+        title: t.label,
+        cover: generateCarCoverSvg('', tIdx, '', tIdx),
+        color1: t.color1,
+        color2: t.color2
+      };
+    }
+
     function renderCoverflow() {
       const stage = document.getElementById('coverflow-stage');
       if (!stage) return;
@@ -16694,10 +17110,43 @@
       const off1 = Math.max(76, Math.min(112, Math.round(w * 0.175)));
       const off2 = Math.max(138, Math.min(204, Math.round(w * 0.32)));
 
+      const activeSong = songs[state.songIdx] || songs[0];
+      const baseTheme = (activeSong && typeof activeSong.themeIdx === 'number')
+        ? activeSong.themeIdx
+        : (state.idleCoverThemeIdx || 0);
+      const usedRealIndices = {};
+      usedRealIndices[state.songIdx] = true;
+
       const offsets = [-2, -1, 0, 1, 2];
+      const sigParts = [isLight ? 'L' : 'D', state.songIdx, songs.length, baseTheme];
       offsets.forEach(off => {
-        const idx = (state.songIdx + off + songs.length) % songs.length;
-        const s = songs[idx];
+        let s = activeSong;
+        let clickAction = `selectSongIndex(${state.songIdx})`;
+
+        if (off === 0) {
+          s = activeSong;
+          clickAction = activeSong && activeSong.isWaitingPlaceholder
+            ? 'cycleMusicVisualTheme(event)'
+            : `selectSongIndex(${state.songIdx})`;
+        } else if (songs.length >= 5) {
+          const idx = (state.songIdx + off + songs.length) % songs.length;
+          s = songs[idx];
+          clickAction = `selectSongIndex(${idx})`;
+        } else {
+          // Avoid repeating identical center cover across all 5 slots when songs.length < 5
+          const candidateIdx = ((state.songIdx + off) % songs.length + songs.length) % songs.length;
+          const canShowReal = songs.length > 1 && Math.abs(off) <= Math.floor(songs.length / 2) && !usedRealIndices[candidateIdx];
+          if (canShowReal) {
+            usedRealIndices[candidateIdx] = true;
+            s = songs[candidateIdx];
+            clickAction = `selectSongIndex(${candidateIdx})`;
+          } else {
+            const previewCard = getMusicFallbackCardForOffset(baseTheme, off);
+            s = previewCard;
+            clickAction = `selectMusicVisualTheme(${previewCard.themeIdx})`;
+          }
+        }
+        sigParts.push((s.title || '') + ':' + (s.themeIdx !== undefined ? s.themeIdx : '') + ':' + (s.cover ? s.cover.length : 0) + ':' + (s.color1 || ''));
 
         let transform = '';
         let zIndex = 10;
@@ -16730,15 +17179,20 @@
         }
 
         html += `
-          <div onclick="selectSongIndex(${idx})"
+          <div onclick="${clickAction}"
+               title="${escapeXmlText(s.title || '')}"
                class="coverflow-item absolute w-44 h-44 rounded-[28px] overflow-hidden border ${isLight ? 'border-black/10 hover:border-black/25' : 'border-white/15 hover:border-white/40'} cursor-pointer bg-neutral-900 transition-all duration-300 select-none group/cover"
                style="transform: ${transform}; z-index: ${zIndex}; opacity: ${opacity}; ${extraShadow}">
-            <img src="${s.cover}" class="w-full h-full object-cover pointer-events-none select-none block" alt="${s.title}" />
+            <img src="${s.cover}" class="w-full h-full object-cover pointer-events-none select-none block" alt="${escapeXmlText(s.title || 'Portada')}" />
           </div>
         `;
       });
 
-      stage.innerHTML = html;
+      const coverSig = sigParts.join('|');
+      if (stage.dataset.sig !== coverSig) {
+        stage.dataset.sig = coverSig;
+        stage.innerHTML = html;
+      }
     }
 
     // --- ACCELERATOR & SPEED ARC PHYSICS ---
@@ -16936,16 +17390,51 @@
       if (subAppFiles) subAppFiles.className = state.appsSubView === 'files' ? 'flex flex-col justify-between h-full w-full' : 'hidden';
       if (subAppR5) subAppR5.className = state.appsSubView === 'r5' ? 'flex flex-col justify-between h-full w-full' : 'hidden';
 
-      // Ambient Blurred Color Orbs in Music View
-      const curSong = songs[state.songIdx];
-      const prevSong = songs[(state.songIdx - 1 + songs.length) % songs.length];
-      const nextSong = songs[(state.songIdx + 1) % songs.length];
+      // Ambient Blurred Cover Art & Dominant Color Orbs in Music View
+      const curSong = songs[state.songIdx] || songs[0];
+      const baseThemeForNeighbors = (curSong && typeof curSong.themeIdx === 'number') ? curSong.themeIdx : (state.idleCoverThemeIdx || 0);
+      const prevSong = songs.length > 1
+        ? songs[(state.songIdx - 1 + songs.length) % songs.length]
+        : getMusicFallbackCardForOffset(baseThemeForNeighbors, -1);
+      const nextSong = songs.length > 1
+        ? songs[(state.songIdx + 1) % songs.length]
+        : getMusicFallbackCardForOffset(baseThemeForNeighbors, 1);
+
+      const activeC1 = (state.audioMode === 'radio' && radioStations[state.stationIdx])
+        ? radioStations[state.stationIdx].color1
+        : (curSong.color1 || '#06b6d4');
+      const activeC2 = (state.audioMode === 'radio' && radioStations[state.stationIdx])
+        ? radioStations[state.stationIdx].color2
+        : (curSong.color2 || '#3b82f6');
 
       const amb = document.getElementById('music-ambient-bg');
-      amb.style.opacity = state.tab === 'music' ? '1' : '0';
-      document.getElementById('blob-primary').style.background = curSong.color1;
-      document.getElementById('blob-secondary').style.background = curSong.color2;
-      document.getElementById('home-media-glow').style.background = curSong.color1;
+      const blurImgEl = document.getElementById('music-cover-blur-img');
+      const ambGradEl = document.getElementById('music-ambient-grad');
+      const ambScrimEl = document.getElementById('music-ambient-scrim');
+      const isLightUi = state.theme === 'light';
+
+      if (amb) amb.style.opacity = state.tab === 'music' ? '1' : '0';
+      if (blurImgEl) {
+        if (state.audioMode !== 'radio' && curSong && curSong.cover) {
+          if (blurImgEl.getAttribute('src') !== curSong.cover) {
+            blurImgEl.src = curSong.cover;
+          }
+          blurImgEl.style.opacity = curSong.hasRealCover ? (isLightUi ? '0.26' : '0.44') : (isLightUi ? '0.20' : '0.32');
+          blurImgEl.style.filter = isLightUi ? 'blur(52px) saturate(1.45) brightness(1.06)' : 'blur(52px) saturate(1.6) brightness(0.84)';
+        } else {
+          blurImgEl.style.opacity = '0';
+        }
+      }
+      if (ambGradEl) {
+        ambGradEl.style.background = `radial-gradient(circle at 26% 32%, ${activeC1}66 0%, transparent 58%), radial-gradient(circle at 76% 42%, ${activeC2}55 0%, transparent 60%)`;
+      }
+      if (ambScrimEl) {
+        ambScrimEl.style.background = isLightUi ? 'rgba(241, 245, 249, 0.62)' : 'rgba(6, 9, 17, 0.42)';
+      }
+
+      document.getElementById('blob-primary').style.background = activeC1;
+      document.getElementById('blob-secondary').style.background = activeC2;
+      document.getElementById('home-media-glow').style.background = activeC1;
 
       // Update Bottom Dock Tabs
       ['home', 'cockpit', 'music', 'map', 'settings', 'apps'].forEach(t => {
@@ -17043,12 +17532,6 @@
       const activeFreq = state.customFreq !== null ? state.customFreq.toFixed(1) : curSt.freq.toFixed(1);
       const pctFreq = freqToDialPct(parseFloat(activeFreq)).toFixed(1);
 
-      if (isRadio) {
-        document.getElementById('blob-primary').style.background = curSt.color1;
-        document.getElementById('blob-secondary').style.background = curSt.color2;
-        document.getElementById('home-media-glow').style.background = curSt.color1;
-      }
-
       const srcName = 'Bluetooth';
       const homeSrcBt = document.getElementById('home-src-bt');
       if (homeSrcBt) homeSrcBt.textContent = srcName;
@@ -17093,6 +17576,22 @@
       if (btStage) btStage.className = !isRadio ? 'flex flex-col items-center justify-between w-full flex-1 min-h-0 my-auto py-2' : 'hidden';
       const radioStage = document.getElementById('radio-stage');
       if (radioStage) radioStage.className = isRadio ? 'w-full max-w-3xl my-auto' : 'hidden';
+
+      const themePillBtn = document.getElementById('music-art-theme-btn');
+      const themePillDot = document.getElementById('music-art-theme-dot');
+      const themePillLbl = document.getElementById('music-art-theme-label');
+      if (themePillBtn) {
+        themePillBtn.style.display = isRadio ? 'none' : 'flex';
+        if (themePillDot) themePillDot.style.background = activeC1;
+        if (themePillLbl) {
+          if (curSong && curSong.hasRealCover) {
+            themePillLbl.textContent = 'Portada real';
+          } else {
+            const tObj = musicArtThemes[baseThemeForNeighbors] || musicArtThemes[0];
+            themePillLbl.textContent = tObj.label;
+          }
+        }
+      }
 
       // Populate Radio Stage
       document.getElementById('radio-big-freq').textContent = activeFreq;
@@ -17141,14 +17640,19 @@
       }
 
       // Active Title & Subtitle across Home, Cockpit, Vision Pill & Map
-      const isStopped = !state.playing && state.songProgressPct === 0;
-      const activeTitle = isRadio ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}` : (isStopped ? 'Audio del Sistema' : curSong.title);
-      const activeSub = isRadio ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`) : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : `${curSong.artist} · ${curSong.album}`);
+      const isIdlePlaceholder = !curSong || !!curSong.isWaitingPlaceholder;
+      const activeThemeObj = musicArtThemes[baseThemeForNeighbors] || musicArtThemes[0];
+      const activeTitle = isRadio
+        ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}`
+        : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
+      const activeSub = isRadio
+        ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`)
+        : (isIdlePlaceholder ? `En espera · ${activeThemeObj.label}` : `${curSong.artist} · ${curSong.album}`);
 
       const heroTitle = document.getElementById('music-hero-title');
-      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isStopped ? 'Audio del Sistema' : curSong.title);
+      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
       const heroArtist = document.getElementById('music-hero-artist');
-      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : curSong.artist);
+      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isIdlePlaceholder ? `Toca Play o desliza estilos (${activeThemeObj.label})` : curSong.artist);
 
       document.getElementById('home-cov-curr').src = curSong.cover;
       document.getElementById('home-cov-prev').src = prevSong.cover;
@@ -17966,7 +18470,7 @@
             const ramEl = document.getElementById('settings-ram-val');
             if (ramEl) ramEl.textContent = `${ramInfo.usedGb} / ${ramInfo.totalGb} GB`;
             const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l.includes('Memoria RAM')) : null;
+            const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Memoria RAM')) : null;
             if (hwRamItem) hwRamItem.v = `${ramInfo.usedGb} GB en uso de ${ramInfo.totalGb} GB (${ramInfo.availMb} MB libres)`;
           }
         }
@@ -17974,7 +18478,7 @@
           const stInfo = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}');
           if (stInfo && stInfo.mounted) {
             const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l.includes('Almacenamiento Interno')) : null;
+            const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Almacenamiento Interno')) : null;
             if (hwStItem) hwStItem.v = `${stInfo.freeGb} GB libres de ${stInfo.totalGb} GB (${stInfo.usedPercent}% usado)`;
           }
         }
@@ -18166,15 +18670,23 @@
 
     // 1-second audio progress tick during playback
     setInterval(() => {
-      if (state.playing && state.audioMode !== 'radio' && state.songProgressPct > 0) {
+      if (state.playing && state.audioMode !== 'radio') {
         const curSong = songs[state.songIdx] || songs[0];
+        const joyAudioPlaying = (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused);
+        if (joyAudioPlaying) return;
+        if (!curSong || curSong.isWaitingPlaceholder) return;
         const dur = curSong.durationSec || 210;
         const incPct = (1 / dur) * 100;
-        state.songProgressPct = Math.min(100, state.songProgressPct + incPct);
-        if (state.songProgressPct >= 100) {
-          changeSong(1);
-        } else {
+        if (curSong.isLiveBt) {
+          state.songProgressPct = Math.min(99.5, state.songProgressPct + incPct);
           updateAudioProgressUI();
+        } else {
+          state.songProgressPct = Math.min(100, state.songProgressPct + incPct);
+          if (state.songProgressPct >= 100) {
+            changeSong(1);
+          } else {
+            updateAudioProgressUI();
+          }
         }
       }
     }, 1000);
