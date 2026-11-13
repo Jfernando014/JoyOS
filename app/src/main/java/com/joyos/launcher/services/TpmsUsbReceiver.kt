@@ -301,8 +301,8 @@ class TpmsUsbReceiver(
                 activePort = port
                 var baudRate = 19200
                 port.setParameters(baudRate, UsbSerialPort.DATABITS_8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE)
-                try { port.dtr = true } catch (_: Throwable) {}
-                try { port.rts = true } catch (_: Throwable) {}
+                try { port.setDTR(true) } catch (_: Throwable) {}
+                try { port.setRTS(true) } catch (_: Throwable) {}
 
                 // Notify UI that USB receiver hardware is connected and awaiting 433.92 MHz tire frames
                 currentState = buildState(connected = true, source = "usb-serial", label = devLabel)

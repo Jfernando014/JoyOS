@@ -178,7 +178,7 @@ class ObdBleManager(
     }
 
     @Suppress("MissingPermission")
-    private fun runClassicSppSession(adapter: BluetoothAdapter, device: BluetoothDevice): Boolean {
+    private suspend fun runClassicSppSession(adapter: BluetoothAdapter, device: BluetoothDevice): Boolean {
         val devName = try { device.name ?: "Vgate OBD2" } catch (_: Throwable) { "Vgate OBD2" }
         var socket: BluetoothSocket? = null
         return try {
