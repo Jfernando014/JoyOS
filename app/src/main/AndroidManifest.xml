@@ -12,6 +12,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
 
+    <!-- Hands-Free Calls (HFP / Dialer / Telecom) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+
     <!-- USB Host Support for 433.92 MHz USB TPMS Receiver -->
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
