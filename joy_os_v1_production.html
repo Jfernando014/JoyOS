@@ -5462,7 +5462,7 @@
     }
 
     [data-map-style="night"] #interactive-map {
-      background: #0b1220;
+      background: #0b1220 !important;
     }
 
     [data-map-style="night"] .joy-map-tiles {
@@ -5470,23 +5470,23 @@
     }
 
     [data-map-style="asphalt"] #interactive-map {
-      background: #11161f;
+      background: #14181f !important;
     }
 
     [data-map-style="asphalt"] .joy-map-tiles {
-      filter: brightness(104%) contrast(108%);
+      filter: grayscale(100%) invert(94%) brightness(92%) contrast(116%);
     }
 
-    [data-map-style="cyber"] #interactive-map {
-      background: #040d14;
+    [data-map-style="silver"] #interactive-map {
+      background: #eef2f6 !important;
     }
 
-    [data-map-style="cyber"] .joy-map-tiles {
-      filter: invert(97%) hue-rotate(148deg) saturate(165%) brightness(88%) contrast(114%);
+    [data-map-style="silver"] .joy-map-tiles {
+      filter: grayscale(100%) brightness(106%) contrast(106%);
     }
 
     [data-map-style="amber"] #interactive-map {
-      background: #181007;
+      background: #181007 !important;
     }
 
     [data-map-style="amber"] .joy-map-tiles {
@@ -5494,7 +5494,7 @@
     }
 
     [data-map-style="day"] #interactive-map {
-      background: #e2e8f0;
+      background: #e2e8f0 !important;
     }
 
     [data-map-style="day"] .joy-map-tiles {
@@ -5502,7 +5502,7 @@
     }
 
     [data-map-style="satellite"] #interactive-map {
-      background: #0b1510;
+      background: #0b1510 !important;
     }
 
     [data-map-style="satellite"] .joy-map-tiles {
@@ -7353,7 +7353,7 @@
 
               <div class="flex items-center gap-1.5 pointer-events-auto shrink-0">
                 <button id="map-style-btn" onclick="toggleMapStylePopover(event)"
-                  class="pressable ethereal-pill rounded-full p-2 text-xs font-semibold shadow-xl flex items-center justify-center relative hover:bg-current/10"
+                  class="pressable ethereal-pill rounded-full p-2 text-xs font-semibold shadow-xl flex items-center justify-center hover:bg-current/10"
                   title="Cambiar colores y estilo del mapa">
                   <svg class="w-4 h-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -7364,8 +7364,6 @@
                     <path
                       d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" />
                   </svg>
-                  <span id="map-style-dot"
-                    style="position:absolute;right:2px;bottom:2px;width:8px;height:8px;border-radius:999px;border:1.5px solid #020617;background:#1e3a5f;"></span>
                 </button>
                 <button id="map-pin-mode-btn" onclick="toggleMapPinPickMode(event)"
                   class="pressable ethereal-pill rounded-full p-2 text-xs font-semibold shadow-xl flex items-center justify-center hover:bg-current/10"
@@ -14351,25 +14349,25 @@
     }
 
     const JOY_MAP_STYLES = [
-      { id: 'auto', label: 'Auto', swatch: 'linear-gradient(135deg, #1e3a5f 50%, #e2e8f0 50%)', dot: '#38bdf8' },
-      { id: 'night', label: 'Noche', swatch: '#1e3a5f', dot: '#38bdf8', tiles: 'streets', gridBg: '#0b1220', gridLine: 'rgba(56, 189, 248, 0.09)', gridText: 'rgba(148, 163, 184, 0.22)', routeColor: '#22d3ee', casingColor: '#083344' },
-      { id: 'asphalt', label: 'Asfalto', swatch: '#334155', dot: '#64748b', tiles: 'dark_gray', gridBg: '#11161f', gridLine: 'rgba(148, 163, 184, 0.09)', gridText: 'rgba(148, 163, 184, 0.22)', routeColor: '#5ce1e6', casingColor: '#020617' },
-      { id: 'cyber', label: 'Cian', swatch: '#0d9488', dot: '#5ce1e6', tiles: 'streets', gridBg: '#040d14', gridLine: 'rgba(45, 212, 191, 0.11)', gridText: 'rgba(94, 234, 212, 0.24)', routeColor: '#5ce1e6', casingColor: '#042f2e' },
-      { id: 'amber', label: 'Ámbar', swatch: '#d97706', dot: '#fbbf24', tiles: 'streets', gridBg: '#181007', gridLine: 'rgba(251, 191, 36, 0.10)', gridText: 'rgba(251, 191, 36, 0.24)', routeColor: '#fbbf24', casingColor: '#451a03' },
-      { id: 'day', label: 'Día', swatch: '#f1f5f9', dot: '#0284c7', tiles: 'streets', gridBg: '#e2e8f0', gridLine: 'rgba(15, 23, 42, 0.08)', gridText: 'rgba(15, 23, 42, 0.25)', routeColor: '#0284c7', casingColor: '#0f172a' },
-      { id: 'satellite', label: 'Satélite', swatch: '#15803d', dot: '#22c55e', tiles: 'satellite', gridBg: '#0b1510', gridLine: 'rgba(74, 222, 128, 0.10)', gridText: 'rgba(134, 239, 172, 0.24)', routeColor: '#38bdf8', casingColor: '#020617' }
+      { id: 'auto', label: 'Auto', swatch: 'linear-gradient(135deg, #1e3a5f 50%, #e2e8f0 50%)', maxZoom: 19 },
+      { id: 'night', label: 'Noche', swatch: '#1e3a5f', tiles: 'streets', maxZoom: 19, gridBg: '#0b1220', gridLine: 'rgba(56, 189, 248, 0.09)', gridText: 'rgba(148, 163, 184, 0.22)', routeColor: '#22d3ee', casingColor: '#083344' },
+      { id: 'asphalt', label: 'Asfalto', swatch: '#2b303a', tiles: 'streets', maxZoom: 19, gridBg: '#14181f', gridLine: 'rgba(148, 163, 184, 0.09)', gridText: 'rgba(148, 163, 184, 0.22)', routeColor: '#38bdf8', casingColor: '#020617' },
+      { id: 'silver', label: 'Gris Claro', swatch: '#cbd5e1', tiles: 'streets', maxZoom: 19, gridBg: '#eef2f6', gridLine: 'rgba(15, 23, 42, 0.08)', gridText: 'rgba(15, 23, 42, 0.25)', routeColor: '#0284c7', casingColor: '#0f172a' },
+      { id: 'amber', label: 'Ámbar', swatch: '#d97706', tiles: 'streets', maxZoom: 19, gridBg: '#181007', gridLine: 'rgba(251, 191, 36, 0.10)', gridText: 'rgba(251, 191, 36, 0.24)', routeColor: '#fbbf24', casingColor: '#451a03' },
+      { id: 'day', label: 'Día', swatch: '#fef3c7', tiles: 'streets', maxZoom: 19, gridBg: '#e2e8f0', gridLine: 'rgba(15, 23, 42, 0.08)', gridText: 'rgba(15, 23, 42, 0.25)', routeColor: '#0284c7', casingColor: '#0f172a' },
+      { id: 'satellite', label: 'Satélite', swatch: '#15803d', tiles: 'satellite', maxZoom: 18, gridBg: '#0b1510', gridLine: 'rgba(74, 222, 128, 0.10)', gridText: 'rgba(134, 239, 172, 0.24)', routeColor: '#38bdf8', casingColor: '#020617' }
     ];
 
     function getEffectiveMapStyleMeta() {
       const picked = navState.mapStyle || 'auto';
-      const resolvedId = picked === 'auto' ? (state.theme === 'light' ? 'day' : 'night') : picked;
+      const resolvedId = picked === 'auto' ? (state.theme === 'light' ? 'day' : 'night') : (picked === 'cyber' ? 'asphalt' : picked);
       return JOY_MAP_STYLES.find(s => s.id === resolvedId) || JOY_MAP_STYLES[1];
     }
 
     function renderMapStylePopover() {
       const pop = document.getElementById('map-style-popover');
       if (!pop) return;
-      const pickedId = navState.mapStyle || 'auto';
+      const pickedId = (navState.mapStyle === 'cyber' ? 'asphalt' : navState.mapStyle) || 'auto';
       pop.innerHTML = JOY_MAP_STYLES.map(s => {
         const activeCls = s.id === pickedId ? ' is-active' : '';
         return '<button type="button" onclick="selectJoyMapStyle(\'' + s.id + '\', event)" data-map-chip="' + s.id + '" class="pressable map-style-chip' + activeCls + '">' +
@@ -14403,7 +14401,7 @@
       const valid = JOY_MAP_STYLES.some(s => s.id === styleId);
       navState.mapStyle = valid ? styleId : 'auto';
       saveNavState();
-      applyJoyMapStyle(true);
+      applyJoyMapStyle(false);
       renderMapStylePopover();
     }
 
@@ -14417,36 +14415,23 @@
       if (joyMapTileLayer) { try { joyMap.removeLayer(joyMapTileLayer); } catch (e) { } joyMapTileLayer = null; }
       if (joyMapRefLayer) { try { joyMap.removeLayer(joyMapRefLayer); } catch (e) { } joyMapRefLayer = null; }
 
-      if (tileGroup === 'dark_gray') {
-        joyMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 16,
-          maxZoom: 19,
-          className: 'joy-map-tiles',
-          zIndex: 2
-        });
-        joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 16,
-          maxZoom: 19,
-          className: 'joy-map-tiles',
-          zIndex: 3
-        });
-      } else if (tileGroup === 'satellite') {
+      if (tileGroup === 'satellite') {
         joyMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 17,
-          maxZoom: 19,
+          maxNativeZoom: 18,
+          maxZoom: 18,
           className: 'joy-map-tiles',
           zIndex: 2
         });
         joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 17,
-          maxZoom: 19,
+          maxNativeZoom: 18,
+          maxZoom: 18,
           className: 'joy-map-tiles',
           opacity: 0.92,
           zIndex: 3
         });
       } else {
         joyMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 17,
+          maxNativeZoom: 19,
           maxZoom: 19,
           className: 'joy-map-tiles',
           zIndex: 2
@@ -14460,7 +14445,7 @@
           try { joyMap.removeLayer(joyMapTileLayer); } catch (e) { }
           if (joyMapRefLayer) { try { joyMap.removeLayer(joyMapRefLayer); } catch (e) { } joyMapRefLayer = null; }
           joyMapTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {
-            maxNativeZoom: 17,
+            maxNativeZoom: 19,
             maxZoom: 19,
             className: 'joy-map-tiles',
             zIndex: 2
@@ -14478,9 +14463,6 @@
       const changedEffective = !leftCol || leftCol.getAttribute('data-map-style') !== meta.id;
       if (leftCol) leftCol.setAttribute('data-map-style', meta.id);
 
-      const dot = document.getElementById('map-style-dot');
-      if (dot) dot.style.background = meta.dot || '#38bdf8';
-
       const styleBtn = document.getElementById('map-style-btn');
       if (styleBtn) {
         const picked = navState.mapStyle || 'auto';
@@ -14489,6 +14471,9 @@
       }
 
       if (joyMap) {
+        const zoomLimit = meta.maxZoom || 19;
+        if (typeof joyMap.setMaxZoom === 'function') joyMap.setMaxZoom(zoomLimit);
+        if (joyMap.getZoom() > zoomLimit) joyMap.setZoom(zoomLimit);
         mountJoyMapTileLayers(meta.tiles || 'streets');
         if (changedEffective && joyOfflineGridLayer && typeof joyOfflineGridLayer.redraw === 'function') {
           joyOfflineGridLayer.redraw();
