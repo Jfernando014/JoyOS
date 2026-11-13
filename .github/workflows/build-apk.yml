@@ -2,7 +2,7 @@ name: Build JoyOS Launcher APK
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ] # 'dev' solo compila Artifact de prueba; únicamente 'main' o tags 'v*' publican Release
     tags: [ "v*" ]
   workflow_dispatch:
 
@@ -31,6 +31,13 @@ jobs:
           ./gradle-8.5/bin/gradle assembleDebug --no-daemon --stacktrace
           cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/JoyOSLauncher.apk
           cp joy_os_v1_production.html joy_os_live.html
+          APP_VER=$(grep -oE 'versionName\s*=\s*"[^"]+"' app/build.gradle.kts | head -n1 | cut -d'"' -f2)
+          echo "APP_VER=${APP_VER}" >> "$GITHUB_ENV"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=v${APP_VER}" >> "$GITHUB_ENV"
+          fi
 
       - name: Upload JoyOSLauncher APK Artifact
         uses: actions/upload-artifact@v4
@@ -43,16 +50,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.0.0' }}
-          name: "JoyOS Production v1.0.0 (Official Hardware Release)"
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "JoyOS Production v${{ env.APP_VER }} (Chevrolet Joy · 9\" AC8227L)"
           body: |
-            ### 🚀 JoyOS Production v1.0.0 — Versión Oficial para Chevrolet Joy (9" 1280×720)
-            - **Diseño Completo e Intacto**: Todo el diseño visual, animaciones y pantallas del prototipo v8 adaptadas a producción.
-            - **Salidas de Emergencia y Seguridad**: Botones funcionales para abrir Ajustes de Android (`com.android.settings`) y cambiar de Launcher (`ACTION_HOME_SETTINGS`).
-            - **Cajón de Apps 100% Real**: Detección y ejecución nativa de todas las aplicaciones de la pantalla táctil (Z-Link, Radio FM, Maps, etc.).
-            - **Gestor de Archivos USB Conectado al Hardware**: Detección del puerto de la guantera con instalación directa de APKs.
-            - **Cero Datos Quemados**: Velocímetro en 0 km/h y telemetría en tiempo real por GPS y OBD2.
-            - **100% Offline**: Fuentes y estilos cargados localmente en el paquete sin dependencias externas.
+            ### 🚀 JoyOS Production v${{ env.APP_VER }} — Chevrolet Joy (9" AC8227L / 1280×720)
+            - **OBD2 Vgate iCar Pro Dual (BT Classic SPP + BLE GATT)**: Soporte nativo para `ANDROID-VLINK` e `IOS-VLINK`, RPM, temperatura real de refrigerante, velocidad ECU, voltaje de batería (`ATRV`) y consumo estimado por MAF/MAP.
+            - **TPMS USB 433.92 MHz Plug & Play**: Driver USB Serial integrado (`usb-serial-for-android 3.8.1`, sin apps externas) para receptor Jansite/CH340 con lectura individual por rueda (`FL`, `FR`, `RL`, `RR`), temperatura y diagnóstico hex en REA.
+            - **Compatibilidad WebView Android 8.1 + UI Multi-DPI**: Tailwind precompilado 100% offline, JS compatible ES2017 y diseño responsive sin recortes en 1280×720, 1280×672, 1080×600, 1024×600, 960×540 y 853×480.
+            - **Cero Datos Quemados**: Toda la telemetría parte en estado de espera (`--` / `0 km/h`) hasta recibir señales reales.
           files: |
             app/build/outputs/apk/debug/JoyOSLauncher.apk
             joy_os_live.html
