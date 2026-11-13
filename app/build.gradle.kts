@@ -11,8 +11,8 @@ android {
         applicationId = "com.joyos.launcher"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.0.0"
+        versionCode = 13
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -52,4 +52,5 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.webkit:webkit:1.10.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("com.github.mik3y:usb-serial-for-android:3.8.1")
 }

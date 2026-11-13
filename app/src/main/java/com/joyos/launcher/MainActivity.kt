@@ -39,6 +39,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.File
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -50,6 +51,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tpmsReceiver: TpmsUsbReceiver
     private lateinit var otaManager: OtaUpdateManager
     private lateinit var hardwareOptimizer: JoyHardwareOptimizer
+
+    @Volatile
+    private var hotTempThresholdC: Int = 104
+
+    @Volatile
+    private var screenTimeoutMode: String = "never"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +70,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            val sysPrefs = getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+            screenTimeoutMode = sysPrefs.getString("screen_timeout_mode", "never") ?: "never"
+        } catch (_: Throwable) {}
+
+        try {
             hideSystemUI()
+            applyScreenTimeoutMode(screenTimeoutMode)
         } catch (e: Throwable) {
             Log.w("JoyOS", "System UI hide warning: ${e.message}")
         }
@@ -79,14 +92,21 @@ class MainActivity : AppCompatActivity() {
             try {
                 dspEngine.onSpeedUpdated(data.speedKmh)
             } catch (_: Throwable) {}
+            val tripFormatted = String.format(Locale.US, "%.1f", data.tripKm)
+            val latFormatted = String.format(Locale.US, "%.6f", data.latitude)
+            val lonFormatted = String.format(Locale.US, "%.6f", data.longitude)
+            val bearFormatted = String.format(Locale.US, "%.1f", data.bearing)
+            val altFormatted = String.format(Locale.US, "%.1f", data.altitude)
+            val accFormatted = String.format(Locale.US, "%.0f", data.accuracyM)
+            val providerQuoted = JSONObject.quote(data.provider)
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
-                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: ${"%.1f".format(data.tripKm)}, lat: ${data.latitude}, lon: ${data.longitude}, bearing: ${data.bearing}, altitude: ${data.altitude}, hasFix: ${data.hasFix} });",
+                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted, lat: $latFormatted, lon: $lonFormatted, bearing: $bearFormatted, altitude: $altFormatted, hasFix: ${data.hasFix}, provider: $providerQuoted, accuracy: $accFormatted });",
                         null
                     )
                     webView.evaluateJavascript(
-                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: ${data.speedKmh}, tripKm: ${"%.1f".format(data.tripKm)} });",
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted });",
                         null
                     )
                 } catch (_: Throwable) {}
@@ -99,32 +119,77 @@ class MainActivity : AppCompatActivity() {
             otaManager = otaManager,
             hardwareOptimizer = hardwareOptimizer,
             getGpsData = { gpsManager.currentGpsData },
+            getObdState = { obdManager.currentState },
+            getTpmsState = { tpmsReceiver.currentState },
+            onSetAlertThresholds = { lowPsi, hotTempC ->
+                hotTempThresholdC = hotTempC.coerceIn(90, 125)
+                tpmsReceiver.updateThresholds(lowPsi, 75)
+            },
+            onReconnectHardware = {
+                try { obdManager.triggerReconnect() } catch (_: Throwable) {}
+                try { tpmsReceiver.triggerReprobe() } catch (_: Throwable) {}
+            },
+            onSetGpsSource = { mode -> gpsManager.setSourceMode(mode) },
+            onResetTrip = { gpsManager.resetTripOdometer() },
+            onSetScreenTimeout = { mode -> runOnUiThread { applyScreenTimeoutMode(mode) } },
+            onRequestPermissions = { runOnUiThread { ensureAutomotivePermissions() } },
+            onClearWebCache = { runOnUiThread { try { webView.clearCache(true) } catch (_: Throwable) {} } },
             onReloadUi = { runOnUiThread { loadJoyOS() } },
             onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
         )
 
-        obdManager = ObdBleManager(this) { rpm, coolantTempC, _, connected ->
+        obdManager = ObdBleManager(this) { obd ->
+            try {
+                if (!gpsManager.currentGpsData.hasFix && obd.connected && obd.speedKmh > 0) {
+                    dspEngine.onSpeedUpdated(obd.speedKmh)
+                }
+            } catch (_: Throwable) {}
+            val hot = obd.coolantTempC > -90 && obd.coolantTempC >= hotTempThresholdC
+            val voltJson = if (obd.batteryVoltage > 5.0) String.format(Locale.US, "%.1f", obd.batteryVoltage) else "null"
+            val consJson = if (obd.consumptionKmL > 0.5) String.format(Locale.US, "%.1f", obd.consumptionKmL) else "null"
+            val payload = JSONObject().apply {
+                put("rpm", obd.rpm)
+                put("coolantTemp", if (obd.coolantTempC > -90) obd.coolantTempC else JSONObject.NULL)
+                put("engineHot", hot)
+                put("obdSpeed", obd.speedKmh)
+                put("loadPct", if (obd.engineLoadPct >= 0) obd.engineLoadPct else JSONObject.NULL)
+                put("obdConnected", obd.connected)
+                put("obdTransport", obd.transport)
+                put("obdDevice", obd.deviceName)
+            }
             runOnUiThread {
                 try {
-                    val hot = coolantTempC >= 104
-                    webView.evaluateJavascript(
-                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ rpm: $rpm, engineHot: $hot, obdConnected: $connected });",
-                        null
-                    )
+                    val script = "if (typeof window.onTelemetryUpdate === 'function') { var _d = $payload; _d.voltage = $voltJson; _d.consumptionKmL = $consJson; window.onTelemetryUpdate(_d); }"
+                    webView.evaluateJavascript(script, null)
                 } catch (_: Throwable) {}
             }
         }
 
-        tpmsReceiver = TpmsUsbReceiver(this) { _, _, _, _, lowAlert, connected ->
+        tpmsReceiver = TpmsUsbReceiver(this) { tpms ->
+            val payload = JSONObject().apply {
+                put("tireAlert", tpms.lowAlert)
+                put("tpmsConnected", tpms.connected)
+                put("tpmsSource", tpms.source)
+                put("tpmsDevice", tpms.deviceLabel)
+                put("psiFl", if (tpms.flPsi >= 0) tpms.flPsi else JSONObject.NULL)
+                put("psiFr", if (tpms.frPsi >= 0) tpms.frPsi else JSONObject.NULL)
+                put("psiRl", if (tpms.rlPsi >= 0) tpms.rlPsi else JSONObject.NULL)
+                put("psiRr", if (tpms.rrPsi >= 0) tpms.rrPsi else JSONObject.NULL)
+                put("tempFl", if (tpms.flTempC > -90) tpms.flTempC else JSONObject.NULL)
+                put("tempFr", if (tpms.frTempC > -90) tpms.frTempC else JSONObject.NULL)
+                put("tempRl", if (tpms.rlTempC > -90) tpms.rlTempC else JSONObject.NULL)
+                put("tempRr", if (tpms.rrTempC > -90) tpms.rrTempC else JSONObject.NULL)
+            }
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
-                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate({ tireAlert: $lowAlert, tpmsConnected: $connected });",
+                        "if (typeof window.onTelemetryUpdate === 'function') window.onTelemetryUpdate($payload);",
                         null
                     )
                 } catch (_: Throwable) {}
             }
         }
+        tpmsReceiver.handleUsbAttachIntent(intent)
 
         configureWebView()
         loadJoyOS()
@@ -274,6 +339,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        try { tpmsReceiver.handleUsbAttachIntent(intent) } catch (_: Throwable) {}
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            try { hideSystemUI() } catch (_: Throwable) {}
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         try { hideSystemUI() } catch (_: Throwable) {}
@@ -318,6 +396,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsNeeded.add(Manifest.permission.READ_MEDIA_AUDIO)
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+
         if (permissionsNeeded.isNotEmpty()) {
             ActivityCompat.requestPermissions(this, permissionsNeeded.toTypedArray(), 1001)
         } else {
@@ -332,12 +429,17 @@ class MainActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001) {
-            try {
-                gpsManager.startTracking()
-            } catch (_: Throwable) {}
-            try {
-                obdManager.start(lifecycleScope)
-            } catch (_: Throwable) {}
+            try { gpsManager.startTracking() } catch (_: Throwable) {}
+            try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
+            try { tpmsReceiver.register() } catch (_: Throwable) {}
+            runOnUiThread {
+                try {
+                    webView.evaluateJavascript(
+                        "if (typeof refreshMusicFromDevice === 'function') refreshMusicFromDevice(); if (typeof renderFilesManagerUI === 'function') renderFilesManagerUI(); if (typeof updateHardwareStatus === 'function') updateHardwareStatus();",
+                        null
+                    )
+                } catch (_: Throwable) {}
+            }
         }
     }
 
@@ -369,6 +471,12 @@ class MainActivity : AppCompatActivity() {
                 loadWithOverviewMode = true
                 displayZoomControls = false
                 builtInZoomControls = false
+                try {
+                    val baseUa = userAgentString ?: "Mozilla/5.0"
+                    if (!baseUa.contains("JoyOS")) {
+                        userAgentString = "$baseUa JoyOS/1.1.0"
+                    }
+                } catch (_: Throwable) {}
             }
 
             webChromeClient = WebChromeClient()
@@ -389,14 +497,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun isHotUpdateCompatible(htmlText: String): Boolean {
+        if (!htmlText.contains("onBtMusicMetadata") || !htmlText.contains("inspectOemHardware")) return false
+        val marker = Regex("JOYOS_PROD_VER=([0-9]+\\.[0-9]+\\.[0-9]+)").find(htmlText)?.groupValues?.getOrNull(1) ?: return false
+        val installed = bridge.getAppVersion()
+        return compareSemVer(marker, installed) >= 0
+    }
+
+    private fun compareSemVer(a: String, b: String): Int {
+        val pa = a.split('.').map { it.toIntOrNull() ?: 0 }
+        val pb = b.split('.').map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(pa.size, pb.size)) {
+            val va = pa.getOrElse(i) { 0 }
+            val vb = pb.getOrElse(i) { 0 }
+            if (va != vb) return va.compareTo(vb)
+        }
+        return 0
+    }
+
     private fun loadJoyOS() {
         try {
-            // Check if a verified hot-update exists in internal storage; otherwise load bundled production assets
+            // Check if a verified, up-to-date hot-update exists in internal storage; otherwise load bundled production assets
             val liveUpdateFile = File(filesDir, "joy_os_live.html")
             if (liveUpdateFile.exists() && liveUpdateFile.length() > 1024) {
                 val htmlText = liveUpdateFile.readText(Charsets.UTF_8)
-                // Only use hot-update if it contains the latest REA & Leaflet production engine
-                if (htmlText.contains("onBtMusicMetadata") && htmlText.contains("inspectOemHardware")) {
+                if (isHotUpdateCompatible(htmlText)) {
                     webView.loadDataWithBaseURL(
                         "file:///android_asset/www/",
                         htmlText,
@@ -406,7 +531,7 @@ class MainActivity : AppCompatActivity() {
                     )
                     return
                 } else {
-                    // Delete stale pre-production cached hot-update so bundled APK asset is used
+                    // Delete stale cached hot-update so newer bundled APK assets take precedence
                     try { liveUpdateFile.delete() } catch (_: Throwable) {}
                 }
             }
@@ -419,9 +544,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyScreenTimeoutMode(mode: String) {
+        screenTimeoutMode = when (mode.lowercase()) {
+            "1m", "1 min" -> "1m"
+            "5m", "5 min" -> "5m"
+            else -> "never"
+        }
+        try {
+            getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString("screen_timeout_mode", screenTimeoutMode)
+                .apply()
+            if (screenTimeoutMode == "never") {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            if (android.provider.Settings.System.canWrite(this)) {
+                val timeoutMs = when (screenTimeoutMode) {
+                    "1m" -> 60_000
+                    "5m" -> 300_000
+                    else -> 1_800_000
+                }
+                android.provider.Settings.System.putInt(
+                    contentResolver,
+                    android.provider.Settings.System.SCREEN_OFF_TIMEOUT,
+                    timeoutMs
+                )
+            }
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "applyScreenTimeoutMode handled: ${e.message}")
+        }
+    }
+
     @Suppress("DEPRECATION")
     private fun hideSystemUI() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (screenTimeoutMode == "never") {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.let { controller ->
@@ -444,6 +606,12 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 delay(8000)
+                val autoCheck = getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                    .getBoolean("ota_auto_wifi", true)
+                if (!autoCheck) {
+                    Log.i("JoyOS", "Background OTA check disabled by user setting")
+                    return@launch
+                }
                 val res = otaManager.checkLatestRelease(bridge.getAppVersion())
                 if (res.isSuccess && res.getOrNull()?.isNewer == true) {
                     val info = res.getOrNull()!!

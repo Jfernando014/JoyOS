@@ -1,14 +1,22 @@
 package com.joyos.launcher.bridge
 
+import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.usb.UsbManager
 import android.media.AudioManager
+import android.media.MediaMetadataRetriever
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.BatteryManager
@@ -18,14 +26,16 @@ import android.os.StatFs
 import android.provider.Settings
 import android.util.Log
 import android.view.KeyEvent
-import android.media.MediaMetadataRetriever
 import android.webkit.JavascriptInterface
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import com.joyos.launcher.services.GpsData
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.ObdState
 import com.joyos.launcher.services.OtaUpdateManager
+import com.joyos.launcher.services.TpmsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +55,15 @@ class AndroidBridge(
     private val otaManager: OtaUpdateManager? = null,
     private val hardwareOptimizer: JoyHardwareOptimizer? = null,
     private val getGpsData: (() -> GpsData)? = null,
+    private val getObdState: (() -> ObdState)? = null,
+    private val getTpmsState: (() -> TpmsState)? = null,
+    private val onSetAlertThresholds: ((Int, Int) -> Unit)? = null,
+    private val onReconnectHardware: (() -> Unit)? = null,
+    private val onSetGpsSource: ((String) -> Unit)? = null,
+    private val onResetTrip: (() -> Unit)? = null,
+    private val onSetScreenTimeout: ((String) -> Unit)? = null,
+    private val onRequestPermissions: (() -> Unit)? = null,
+    private val onClearWebCache: (() -> Unit)? = null,
     private val onReloadUi: (() -> Unit)? = null,
     private val onEvaluateJs: ((String) -> Unit)? = null
 ) {
@@ -60,13 +79,50 @@ class AndroidBridge(
         context.applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
     }
 
+    private fun isInternetOnline(): Boolean {
+        return try {
+            val cm = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+                ?: return false
+            val net = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(net) ?: return false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun isHotspotActive(): Boolean {
+        return try {
+            val wm = wifiManager ?: return false
+            val m = wm.javaClass.getDeclaredMethod("isWifiApEnabled")
+            m.isAccessible = true
+            (m.invoke(wm) as? Boolean) == true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun formatIpv4(ipInt: Int): String {
+        if (ipInt == 0) return ""
+        return String.format(
+            Locale.US,
+            "%d.%d.%d.%d",
+            ipInt and 0xff,
+            (ipInt shr 8) and 0xff,
+            (ipInt shr 16) and 0xff,
+            (ipInt shr 24) and 0xff
+        )
+    }
+
     /**
-     * Returns real connected Wi-Fi SSID and power state.
+     * Returns real connected Wi-Fi SSID, signal RSSI, link speed, local IPv4, internet reachability, and Hotspot state.
      */
     @JavascriptInterface
     fun getWifiStatus(): String {
         return try {
             val enabled = wifiManager?.isWifiEnabled ?: false
+            @Suppress("DEPRECATION")
             val info = wifiManager?.connectionInfo
             val ssid = if (info != null && info.networkId != -1 && !info.ssid.isNullOrBlank()) {
                 val clean = info.ssid.replace("\"", "").trim()
@@ -74,37 +130,109 @@ class AndroidBridge(
             } else {
                 "Desconectado"
             }
+            @Suppress("DEPRECATION")
+            val ipStr = if (info != null && ssid != "Desconectado") formatIpv4(info.ipAddress) else ""
+            val rssi = if (info != null && ssid != "Desconectado") info.rssi else -127
+            val linkMbps = if (info != null && ssid != "Desconectado") info.linkSpeed else 0
+
             val json = JSONObject()
             json.put("enabled", enabled)
             json.put("connected", ssid != "Desconectado")
             json.put("ssid", ssid)
+            json.put("ip", ipStr)
+            json.put("rssi", rssi)
+            json.put("linkSpeed", linkMbps)
+            json.put("internet", isInternetOnline())
+            json.put("hotspot", isHotspotActive())
             json.toString()
         } catch (_: Throwable) {
-            "{\"enabled\":false,\"connected\":false,\"ssid\":\"Desconectado\"}"
+            "{\"enabled\":false,\"connected\":false,\"ssid\":\"Desconectado\",\"ip\":\"\",\"rssi\":-127,\"linkSpeed\":0,\"internet\":false,\"hotspot\":false}"
         }
     }
 
     /**
-     * Returns real Bluetooth state and first paired device.
+     * Enables or disables Wi-Fi directly on Android <= 9 (AC8227L Oreo) or launches Android Wi-Fi Panel on 10+.
+     */
+    @JavascriptInterface
+    fun setWifiEnabled(enabled: Boolean): Boolean {
+        return try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                @Suppress("DEPRECATION")
+                wifiManager?.setWifiEnabled(enabled) ?: false
+            } else {
+                val intent = Intent(Settings.Panel.ACTION_WIFI).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+                true
+            }
+        } catch (_: Throwable) {
+            openWifiSettings()
+        }
+    }
+
+    /**
+     * Checks if a BluetoothDevice currently has an active ACL/profile connection without relying
+     * on async ProfileProxy setup (supported across Android 8.1+ AC8227L and API 34).
+     */
+    private fun isBtDeviceActivelyConnected(dev: BluetoothDevice): Boolean {
+        return try {
+            val m = dev.javaClass.getMethod("isConnected")
+            (m.invoke(dev) as? Boolean) == true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Returns real active Bluetooth connection state and connected device name.
      */
     @JavascriptInterface
     fun getBluetoothStatus(): String {
         return try {
-            val enabled = bluetoothAdapter?.isEnabled ?: false
-            val bonded = try { bluetoothAdapter?.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
-            val connectedName = bonded.firstOrNull()?.name ?: "Sin dispositivo vinculado"
+            val adapter = bluetoothAdapter
+            val enabled = adapter?.isEnabled ?: false
+            if (!enabled || adapter == null) {
+                return "{\"enabled\":false,\"connected\":false,\"device\":\"Bluetooth apagado\",\"pairedCount\":0}"
+            }
+
+            val bonded = try { adapter.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
+            val activeBonded = bonded.firstOrNull { isBtDeviceActivelyConnected(it) }
+
+            val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+            val gattConnected = try {
+                @Suppress("DEPRECATION")
+                bm?.getConnectedDevices(BluetoothProfile.GATT)?.firstOrNull()
+            } catch (_: Throwable) {
+                null
+            }
+
+            val a2dpState = try { adapter.getProfileConnectionState(BluetoothProfile.A2DP) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val hfpState = try { adapter.getProfileConnectionState(BluetoothProfile.HEADSET) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val profileConnected = a2dpState == BluetoothProfile.STATE_CONNECTED || hfpState == BluetoothProfile.STATE_CONNECTED
+            val obdConnected = getObdState?.invoke()?.connected == true
+
+            val isConnected = activeBonded != null || gattConnected != null || profileConnected || lastBtPlaying
+            val deviceName = activeBonded?.name
+                ?: gattConnected?.name
+                ?: (if (profileConnected) bonded.firstOrNull()?.name else null)
+                ?: (if (obdConnected) (getObdState?.invoke()?.deviceName?.ifBlank { "OBD2" } ?: "OBD2") else null)
+                ?: (if (bonded.isNotEmpty()) "${bonded.size} vinculado(s)" else "Sin dispositivo")
+
             val json = JSONObject()
-            json.put("enabled", enabled)
-            json.put("connected", enabled && bonded.isNotEmpty())
-            json.put("device", connectedName)
+            json.put("enabled", true)
+            json.put("connected", isConnected)
+            json.put("obdConnected", obdConnected)
+            json.put("device", deviceName)
+            json.put("pairedCount", bonded.size)
             json.toString()
         } catch (_: Throwable) {
-            "{\"enabled\":false,\"connected\":false,\"device\":\"Sin dispositivo\"}"
+            "{\"enabled\":false,\"connected\":false,\"device\":\"Sin dispositivo\",\"pairedCount\":0}"
         }
     }
 
     /**
-     * Returns all paired Bluetooth devices as a JSON array.
+     * Returns all paired Bluetooth devices as a JSON array with live connection indicator.
      */
     @JavascriptInterface
     fun getBluetoothBondedDevices(): String {
@@ -116,7 +244,8 @@ class AndroidBridge(
                 val name = dev.name ?: "Dispositivo Bluetooth"
                 obj.put("name", name)
                 obj.put("address", dev.address ?: "")
-                obj.put("type", if (name.contains("OBD", true) || name.contains("ELM", true) || name.contains("VGATE", true)) "obd" else "phone")
+                obj.put("connected", isBtDeviceActivelyConnected(dev))
+                obj.put("type", if (name.contains("OBD", true) || name.contains("ELM", true) || name.contains("VGATE", true) || name.contains("VLINK", true) || name.contains("V-LINK", true) || name.contains("ICAR", true)) "obd" else "phone")
                 arr.put(obj)
             }
             arr.toString()
@@ -126,50 +255,66 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real system battery percentage and electrical voltage.
+     * Returns real car battery/alternator voltage from OBD2 ATRV first, falling back to real 12V ADC
+     * only if exposed by hardware; never emits fake static "12.4" when unavailable.
      */
     @JavascriptInterface
     fun getBatteryStatus(): String {
         return try {
+            val obdV = getObdState?.invoke()?.batteryVoltage ?: -1.0
+            if (obdV > 5.0) {
+                val json = JSONObject()
+                json.put("level", 100)
+                json.put("voltage", String.format(Locale.US, "%.1f", obdV))
+                json.put("source", "obd2")
+                return json.toString()
+            }
+
             val iFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             val bIntent = context.registerReceiver(null, iFilter)
             val level = bIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
             val scale = bIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-            val pct = if (level >= 0 && scale > 0) (level * 100 / scale) else 100
+            val pct = if (level >= 0 && scale > 0) (level * 100 / scale) else -1
             val voltMv = bIntent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) ?: -1
-            val voltV = if (voltMv > 0) {
-                if (voltMv > 10000) voltMv / 1000.0 else (voltMv / 1000.0) * 3.0 // car 12v ratio or battery
-            } else 12.4
+            val voltStr = if (voltMv in 5000..18000) {
+                String.format(Locale.US, "%.1f", voltMv / 1000.0)
+            } else {
+                ""
+            }
             val json = JSONObject()
             json.put("level", pct)
-            json.put("voltage", String.format(Locale.US, "%.1f", voltV))
+            json.put("voltage", voltStr)
+            json.put("source", if (voltStr.isNotEmpty()) "adc" else "none")
             json.toString()
         } catch (_: Throwable) {
-            "{\"level\":100,\"voltage\":\"12.4\"}"
+            "{\"level\":-1,\"voltage\":\"\",\"source\":\"none\"}"
         }
     }
 
     /**
-     * Reads real CPU thermal temperature from kernel sensor.
+     * Reads real CPU thermal temperature from kernel thermal zones; returns -1 when unreadable.
      */
     @JavascriptInterface
     fun getCpuTemperature(): Int {
         return try {
             val paths = listOf(
                 "/sys/class/thermal/thermal_zone0/temp",
+                "/sys/class/thermal/thermal_zone1/temp",
+                "/sys/class/thermal/thermal_zone2/temp",
                 "/sys/devices/virtual/thermal/thermal_zone0/temp",
-                "/sys/class/thermal/thermal_zone1/temp"
+                "/proc/mtktz/mtktscpu"
             )
             for (p in paths) {
                 val f = File(p)
                 if (f.exists() && f.canRead()) {
                     val raw = f.readText().trim().toIntOrNull() ?: continue
-                    return if (raw > 1000) raw / 1000 else raw
+                    val deg = if (raw > 1000) raw / 1000 else raw
+                    if (deg in 1..125) return deg
                 }
             }
-            42
+            -1
         } catch (_: Throwable) {
-            42
+            -1
         }
     }
 
@@ -382,15 +527,43 @@ class AndroidBridge(
             activityManager?.getMemoryInfo(memInfo)
             val usedBytes = memInfo.totalMem - memInfo.availMem
             val usedGb = usedBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
-            "%.2f GB".format(usedGb).replace('.', ',')
+            String.format(Locale.US, "%.2f GB", usedGb).replace('.', ',')
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "RAM optimization handled: ${e.message}")
-            "1,45 GB"
+            "-- GB"
         }
     }
 
     /**
-     * Applies physical screen brightness (0 to 100 scale).
+     * Checks if JoyOS has Android permission to modify global system settings (brightness, sleep timeout).
+     */
+    @JavascriptInterface
+    fun canWriteSystemSettings(): Boolean {
+        return try {
+            Settings.System.canWrite(context)
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
+     * Opens Android's "Modify system settings" permission toggle directly for JoyOS.
+     */
+    @JavascriptInterface
+    fun openWriteSettingsPermission(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:${context.packageName}")).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) {
+            openAndroidSettings()
+        }
+    }
+
+    /**
+     * Applies physical screen brightness (10 to 100 scale) cleanly on Window and System Settings.
      */
     @JavascriptInterface
     fun setSystemBrightness(percent: Int) {
@@ -403,12 +576,18 @@ class AndroidBridge(
                     context.window.attributes = lp
                 }
             }
-            // Also attempt to persist in system settings if permitted
-            Settings.System.putInt(
-                context.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS,
-                (clamped * 255) / 100
-            )
+            if (Settings.System.canWrite(context)) {
+                Settings.System.putInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_BRIGHTNESS_MODE,
+                    Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL
+                )
+                Settings.System.putInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_BRIGHTNESS,
+                    (clamped * 255) / 100
+                )
+            }
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Screen brightness handled: ${e.message}")
         }
@@ -552,6 +731,115 @@ class AndroidBridge(
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error tuning radio: ${e.message}")
             false
+        }
+    }
+
+    /**
+     * Triggers hardware FM radio station seek (up/down) on automotive MCU tuners.
+     */
+    @JavascriptInterface
+    fun seekRadio(direction: Int): Boolean {
+        return try {
+            val up = direction >= 0
+            val seekIntents = listOf(
+                Intent(if (up) "com.android.fmradio.ACTION_SEEK_UP" else "com.android.fmradio.ACTION_SEEK_DOWN"),
+                Intent("com.ts.fmradio.ACTION_SEEK").putExtra("direction", if (up) 1 else -1),
+                Intent("com.microntek.radio.seek").putExtra("direction", if (up) 1 else -1),
+                Intent("xyauto.radio.seek").putExtra("dir", if (up) 1 else -1),
+                Intent("com.autochips.fmradio.intent.action.SEEK").putExtra("seek_up", up)
+            )
+            for (intent in seekIntents) {
+                try {
+                    context.sendBroadcast(intent)
+                } catch (_: Throwable) {}
+            }
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error seeking radio: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Opens an external URL in the Android browser (e.g., RUNT, Grupo R5, SIMIT).
+     */
+    @JavascriptInterface
+    fun openExternalUrl(url: String): Boolean {
+        return try {
+            if (!url.startsWith("https://") && !url.startsWith("http://")) return false
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error opening external URL: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Launches turn-by-turn navigation to exact coordinates in Waze, Google Maps, or any geo handler.
+     */
+    @JavascriptInterface
+    fun navigateToLocation(lat: Double, lon: Double, label: String, preferredApp: String): Boolean {
+        return try {
+            val safeLabel = Uri.encode(label.ifBlank { "Destino" })
+            val targets = if (preferredApp == "waze") {
+                listOf(
+                    Pair(Uri.parse("waze://?ll=$lat,$lon&navigate=yes"), "com.waze"),
+                    Pair(Uri.parse("https://waze.com/ul?ll=$lat,$lon&navigate=yes"), null),
+                    Pair(Uri.parse("geo:$lat,$lon?q=$lat,$lon($safeLabel)"), null)
+                )
+            } else {
+                listOf(
+                    Pair(Uri.parse("google.navigation:q=$lat,$lon"), "com.google.android.apps.maps"),
+                    Pair(Uri.parse("geo:$lat,$lon?q=$lat,$lon($safeLabel)"), null),
+                    Pair(Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lon"), null)
+                )
+            }
+            for ((uri, pkg) in targets) {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        if (pkg != null) setPackage(pkg)
+                    }
+                    context.startActivity(intent)
+                    return true
+                } catch (_: Throwable) {}
+            }
+            false
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error navigating to location: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Saves arbitrary JSON state persistently in SharedPreferences so data survives WebView cache clears.
+     */
+    @JavascriptInterface
+    fun savePersistentJson(key: String, json: String): Boolean {
+        return try {
+            val prefs = context.getSharedPreferences("joyos_persistent_store", Context.MODE_PRIVATE)
+            prefs.edit().putString(key, json).apply()
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error saving persistent JSON: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Loads previously persisted JSON string from SharedPreferences, or empty string if absent.
+     */
+    @JavascriptInterface
+    fun loadPersistentJson(key: String): String {
+        return try {
+            val prefs = context.getSharedPreferences("joyos_persistent_store", Context.MODE_PRIVATE)
+            prefs.getString(key, "") ?: ""
+        } catch (_: Throwable) {
+            ""
         }
     }
 
@@ -843,7 +1131,7 @@ class AndroidBridge(
                 targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC))
             }
 
-            val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma")
+            val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma", "mp4", "mkv", "avi", "pdf")
             val foundFiles = mutableListOf<File>()
 
             fun scanDir(dir: File, depth: Int) {
@@ -892,13 +1180,15 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real-time GPS location, bearing, speed, and fix state.
+     * Returns real-time GPS location, bearing, speed, accuracy, provider, and fix state.
      */
     @JavascriptInterface
     fun getGpsLocation(): String {
         return try {
             val data = getGpsData?.invoke() ?: GpsData()
             val json = JSONObject().apply {
+                put("lat", data.latitude)
+                put("lon", data.longitude)
                 put("latitude", data.latitude)
                 put("longitude", data.longitude)
                 put("speed", data.speedKmh)
@@ -906,10 +1196,12 @@ class AndroidBridge(
                 put("altitude", data.altitude)
                 put("hasFix", data.hasFix)
                 put("tripKm", data.tripKm)
+                put("provider", data.provider)
+                put("accuracy", data.accuracyM.toDouble())
             }
             json.toString()
         } catch (_: Throwable) {
-            "{\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0}"
+            "{\"lat\":4.6534,\"lon\":-74.0836,\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0,\"provider\":\"standby\",\"accuracy\":-1}"
         }
     }
 
@@ -1170,7 +1462,7 @@ class AndroidBridge(
                 put("availMb", availMb)
             }.toString()
         } catch (_: Throwable) {
-            "{\"usedGb\":\"-- GB\",\"totalGb\":\"2,0 GB\",\"availMb\":512}"
+            "{\"usedGb\":\"-- GB\",\"totalGb\":\"-- GB\",\"availMb\":0}"
         }
     }
 
@@ -1256,6 +1548,57 @@ class AndroidBridge(
             result.put("hardwareNodes", serialNodes)
             result.put("btMetadata", JSONObject(getBtMusicMetadata()))
 
+            // 4. Connected USB Host devices (for diagnosing 433.92 MHz TPMS receiver VID:PID)
+            val usbArray = JSONArray()
+            try {
+                val usbMgr = context.applicationContext.getSystemService(Context.USB_SERVICE) as? UsbManager
+                usbMgr?.deviceList?.values?.forEach { dev ->
+                    usbArray.put(JSONObject().apply {
+                        put("vid", String.format(Locale.US, "0x%04X", dev.vendorId))
+                        put("pid", String.format(Locale.US, "0x%04X", dev.productId))
+                        put("product", dev.productName ?: "USB Device")
+                        put("manufacturer", dev.manufacturerName ?: "")
+                        put("deviceClass", dev.deviceClass)
+                        put("interfaces", dev.interfaceCount)
+                        put("hasPermission", usbMgr.hasPermission(dev))
+                    })
+                }
+            } catch (_: Throwable) {}
+            result.put("usbDevices", usbArray)
+
+            // 5. Live OBD2 & USB TPMS diagnostics
+            val obd = getObdState?.invoke()
+            result.put("obd", JSONObject().apply {
+                put("connected", obd?.connected ?: false)
+                put("transport", obd?.transport ?: "disconnected")
+                put("deviceName", obd?.deviceName ?: "")
+                put("rpm", obd?.rpm ?: 0)
+                put("coolantTempC", obd?.coolantTempC ?: -99)
+                put("batteryVoltage", obd?.batteryVoltage ?: -1.0)
+                put("lastError", obd?.lastError ?: "")
+            })
+
+            val tpms = getTpmsState?.invoke()
+            result.put("tpms", JSONObject().apply {
+                put("connected", tpms?.connected ?: false)
+                put("source", tpms?.source ?: "disconnected")
+                put("deviceLabel", tpms?.deviceLabel ?: "")
+                put("lastRawHex", tpms?.lastRawHex ?: "")
+                put("flPsi", tpms?.flPsi ?: -1)
+                put("frPsi", tpms?.frPsi ?: -1)
+                put("rlPsi", tpms?.rlPsi ?: -1)
+                put("rrPsi", tpms?.rrPsi ?: -1)
+            })
+
+            // 6. Display metrics
+            val dm = context.resources.displayMetrics
+            result.put("screen", JSONObject().apply {
+                put("widthPx", dm.widthPixels)
+                put("heightPx", dm.heightPixels)
+                put("densityDpi", dm.densityDpi)
+                put("density", dm.density.toDouble())
+            })
+
             result.toString()
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error in inspectOemHardware: ${e.message}")
@@ -1263,14 +1606,384 @@ class AndroidBridge(
         }
     }
 
+    @JavascriptInterface
+    fun setAlertThresholds(lowPsi: Int, hotTempC: Int) {
+        onSetAlertThresholds?.invoke(lowPsi, hotTempC)
+    }
+
+    @JavascriptInterface
+    fun reconnectHardware() {
+        onReconnectHardware?.invoke()
+    }
+
+    @JavascriptInterface
+    fun setGpsSourceMode(mode: String) {
+        onSetGpsSource?.invoke(mode)
+    }
+
+    @JavascriptInterface
+    fun resetTripOdometer() {
+        onResetTrip?.invoke()
+    }
+
+    @JavascriptInterface
+    fun setScreenTimeoutMode(mode: String) {
+        onSetScreenTimeout?.invoke(mode)
+    }
+
+    @JavascriptInterface
+    fun setOtaAutoCheck(enabled: Boolean) {
+        try {
+            context.getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean("ota_auto_wifi", enabled)
+                .apply()
+        } catch (_: Throwable) {}
+    }
+
+    @JavascriptInterface
+    fun isOtaAutoCheckEnabled(): Boolean {
+        return try {
+            context.getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                .getBoolean("ota_auto_wifi", true)
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
+    @JavascriptInterface
+    fun setCoolingFanMode(mode: String, thresholdC: Int, continuous: Boolean): String {
+        val cleanMode = when (mode.lowercase()) {
+            "turbo" -> "turbo"
+            "silent", "silencio" -> "silent"
+            else -> "auto"
+        }
+        val cpuTemp = getCpuTemperature()
+        var hwDispatched = false
+        try {
+            context.getSharedPreferences("joyos_thermal_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString("fan_mode", cleanMode)
+                .putInt("fan_threshold_c", thresholdC.coerceIn(45, 95))
+                .putBoolean("fan_continuous", continuous)
+                .apply()
+
+            val shouldBoost = cleanMode == "turbo" || continuous || (cpuTemp > 0 && cpuTemp >= thresholdC)
+            val fanValue = when {
+                cleanMode == "turbo" -> "255"
+                cleanMode == "silent" && (cpuTemp <= 0 || cpuTemp < thresholdC) -> "64"
+                shouldBoost -> "180"
+                else -> "120"
+            }
+
+            val fanNodes = listOf(
+                "/sys/class/thermal/cooling_device0/cur_state",
+                "/sys/class/hwmon/hwmon0/pwm1",
+                "/sys/devices/platform/pwm-fan/hwmon/hwmon0/pwm1"
+            )
+            for (nodePath in fanNodes) {
+                val f = File(nodePath)
+                if (f.exists() && f.canWrite()) {
+                    try {
+                        f.writeText(if (nodePath.endsWith("cur_state")) (if (shouldBoost) "1" else "0") else fanValue)
+                        hwDispatched = true
+                    } catch (_: Throwable) {}
+                }
+            }
+
+            listOf(
+                Intent("com.ts.main.ACTION_FAN_CONTROL").putExtra("mode", cleanMode).putExtra("active", shouldBoost),
+                Intent("xyauto.intent.action.FAN_CONTROL").putExtra("mode", cleanMode).putExtra("threshold", thresholdC),
+                Intent("com.autochips.fan.CONTROL").putExtra("enable", shouldBoost)
+            ).forEach { intent ->
+                try { context.sendBroadcast(intent) } catch (_: Throwable) {}
+            }
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Cooling fan control handled: ${e.message}")
+        }
+        return JSONObject().apply {
+            put("mode", cleanMode)
+            put("thresholdC", thresholdC)
+            put("continuous", continuous)
+            put("cpuTempC", cpuTemp)
+            put("hwDispatched", hwDispatched)
+        }.toString()
+    }
+
+    @JavascriptInterface
+    fun setIgnitionOffDelay(mode: String): Boolean {
+        return try {
+            val seconds = when (mode.lowercase()) {
+                "5m", "5 min" -> 300
+                "never", "nunca" -> -1
+                else -> 60
+            }
+            context.getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString("ignition_off_delay", mode)
+                .apply()
+            listOf(
+                Intent("xyauto.intent.action.ACC_OFF_DELAY").putExtra("delay_sec", seconds),
+                Intent("com.ts.main.ACTION_ACC_DELAY").putExtra("delay_sec", seconds)
+            ).forEach { intent ->
+                try { context.sendBroadcast(intent) } catch (_: Throwable) {}
+            }
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @JavascriptInterface
+    fun openHotspotSettings(): Boolean {
+        val candidates = listOf(
+            Intent().setComponent(ComponentName("com.android.settings", "com.android.settings.TetherSettings")),
+            Intent(Settings.ACTION_WIRELESS_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS)
+        )
+        for (intent in candidates) {
+            try {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                return true
+            } catch (_: Throwable) {}
+        }
+        return false
+    }
+
+    @JavascriptInterface
+    fun openLocationSettings(): Boolean {
+        return try {
+            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        } catch (_: Throwable) { openAndroidSettings() }
+    }
+
+    @JavascriptInterface
+    fun openDisplaySettings(): Boolean {
+        return try {
+            context.startActivity(Intent(Settings.ACTION_DISPLAY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        } catch (_: Throwable) { openAndroidSettings() }
+    }
+
+    @JavascriptInterface
+    fun openSoundSettings(): Boolean {
+        return try {
+            context.startActivity(Intent(Settings.ACTION_SOUND_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        } catch (_: Throwable) { openAndroidSettings() }
+    }
+
+    @JavascriptInterface
+    fun openDateTimeSettings(): Boolean {
+        return try {
+            context.startActivity(Intent(Settings.ACTION_DATE_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            true
+        } catch (_: Throwable) { openAndroidSettings() }
+    }
+
+    @JavascriptInterface
+    fun openAppSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) { openAndroidSettings() }
+    }
+
+    @JavascriptInterface
+    fun openInstallUnknownAppsPermission(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) { openAppSettings() }
+    }
+
+    @JavascriptInterface
+    fun openStoragePermissionSettings(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            try {
+                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, Uri.parse("package:${context.packageName}"))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                true
+            } catch (_: Throwable) { openAppSettings() }
+        } else {
+            openAppSettings()
+        }
+    }
+
+    @JavascriptInterface
+    fun isZlinkInstalled(): Boolean {
+        val candidates = listOf("com.zjinnova.zlink", "com.zlink.app", "com.carplay.zlink", "com.tlink.app", "gb.xxy.hr")
+        for (pkg in candidates) {
+            if (packageManager.getLaunchIntentForPackage(pkg) != null) return true
+        }
+        return try {
+            val pkgs = packageManager.getInstalledPackages(0)
+            pkgs.any { p ->
+                val l = p.packageName.lowercase()
+                l.contains("zlink") || l.contains("tlink") || l.contains("carplay")
+            }
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @JavascriptInterface
+    fun getSystemPermissionsStatus(): String {
+        return try {
+            val locGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+            val btGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) == PackageManager.PERMISSION_GRANTED
+            } else true
+            val storageGranted = when {
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> Environment.isExternalStorageManager() ||
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED)
+                else -> ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            }
+            val writeSettings = try { Settings.System.canWrite(context) } catch (_: Throwable) { false }
+            val installUnknown = try { packageManager.canRequestPackageInstalls() } catch (_: Throwable) { false }
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            val defaultHomePkg = try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    packageManager.resolveActivity(homeIntent, PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()))?.activityInfo?.packageName
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.packageName
+                }
+            } catch (_: Throwable) { null }
+            val isDefaultLauncher = defaultHomePkg == context.packageName
+
+            JSONObject().apply {
+                put("location", locGranted)
+                put("bluetooth", btGranted)
+                put("storage", storageGranted)
+                put("writeSettings", writeSettings)
+                put("installPackages", installUnknown)
+                put("isDefaultLauncher", isDefaultLauncher)
+                val count = listOf(locGranted, btGranted, storageGranted, writeSettings, installUnknown).count { it }
+                put("grantedCount", count)
+                put("totalCount", 5)
+            }.toString()
+        } catch (_: Throwable) {
+            "{\"location\":false,\"bluetooth\":false,\"storage\":false,\"writeSettings\":false,\"installPackages\":false,\"isDefaultLauncher\":false,\"grantedCount\":0,\"totalCount\":5}"
+        }
+    }
+
+    @JavascriptInterface
+    fun requestMissingPermissions(): Boolean {
+        return try {
+            onRequestPermissions?.invoke()
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun deleteDirContents(dir: File?): Long {
+        if (dir == null || !dir.exists()) return 0L
+        var bytes = 0L
+        dir.listFiles()?.forEach { f ->
+            if (f.isDirectory) {
+                bytes += deleteDirContents(f)
+                try { f.delete() } catch (_: Throwable) {}
+            } else {
+                val len = f.length()
+                if (try { f.delete() } catch (_: Throwable) { false }) {
+                    bytes += len
+                }
+            }
+        }
+        return bytes
+    }
+
+    @JavascriptInterface
+    fun clearAppCache(): String {
+        return try {
+            onClearWebCache?.invoke()
+            var freedBytes = 0L
+            freedBytes += deleteDirContents(context.cacheDir)
+            freedBytes += deleteDirContents(context.codeCacheDir)
+            freedBytes += deleteDirContents(context.externalCacheDir)
+            val kb = freedBytes / 1024L
+            JSONObject().apply {
+                put("freedKb", kb)
+                put("clearedKb", kb)
+                put("ok", true)
+            }.toString()
+        } catch (e: Throwable) {
+            "{\"freedKb\":0,\"clearedKb\":0,\"ok\":false,\"error\":\"${e.message}\"}"
+        }
+    }
+
+    @JavascriptInterface
+    fun exportBackupJson(jsonPayload: String): String {
+        return try {
+            val targets = listOfNotNull(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS),
+                context.filesDir
+            )
+            var savedPath = ""
+            for (dir in targets) {
+                try {
+                    if (!dir.exists()) dir.mkdirs()
+                    if (dir.canWrite()) {
+                        val out = File(dir, "JoyOS_Backup.json")
+                        out.writeText(jsonPayload, Charsets.UTF_8)
+                        savedPath = out.absolutePath
+                        break
+                    }
+                } catch (_: Throwable) {}
+            }
+            JSONObject().apply {
+                put("ok", savedPath.isNotEmpty())
+                put("path", savedPath)
+            }.toString()
+        } catch (e: Throwable) {
+            "{\"ok\":false,\"path\":\"\",\"error\":\"${e.message}\"}"
+        }
+    }
+
+    @JavascriptInterface
+    fun importBackupJson(): String {
+        return try {
+            val candidates = listOfNotNull(
+                File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "JoyOS_Backup.json"),
+                context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)?.let { File(it, "JoyOS_Backup.json") },
+                File(context.filesDir, "JoyOS_Backup.json")
+            )
+            for (f in candidates) {
+                if (f.exists() && f.canRead() && f.length() > 10) {
+                    val raw = f.readText(Charsets.UTF_8)
+                    return JSONObject().apply {
+                        put("ok", true)
+                        put("path", f.absolutePath)
+                        put("json", raw)
+                    }.toString()
+                }
+            }
+            "{\"ok\":false,\"path\":\"\",\"json\":\"\"}"
+        } catch (_: Throwable) {
+            "{\"ok\":false,\"path\":\"\",\"json\":\"\"}"
+        }
+    }
+
     private fun formatFileSize(bytes: Long): String {
         if (bytes < 1024) return "$bytes B"
         val kb = bytes / 1024.0
-        if (kb < 1024) return "%.1f KB".format(kb)
+        if (kb < 1024) return String.format(Locale.US, "%.1f KB", kb)
         val mb = kb / 1024.0
-        if (mb < 1024) return "%.1f MB".format(mb)
+        if (mb < 1024) return String.format(Locale.US, "%.1f MB", mb)
         val gb = mb / 1024.0
-        return "%.1f GB".format(gb)
+        return String.format(Locale.US, "%.1f GB", gb)
     }
 
     private fun categorizeApp(pkg: String): String {

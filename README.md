@@ -1,35 +1,35 @@
-# JoyOS Production v1.0.0 — Automotive Home Launcher & Hardware DSP OS
+# JoyOS Production v1.1.0 — Automotive Home Launcher & Hardware DSP OS
 
 [![Build JoyOS Launcher APK](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml/badge.svg)](https://github.com/Jfernando014/JoyOS/actions/workflows/build-apk.yml)
 [![Platform](https://img.shields.io/badge/Platform-Android_8.1%2B_%7C_SDK_26--34-brightgreen.svg)]()
-[![Hardware Target](https://img.shields.io/badge/Target-1280%C3%97720_AC8227L_9%22-blue.svg)]()
+[![Hardware Target](https://img.shields.io/badge/Target-1024%C3%97600_AC8227L_9%22-blue.svg)]()
 
-Sistema operativo de cabina y lanzador de inicio nativo (Android Home Launcher) desarrollado para pantallas táctiles de 9 pulgadas (`1280×720`, MediaTek `AC8227L`, MCU `CVD1810-WJ`, panel `YT090IBNK12018`) en Chevrolet Joy.
+Sistema operativo de cabina y lanzador de inicio nativo (`HOME` Launcher Android) desarrollado para pantallas táctiles automotrices de 9 pulgadas (`1024×600`, MediaTek `AC8227L` / `ZXDZ_01`, MCU `CVD1810-WJ`, panel `YT090IBNK12018`) en Chevrolet Joy.
 
-Versión oficial de producción con el diseño completo del prototipo v8, telemetría en tiempo real por GPS, conectividad Plug & Play para escáner OBD2 Bluetooth y sensores TPMS USB, **Ecualizador Gráfico Hardware DSP de 5 bandas**, **Cajón de Aplicaciones 100% Real**, **Gestor de Archivos USB para la Guantera**, **Salidas de Emergencia y Acceso Directo a Ajustes de Android**, y optimización de rendimiento automotriz sin datos simulados ni dependencias de internet.
+Versión oficial de producción `v1.1.0` con **Mapa Interactivo Leaflet + Rutas GPS OSRM**, **Salvapantallas Automotriz (Digital / Analógico / OLED Puro / Foto Personalizada)**, **Más Ajustes completos con PIN Valet táctil, Permisos Android, Ventilador Térmico y Copias de Seguridad JSON**, telemetría real OBD2 BLE + TPMS USB, **Ecualizador Hardware DSP de 5 bandas**, **Cajón de Aplicaciones**, **Gestor de Archivos USB** y **Actualizaciones OTA vía GitHub Releases**.
 
 ---
 
 ## 📲 Descarga Directa del APK (1 Toque)
 
-Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` (sin iniciar sesión en GitHub ni descomprimir archivos ZIP):
+Haz clic en el siguiente enlace desde tu celular o radio Android para descargar directamente el archivo `JoyOSLauncher.apk` de la última versión publicada:
 
-👉 **[📥 Descargar JoyOSLauncher.apk v1.0.0 (Instalador Directo)](https://github.com/Jfernando014/JoyOS/releases/download/v1.0.0/JoyOSLauncher.apk)**
+👉 **[📥 Descargar JoyOSLauncher.apk (Última Release)](https://github.com/Jfernando014/JoyOS/releases/latest/download/JoyOSLauncher.apk)**
 
 > [!TIP]
-> También puedes ver las versiones publicadas y notas de versión en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**.
+> También puedes consultar el historial de versiones y notas de cambio en **[Releases de JoyOS](https://github.com/Jfernando014/JoyOS/releases)**. La rama `dev` ejecuta compilaciones automáticas de prueba en GitHub Actions y solo los merges/tags en `main` publican nuevas *Releases* OTA.
 
 ---
 
 ## ⚡ Super Optimización de Hardware 100% In-App (Sin PC ni cables)
 
-A partir de JoyOS v8.2, no necesitas conectar tu laptop a la tablet ni usar cables USB especiales:
-1. **Auto-Optimización al Encender:** 4 segundos después de arrancar el carro, JoyOS ejecuta de forma silenciosa el optimizador nativo en segundo plano.
-2. **Botón Manual de 1 Toque:** En *Ajustes → Información del Sistema*, toca **`[ ⚡ Optimizar Hardware al 100% (Super Mode) ]`**.
+No necesitas conectar tu laptop a la tablet ni usar cables USB especiales:
+1. **Auto-Optimización al Encender:** 4 segundos después de arrancar el vehículo (o manualmente en 1 toque), JoyOS puede ejecutar su optimizador nativo.
+2. **Botón Manual de 1 Toque:** En *Ajustes → Más Ajustes → Sistema, OTA y Respaldo*, toca **`[ ⚡ Optimizar Hardware al 100% ]`**.
 3. **¿Qué realiza internamente?**
    - Desbloquea el limitador de audio de fábrica (`audio_safe_volume_state = 2`).
    - Escala las animaciones a `0.5x` para máxima fluidez y respuesta táctil instantánea.
-   - Si la tablet tiene acceso Root de fábrica (MediaTek AC8227L), congela de inmediato los launchers OEM (`launcher3`, `fyt`, `ts`, `xyauto`) ahorrando ~400 MB de RAM y liberando ciclos de CPU.
+   - Si la tablet tiene acceso Root de fábrica (MediaTek `AC8227L`), congela launchers OEM (`launcher3`, `fyt`, `ts`, `xyauto`, `autochips`) liberando RAM y ciclos de CPU.
    - Habilita el puerto ADB inalámbrico `5555` en segundo plano.
 
 *(Opcional: Si prefieres ejecutarlo externamente desde un PC por ADB, puedes seguir usando `scripts/optimize_joy_tablet.bat` o `./scripts/optimize_joy_tablet.sh`)*.
@@ -38,66 +38,71 @@ A partir de JoyOS v8.2, no necesitas conectar tu laptop a la tablet ni usar cabl
 
 ## 🏛️ Arquitectura del Repositorio
 
-El proyecto sigue una estructura desacoplada entre la capa visual web (100% offline) y los servicios nativos del hardware automotriz en Kotlin:
+El proyecto sigue una arquitectura desacoplada entre la capa visual web (`joy_os_v1_production.html` ↔ `app/src/main/assets/www/index.html`, 100% compatible offline en WebView Android 8.1) y los servicios nativos de hardware en Kotlin:
 
 ```text
 JoyOS/
 ├── .github/workflows/
-│   └── build-apk.yml             # Compilación automatizada en CI con Gradle 8.5 y JDK 17
+│   └── build-apk.yml             # Compilación en CI (Gradle + JDK 17): artefacto en dev/main, Release OTA en main
 ├── app/
-│   ├── build.gradle.kts          # Módulo Android (SDK 34, minSdk 26, ProGuard rules, v8.0.0)
+│   ├── build.gradle.kts          # Módulo Android (compileSdk 34, minSdk 26, versionCode 13, v1.1.0)
+│   ├── proguard-rules.pro        # Reglas keep para @JavascriptInterface y bridge
 │   ├── src/main/
-│   │   ├── AndroidManifest.xml   # Intent filters de HOME Launcher y permisos vehiculares
+│   │   ├── AndroidManifest.xml   # Intent filters de HOME Launcher, USB TPMS y permisos vehiculares
 │   │   ├── java/com/joyos/launcher/
-│   │   │   ├── MainActivity.kt   # Actividad inmersiva a pantalla completa y ciclo de vida
+│   │   │   ├── MainActivity.kt   # WebView hardware-accelerated, receptor multimedia AVRCP y ciclo de vida
 │   │   │   ├── bridge/
-│   │   │   │   └── AndroidBridge.kt       # Puente JavaScript <-> Android (Apps, DSP, volumen, RAM)
+│   │   │   │   └── AndroidBridge.kt         # Puente JS <-> Android (Apps, DSP, GPS, permisos, caché, backups)
 │   │   │   └── services/
-│   │   │       ├── JoyAudioDspEngine.kt   # Motor DSP hardware (Equalizer, BassBoost, Loudness, Virtualizer)
-│   │   │       ├── GpsTelemetryManager.kt # Velocidad real GPS (km/h) y odómetro a 2 Hz
-│   │   │       ├── ObdBleManager.kt       # Conexión continua a Vgate iCar Pro 4.0 (ELM327 CAN)
-│   │   │       └── TpmsUsbReceiver.kt     # Monitoreo de presión de llantas por USB OTG
-│   │   ├── res/                  # Tema oscuro automotriz y vector adaptive icon
-│   │   └── assets/www/           # Bundle frontend autónomo (100% offline)
-│   │       ├── index.html        # Interfaz de producción (100vw × 100vh sin marcos)
+│   │   │       ├── GpsTelemetryManager.kt   # Velocidad GPS real (km/h), fuente Híbrida/Tablet/Tel y Trip
+│   │   │       ├── JoyAudioDspEngine.kt     # DSP nativo (Equalizer 5 bandas, BassBoost, Loudness, Virtualizer)
+│   │   │       ├── JoyHardwareOptimizer.kt  # Optimizador in-app RAM/animaciones/audio/ADB
+│   │   │       ├── ObdBleManager.kt         # Dual-mode Classic SPP + BLE GATT para ELM327 / Vgate iCar Pro
+│   │   │       ├── OtaUpdateManager.kt      # Buscador OTA y descarga de APK / Hot-Update HTML
+│   │   │       └── TpmsUsbReceiver.kt       # Decodificador USB-Serial 433.92 MHz (Jansite/CH340/CP210x/FTDI)
+│   │   ├── res/                  # Tema oscuro automotriz, FileProvider paths y filtros USB
+│   │   └── assets/www/           # Bundle frontend autónomo (100% offline en radio)
+│   │       ├── index.html        # Espejo exacto de joy_os_v1_production.html
 │   │       ├── css/fonts.css     # Fuentes Sora y Manrope locales en WOFF2
+│   │       ├── css/leaflet.css   # Estilos locales del mapa Leaflet
 │   │       ├── fonts/            # Archivos binarios tipográficos offline
-│   │       └── js/tailwindcss.min.js # Motor de utilidades local
+│   │       └── js/leaflet.js     # Motor cartográfico local Leaflet
 ├── scripts/
-│   ├── optimize_joy_tablet.bat   # Script automatizado de optimización para Windows
-│   └── optimize_joy_tablet.sh    # Script automatizado de optimización para Linux/macOS
-└── prototype_v8_joy.html         # Prototipo interactivo con simulador de señales para navegador
+│   ├── optimize_joy_tablet.bat   # Script automatizado de optimización/ADB para Windows
+│   └── optimize_joy_tablet.sh    # Script automatizado de optimización/ADB para Linux/macOS
+└── joy_os_v1_production.html     # Archivo fuente principal para pruebas directas en navegador y APK
 ```
 
 ---
 
 ## 🧩 Componentes y Funcionalidades
 
-### 1. Capa Visual & Experiencia de Usuario (`assets/www/`)
-- **Luminous Bottom Dock:** Menú rasante con tipografía *Manrope* (`Inicio`, `Cockpit`, `Música`, `Mapa`, `Ajustes`, `::`).
-- **Navegación Global por Gestos:** Desliza a la izquierda o derecha en cualquier pantalla para alternar de forma continua entre todas las vistas.
-- **3 Modos de Velocímetro:** *Need for Speed Most Wanted* (aguja análoga), *Arco Minimalista* y *Sport Chrono* (cuadrante de competición).
-- **Modo Inteligente Sin Lector:** Si no hay escáner OBD2 ni TPMS conectados, el sistema simplifica las agujas para mostrar únicamente velocidad limpia por GPS (`km/h`) y voltaje de arnés ACC (`14,1 V`).
-- **Perfiles de Conductor Estilo Streaming:** Selección de conductor al encender con previsualización en tiempo real de temas (*Dark/Light*) y 5 colores de acento (*Cyan, Cobalt, Amber, Emerald, Rose*).
-- **Cajón de Aplicaciones (`::`) y Gestor de Archivos USB:** Acceso directo a USB OTG con instalador de APKs dinámico y función de **Hot-Update en 1 toque** para actualizar la interfaz sin reinstalar la aplicación nativa.
-- **Panel de Diagnóstico Oculto:** Dando **5 toques consecutivos en el corbatín Chevrolet** superior izquierdo, se activa el simulador flotante de señales vehiculares.
+### 1. Capa Visual & Experiencia de Usuario (`joy_os_v1_production.html` / `assets/www/`)
+- **Luminous Bottom Dock:** Barra inferior con tipografía *Manrope* (`Inicio`, `Cockpit`, `Música`, `Mapa`, `Ajustes`, `::`).
+- **Mapa Interactivo Leaflet + Rutas OSRM:** 4 estilos visuales (Oscuro, Noche / Asfalto, Satélite, Claro), buscador de destinos, favoritos, historial, zoom táctil fluido (`L.canvas()` + `updateWhenZooming: false` + `fadeAnimation: false`) y píldora flotante de música en pantalla completa.
+- **3 Modos de Velocímetro (`km/h` o `mph`):** *Need for Speed Most Wanted*, *Arco Minimalista* y *Sport Chrono*, sincronizados en Inicio, Cockpit y Mapa.
+- **Salvapantallas Automotriz Inteligente:** 4 fondos (incluyendo *OLED Puro*), foto personalizada por URL o galería local, reloj digital/analógico SVG en vivo (`12h` / `24h`), desplazamiento anti-quemado, atenuación nocturna, tira de velocidad/navegación y mini-reproductor sin cerrar la vista.
+- **Más Ajustes + Seguridad Valet:** PIN Valet con teclado numérico táctil, modales glassmórficos sin bloqueos nativos, gestión de permisos Android, control de ventilador térmico, odómetro Trip, unidades métricas/imperiales/bar, exportación/importación JSON de configuración, limpieza de caché e inspector REA.
+- **Perfiles de Conductor, Cajón de Apps y Documentos R5:** Previsualización en tiempo real de temas (*Dark/Light*) y 5 acentos (*Cyan, Violeta, Ámbar, Verde, Rojo RS*), documentos del vehículo (SOAT, Tecno, Licencia, Pico y Placa) y gestor USB OTG con instalador APK.
+- **Panel de Diagnóstico Oculto:** Dando **5 toques consecutivos en el corbatín Chevrolet** superior izquierdo, se abre el simulador de señales vehiculares.
 
 ### 2. Capa Nativa en Kotlin (`com.joyos.launcher`)
-- [`MainActivity.kt`](app/src/main/java/com/joyos/launcher/MainActivity.kt): Bloquea barras del sistema con `WindowInsetsController`, desactiva el botón atrás para evitar cierres accidentales de la pantalla de inicio y activa aceleración por hardware (`LAYER_TYPE_HARDWARE`).
-- [`AndroidBridge.kt`](app/src/main/java/com/joyos/launcher/bridge/AndroidBridge.kt): Expone métodos a JavaScript (`window.AndroidBridge`) para consultar aplicaciones instaladas con `PackageManager`, lanzar apps de navegación (`Waze`, `ZLink`, `Spotify`), controlar el volumen maestro con `AudioManager` y aplicar parches en vivo.
-- [`GpsTelemetryManager.kt`](app/src/main/java/com/joyos/launcher/services/GpsTelemetryManager.kt): Suscrito al proveedor GPS de la antena externa para calcular velocidad real en `km/h` y acumular la distancia del viaje.
-- [`ObdBleManager.kt`](app/src/main/java/com/joyos/launcher/services/ObdBleManager.kt): Enlaza en segundo plano con adaptadores Bluetooth 4.0 (*Vgate iCar Pro 4.0*) ejecutando comandos `010C` (RPM), `0105` (Temperatura refrigerante) y `ATRV` (Voltaje).
-- [`TpmsUsbReceiver.kt`](app/src/main/java/com/joyos/launcher/services/TpmsUsbReceiver.kt): Decodifica la presión de las 4 ruedas recibidas por el dongle USB y dispara alertas automáticas si la presión cae de `26 PSI`.
+- [`MainActivity.kt`](app/src/main/java/com/joyos/launcher/MainActivity.kt): Bloquea barras del sistema con `WindowInsetsController`, gestiona `FLAG_KEEP_SCREEN_ON` y timeout de pantalla, captura eventos AVRCP Bluetooth del radio y configura el WebView acelerado por hardware.
+- [`AndroidBridge.kt`](app/src/main/java/com/joyos/launcher/bridge/AndroidBridge.kt): Expone `@JavascriptInterface window.AndroidBridge` para lanzar apps (`PackageManager`), controlar volumen/radio/DSP, gestionar permisos Android, leer sensores/red/RAM/almacenamiento USB, limpiar caché y respaldar/restaurar ajustes JSON.
+- [`GpsTelemetryManager.kt`](app/src/main/java/com/joyos/launcher/services/GpsTelemetryManager.kt): Suscrito a GPS hardware / red híbrida para calcular velocidad en `km/h` y distancia `Trip` a `2 Hz`.
+- [`ObdBleManager.kt`](app/src/main/java/com/joyos/launcher/services/ObdBleManager.kt): Conecta vía BT Classic SPP o BLE GATT a escáneres ELM327 (`Vgate iCar Pro`) leyendo RPM, temperatura de refrigerante, carga y voltaje.
+- [`TpmsUsbReceiver.kt`](app/src/main/java/com/joyos/launcher/services/TpmsUsbReceiver.kt): Decodifica presión PSI y temperatura de llantas vía dongle USB OTG con alertas configurables.
+- [`OtaUpdateManager.kt`](app/src/main/java/com/joyos/launcher/services/OtaUpdateManager.kt): Verifica *GitHub Releases* para actualizar tanto el APK como parches Hot-Update HTML.
 
 ---
 
 ## 🧪 Cómo Probar JoyOS sin la Pantalla del Carro
 
 ### Opción A: En tu Computador (Navegador Web)
-1. Abre [app/src/main/assets/www/index.html](app/src/main/assets/www/index.html) en Chrome, Edge o Brave.
+1. Abre [`joy_os_v1_production.html`](joy_os_v1_production.html) (o [`app/src/main/assets/www/index.html`](app/src/main/assets/www/index.html)) en Chrome, Edge o Brave.
 2. Agrega `?prod=1` al final de la URL en la barra de direcciones:
    ```text
-   file:///.../app/src/main/assets/www/index.html?prod=1
+   file:///.../joy_os_v1_production.html?prod=1
    ```
 3. Presiona **F12** y activa el modo de dispositivo (`Ctrl + Shift + M`).
 4. Configura el tamaño de pantalla en **`1024 × 600`**.

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- WCH CH340 / CH341 USB-to-Serial (Common in Android USB TPMS 433.92 MHz receivers) -->
+    <usb-device vendor-id="6790" />
+    <!-- Silicon Labs CP210x USB-to-UART -->
+    <usb-device vendor-id="4292" />
+    <!-- Prolific PL2303 USB-to-Serial -->
+    <usb-device vendor-id="1659" />
+    <!-- FTDI FT232R USB-to-UART -->
+    <usb-device vendor-id="1027" />
+</resources>
