@@ -40,26 +40,29 @@ fi
 echo ""
 
 echo "[3/6] Otorgando permisos de sistema y hardware..."
-adb shell pm grant com.joyos.launcher android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.READ_EXTERNAL_STORAGE 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.WRITE_EXTERNAL_STORAGE 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.READ_MEDIA_AUDIO 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_CONNECT 2>/dev/null || true
-adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_SCAN 2>/dev/null || true
-adb shell appops set com.joyos.launcher WRITE_SETTINGS allow 2>/dev/null || true
-adb shell appops set com.joyos.launcher REQUEST_INSTALL_PACKAGES allow 2>/dev/null || true
-echo "  -> Permisos de GPS, almacenamiento, Bluetooth, brillo y OTA otorgados."
+JOY_PKG="com.joyos.launcher.debug"
+if adb shell pm path com.joyos.launcher >/dev/null 2>&1; then JOY_PKG="com.joyos.launcher"; fi
+if adb shell pm path com.joyos.launcher.debug >/dev/null 2>&1; then JOY_PKG="com.joyos.launcher.debug"; fi
+adb shell pm grant "$JOY_PKG" android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.READ_EXTERNAL_STORAGE 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.WRITE_EXTERNAL_STORAGE 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.READ_MEDIA_AUDIO 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.BLUETOOTH_CONNECT 2>/dev/null || true
+adb shell pm grant "$JOY_PKG" android.permission.BLUETOOTH_SCAN 2>/dev/null || true
+adb shell appops set "$JOY_PKG" WRITE_SETTINGS allow 2>/dev/null || true
+adb shell appops set "$JOY_PKG" REQUEST_INSTALL_PACKAGES allow 2>/dev/null || true
+echo "  -> Permisos de GPS, almacenamiento, Bluetooth, brillo y OTA otorgados ($JOY_PKG)."
 echo ""
 
 echo "[4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)..."
-adb shell cmd package set-home-activity com.joyos.launcher/.MainActivity 2>/dev/null || true
+adb shell cmd package set-home-activity "$JOY_PKG/com.joyos.launcher.MainActivity" 2>/dev/null || true
 echo "  -> JoyOS registrado como Home Launcher nativo."
 echo ""
 
 echo "[5/6] Desbloqueando 100% de Audio y Rendimiento..."
 adb shell settings put global audio_safe_volume_state 2 2>/dev/null || true
-adb shell dumpsys deviceidle whitelist +com.joyos.launcher 2>/dev/null || true
+adb shell dumpsys deviceidle whitelist +"$JOY_PKG" 2>/dev/null || true
 adb shell settings put global window_animation_scale 0.5 2>/dev/null || true
 adb shell settings put global transition_animation_scale 0.5 2>/dev/null || true
 adb shell settings put global animator_duration_scale 0.5 2>/dev/null || true
@@ -81,4 +84,4 @@ echo ""
 echo "====================================================================="
 echo "   🎉 ¡OPTIMIZACIÓN COMPLETA! Iniciando JoyOS v1.1.0..."
 echo "====================================================================="
-adb shell am start -n com.joyos.launcher/.MainActivity 2>/dev/null || true
+adb shell am start -n "$JOY_PKG/com.joyos.launcher.MainActivity" 2>/dev/null || true

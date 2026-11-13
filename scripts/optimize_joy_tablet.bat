@@ -83,25 +83,33 @@ if exist "%~dp0..\JoyOSLauncher.apk" (
 echo.
 
 echo [3/6] Otorgando permisos especiales de sistema, hardware y OTA...
-"%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.ACCESS_FINE_LOCATION >nul 2>&1
-"%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.ACCESS_COARSE_LOCATION >nul 2>&1
-"%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.BLUETOOTH_CONNECT >nul 2>&1
-"%ADB_CMD%" shell pm grant com.joyos.launcher android.permission.BLUETOOTH_SCAN >nul 2>&1
-"%ADB_CMD%" shell appops set com.joyos.launcher WRITE_SETTINGS allow >nul 2>&1
-"%ADB_CMD%" shell appops set com.joyos.launcher REQUEST_INSTALL_PACKAGES allow >nul 2>&1
-echo   -> Permisos de GPS, Bluetooth, brillo físico y actualizaciones OTA otorgados.
+set "JOY_PKG=com.joyos.launcher.debug"
+"%ADB_CMD%" shell pm path com.joyos.launcher >nul 2>&1
+if %errorlevel% equ 0 set "JOY_PKG=com.joyos.launcher"
+"%ADB_CMD%" shell pm path com.joyos.launcher.debug >nul 2>&1
+if %errorlevel% equ 0 set "JOY_PKG=com.joyos.launcher.debug"
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.ACCESS_FINE_LOCATION >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.ACCESS_COARSE_LOCATION >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.READ_EXTERNAL_STORAGE >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.WRITE_EXTERNAL_STORAGE >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.READ_MEDIA_AUDIO >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.BLUETOOTH_CONNECT >nul 2>&1
+"%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.BLUETOOTH_SCAN >nul 2>&1
+"%ADB_CMD%" shell appops set !JOY_PKG! WRITE_SETTINGS allow >nul 2>&1
+"%ADB_CMD%" shell appops set !JOY_PKG! REQUEST_INSTALL_PACKAGES allow >nul 2>&1
+echo   -> Permisos de GPS, almacenamiento, Bluetooth, brillo fisico y OTA otorgados (!JOY_PKG!).
 echo.
 
-echo [4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)...
-"%ADB_CMD%" shell cmd package set-home-activity com.joyos.launcher/.MainActivity >nul 2>&1
+echo [4/6] Configurando JoyOS como el UNICO Launcher Principal (HOME)...
+"%ADB_CMD%" shell cmd package set-home-activity !JOY_PKG!/com.joyos.launcher.MainActivity >nul 2>&1
 echo   -> JoyOS registrado como Home Launcher nativo.
 echo.
 
-echo [5/6] Desbloqueando 100%% del Sonido, CPU/GPU y Puerto ADB Inalámbrico...
+echo [5/6] Desbloqueando 100%% del Sonido, CPU/GPU y Puerto ADB Inalambrico...
 :: Elimina el limitador de volumen seguro de Android para dar 100% ganancia al amplificador
 "%ADB_CMD%" shell settings put global audio_safe_volume_state 2 >nul 2>&1
-:: Exime a JoyOS de suspensión de batería / Doze mode
-"%ADB_CMD%" shell dumpsys deviceidle whitelist +com.joyos.launcher >nul 2>&1
+:: Exime a JoyOS de suspension de bateria / Doze mode
+"%ADB_CMD%" shell dumpsys deviceidle whitelist +!JOY_PKG! >nul 2>&1
 :: Optimiza animaciones del sistema para máxima velocidad
 "%ADB_CMD%" shell settings put global window_animation_scale 0.5 >nul 2>&1
 "%ADB_CMD%" shell settings put global transition_animation_scale 0.5 >nul 2>&1
@@ -135,6 +143,6 @@ echo =====================================================================
 echo    🎉 ¡OPTIMIZACIÓN COMPLETA!
 echo    Iniciando JoyOS v1.1.0 en la pantalla del Chevrolet Joy...
 echo =====================================================================
-"%ADB_CMD%" shell am start -n com.joyos.launcher/.MainActivity >nul 2>&1
+"%ADB_CMD%" shell am start -n !JOY_PKG!/com.joyos.launcher.MainActivity >nul 2>&1
 echo.
 pause
