@@ -4205,7 +4205,7 @@
       min-height: 0;
       max-height: 100%;
       display: grid;
-      grid-template-columns: 220px minmax(0, 1fr);
+      grid-template-columns: 234px minmax(0, 1fr);
       grid-template-rows: minmax(0, 1fr);
       gap: 14px;
       overflow: hidden;
@@ -4256,13 +4256,14 @@
 
     .aj-cat {
       font: inherit;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 500;
+      line-height: 1.25;
       color: var(--mute);
       background: none;
       border: 0;
       border-radius: 12px;
-      padding: 0 12px;
+      padding: 6px 12px;
       min-height: 44px;
       flex-shrink: 0;
       text-align: left;
@@ -4270,6 +4271,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
       transition: all 0.15s ease;
     }
 
@@ -4277,6 +4279,7 @@
       font-size: 11px;
       opacity: .7;
       font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
     }
 
     .aj-cat[aria-current="true"] {
@@ -4476,6 +4479,232 @@
 
     .aj-act:hover {
       border-color: var(--accent);
+    }
+
+    .aj-act.accent {
+      border-color: rgba(56, 189, 248, 0.45);
+      background: rgba(56, 189, 248, 0.14);
+      color: var(--accent);
+    }
+
+    .aj-act.danger {
+      border-color: rgba(244, 63, 94, 0.4);
+      background: rgba(244, 63, 94, 0.1);
+      color: #fda4af;
+    }
+
+    .aj-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .aj-badge.warn {
+      background: rgba(245, 158, 11, 0.14);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .aj-badge.err {
+      background: rgba(244, 63, 94, 0.14);
+      color: #fb7185;
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    /* Glassmorphic Automotive Confirm / Backup / Valet PIN Modals */
+    .joy-sys-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 95;
+      background: rgba(2, 6, 23, 0.72);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .joy-sys-backdrop.hidden {
+      display: none !important;
+    }
+
+    .joy-sys-card {
+      width: 100%;
+      max-width: 440px;
+      border-radius: 26px;
+      padding: 22px 24px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: linear-gradient(155deg, rgba(19, 28, 46, 0.96), rgba(9, 14, 26, 0.98));
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72);
+      color: #f8fafc;
+    }
+
+    .theme-light .joy-sys-card {
+      background: linear-gradient(155deg, rgba(255, 255, 255, 0.96), rgba(241, 245, 249, 0.98));
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+    }
+
+    .joy-sys-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .joy-sys-msg {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.48;
+      opacity: 0.78;
+    }
+
+    .joy-sys-pre {
+      margin-top: 12px;
+      max-height: 150px;
+      overflow: auto;
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      user-select: all;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .theme-light .joy-sys-pre {
+      background: rgba(15, 23, 42, 0.06);
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    .joy-sys-actions {
+      margin-top: 18px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .joy-sys-btn {
+      min-height: 40px;
+      padding: 0 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.06);
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .theme-light .joy-sys-btn {
+      border-color: rgba(15, 23, 42, 0.14);
+      background: rgba(15, 23, 42, 0.05);
+    }
+
+    .joy-sys-btn:active {
+      transform: scale(0.96);
+    }
+
+    .joy-sys-btn.primary {
+      border-color: transparent;
+      background: var(--accent, #38bdf8);
+      color: #04131c;
+      font-weight: 700;
+    }
+
+    .joy-sys-btn.danger {
+      border-color: transparent;
+      background: #e11d48;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .joy-pin-card {
+      max-width: 348px;
+      text-align: center;
+    }
+
+    .joy-pin-dots {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0 8px;
+      min-height: 18px;
+    }
+
+    .joy-pin-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.15s ease;
+    }
+
+    .theme-light .joy-pin-dot {
+      border-color: rgba(15, 23, 42, 0.28);
+    }
+
+    .joy-pin-dot.filled {
+      background: var(--accent, #38bdf8);
+      border-color: var(--accent, #38bdf8);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.55);
+    }
+
+    .joy-pin-err {
+      min-height: 18px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fb7185;
+      margin-bottom: 10px;
+    }
+
+    .joy-pin-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .joy-pin-key {
+      height: 50px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.06);
+      font-family: 'Sora', sans-serif;
+      font-size: 19px;
+      font-weight: 600;
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .theme-light .joy-pin-key {
+      border-color: rgba(15, 23, 42, 0.12);
+      background: rgba(15, 23, 42, 0.05);
+    }
+
+    .joy-pin-key.fn {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    .joy-pin-key:active {
+      transform: scale(0.94);
+      background: rgba(56, 189, 248, 0.22);
     }
 
     /* Joy OS V8: Automotive Graphic Equalizer & Acoustic Direction Styling */
@@ -5172,21 +5401,44 @@
       background: radial-gradient(circle, var(--accent) 0%, transparent 70%) !important;
     }
 
-    /* Night Dimming & Large Text Accessibility Modes */
+    /* Night Dimming, Live Brightness Filter & Large Text Accessibility Modes */
+    #tablet-viewport {
+      filter: brightness(var(--joy-bright-filter, 1)) contrast(var(--joy-contrast-filter, 1));
+    }
+
     html.night-dim-active #tablet-viewport {
-      filter: brightness(0.84) contrast(1.04);
+      --joy-contrast-filter: 1.04;
     }
 
     html.large-text body {
       font-size: 16px;
     }
 
+    html.large-text .aj-cat {
+      font-size: 14px;
+      padding: 13px 14px;
+    }
+
     html.large-text .aj-lb b {
-      font-size: 14.5px;
+      font-size: 15px;
+    }
+
+    html.large-text .aj-lb small {
+      font-size: 12.5px;
+    }
+
+    html.large-text .aj-v,
+    html.large-text .aj-act,
+    html.large-text .aj-seg button {
+      font-size: 13.5px;
     }
 
     html.large-text .text-xs {
-      font-size: 0.8125rem;
+      font-size: 0.84rem;
+    }
+
+    html.large-text .text-sm {
+      font-size: 0.96rem;
     }
 
     /* Responsive Multi-DPI Head Unit Scaling (1280x672, 1080x600, 1024x600, 960x540, 853x480) */
@@ -8931,6 +9183,52 @@
       </main>
 
       <!-- ================================================================= -->
+      <!-- 2A. DIALOGOS DEL SISTEMA Y TECLADO PIN TACTIL (MODO VALET / OTA)  -->
+      <!-- ================================================================= -->
+      <div id="joy-sys-dialog" class="joy-sys-backdrop hidden" onclick="if(event.target===this) closeJoySysDialog(false)">
+        <div class="joy-sys-card" role="dialog" aria-modal="true" aria-labelledby="joy-sys-title">
+          <div id="joy-sys-title" class="joy-sys-title">Confirmar acción</div>
+          <div id="joy-sys-msg" class="joy-sys-msg"></div>
+          <pre id="joy-sys-pre" class="joy-sys-pre hidden"></pre>
+          <div id="joy-sys-actions" class="joy-sys-actions">
+            <button id="joy-sys-extra" type="button" class="joy-sys-btn hidden"></button>
+            <button id="joy-sys-cancel" type="button" class="joy-sys-btn" onclick="closeJoySysDialog(false)">Cancelar</button>
+            <button id="joy-sys-confirm" type="button" class="joy-sys-btn primary" onclick="closeJoySysDialog(true)">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="joy-pin-dialog" class="joy-sys-backdrop hidden" onclick="if(event.target===this) cancelJoyPinDialog()">
+        <div class="joy-sys-card joy-pin-card" role="dialog" aria-modal="true" aria-labelledby="joy-pin-title">
+          <div id="joy-pin-title" class="joy-sys-title">Modo Valet</div>
+          <div id="joy-pin-sub" class="joy-sys-msg">Ingresa el PIN de seguridad (4 dígitos)</div>
+          <div id="joy-pin-dots" class="joy-pin-dots">
+            <span class="joy-pin-dot"></span>
+            <span class="joy-pin-dot"></span>
+            <span class="joy-pin-dot"></span>
+            <span class="joy-pin-dot"></span>
+          </div>
+          <div id="joy-pin-err" class="joy-pin-err"></div>
+          <div class="joy-pin-pad">
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('1')">1</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('2')">2</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('3')">3</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('4')">4</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('5')">5</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('6')">6</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('7')">7</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('8')">8</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('9')">9</button>
+            <button type="button" class="joy-pin-key fn" onclick="cancelJoyPinDialog()">Cancelar</button>
+            <button type="button" class="joy-pin-key" onclick="pressJoyPinKey('0')">0</button>
+            <button type="button" class="joy-pin-key fn" onclick="backspaceJoyPin()">⌫</button>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="joy-backup-file-input" accept=".json,application/json" class="hidden" onchange="handleBackupFileSelected(event)">
+
+      <!-- ================================================================= -->
       <!-- 2B. SALVAPANTALLAS INTERACTIVO OVERLAY (HORA, FECHA E IMÁGENES)   -->
       <!-- ================================================================= -->
       <div id="screensaver-overlay" onclick="closeScreensaver()"
@@ -9404,14 +9702,42 @@
       pressureUnit: 'psi',   // 'psi' | 'bar'
       lowPsiAlert: 26,
       hotTempAlert: 105,
-      speedLimitAlert: 100,
+      speedLimitAlert: 100,  // Stored canonically in km/h
+      speedAlertEnabled: true,
+      alertChimeEnabled: true,
       nightDimming: true,
+      autoLightDimming: true,
+      themeMode: 'dark',     // 'auto' | 'dark' | 'light'
+      screenTimeout: '5m',   // '1m' | '5m' | 'never'
+      startupTab: 'home',    // 'home' | 'cockpit' | 'music' | 'map'
       bootAnimEnabled: true,
       largeText: false,
       valetMode: false,
       valetPin: '1234',
+      _valetUnlockedSession: false,
       allowSpeedLock: true,
+      wifiEnabled: true,
+      wifiHotspot: false,
+      wifiIp: '',
+      wifiRssi: 0,
+      wifiLinkSpeed: 0,
+      wifiInternet: false,
+      gpsSource: 'tablet',   // 'tablet' | 'phone' | 'hybrid'
+      gpsProvider: '--',
+      gpsAccuracy: 0,
+      fanTempThreshold: 65,  // Stored canonically in Celsius
+      fanContinuous: true,
+      cpuTemp: null,
+      preferredNavApp: 'waze', // 'waze' | 'maps'
+      startupAudioSource: 'last', // 'last' | 'bt' | 'radio' | 'usb'
+      ignitionOffDelay: '1m', // '1m' | '5m' | 'never'
+      otaAutoWifi: true,
+      zlinkInstalled: null,
+      _prevBtConnected: false,
+      _lastPushedBrightness: -1,
       lastSpeedWarnAt: 0,
+      lastTempWarnAt: 0,
+      lastTireWarnAt: 0,
       appsSubView: 'drawer', // 'drawer' | 'r5' | 'files'
       tab: 'home',
       settingsSubView: 'cards', // 'cards' | 'bt' | 'eq' | 'more' | 'r5'
@@ -9523,18 +9849,123 @@
       return anyAlert;
     }
 
+    function resolveEffectiveTheme() {
+      if (state.themeMode === 'light') return 'light';
+      if (state.themeMode === 'dark') return 'dark';
+      // Auto follows car headlights first, then hour of day
+      if (state.lights === 'low' || state.lights === 'high') return 'dark';
+      const h = new Date().getHours();
+      return (h >= 18 || h < 6) ? 'dark' : 'light';
+    }
+
+    function applyEffectiveBrightness(pushNative) {
+      const base = Math.min(100, Math.max(10, Number(state.brightness) || 85));
+      const h = new Date().getHours();
+      const isNightHour = h >= 19 || h < 6;
+      const nightOn = !!(state.nightDimming && isNightHour);
+      const lightsOn = !!(state.autoLightDimming && (state.lights === 'low' || state.lights === 'high'));
+
+      let eff = base;
+      if (lightsOn) eff = Math.max(20, eff * 0.78);
+      if (nightOn) eff = Math.max(18, eff * 0.84);
+      const cssBright = Math.min(1, Math.max(0.42, 0.36 + (eff / 100) * 0.64));
+
+      const htmlEl = document.documentElement;
+      if (htmlEl) {
+        htmlEl.style.setProperty('--joy-bright-filter', cssBright.toFixed(3));
+        htmlEl.classList.toggle('night-dim-active', nightOn || lightsOn);
+      }
+
+      if (pushNative && window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
+        const rounded = Math.round(eff);
+        if (rounded !== state._lastPushedBrightness) {
+          state._lastPushedBrightness = rounded;
+          try { window.AndroidBridge.setSystemBrightness(rounded); } catch (e) { }
+        }
+      }
+    }
+
+    let _joyChimeCtx = null;
+    function playAlertChime(kind) {
+      if (!state.alertChimeEnabled) return;
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        if (!_joyChimeCtx) _joyChimeCtx = new AudioCtx();
+        if (_joyChimeCtx.state === 'suspended' && typeof _joyChimeCtx.resume === 'function') {
+          _joyChimeCtx.resume();
+        }
+        const notes = kind === 'danger'
+          ? [940, 720, 940]
+          : (kind === 'ok' ? [523.25, 659.25] : [680, 860]);
+        const t0 = _joyChimeCtx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = _joyChimeCtx.createOscillator();
+          const gain = _joyChimeCtx.createGain();
+          osc.type = kind === 'danger' ? 'triangle' : 'sine';
+          osc.frequency.setValueAtTime(freq, t0 + idx * 0.13);
+          gain.gain.setValueAtTime(0.001, t0 + idx * 0.13);
+          gain.gain.exponentialRampToValueAtTime(0.06, t0 + idx * 0.13 + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t0 + idx * 0.13 + 0.12);
+          osc.connect(gain);
+          gain.connect(_joyChimeCtx.destination);
+          osc.start(t0 + idx * 0.13);
+          osc.stop(t0 + idx * 0.13 + 0.125);
+        });
+      } catch (e) { }
+    }
+
+    let _joyIdleTimer = null;
+    function scheduleIdleScreensaver() {
+      if (_joyIdleTimer) {
+        clearTimeout(_joyIdleTimer);
+        _joyIdleTimer = null;
+      }
+      const mode = state.screenTimeout || '5m';
+      const delayMs = mode === '1m' ? 60000 : (mode === '5m' ? 300000 : 0);
+      if (delayMs > 0) {
+        _joyIdleTimer = setTimeout(() => {
+          const ss = document.getElementById('screensaver-overlay');
+          const bootOv = document.getElementById('boot-overlay');
+          const bootVisible = bootOv && !bootOv.classList.contains('hidden') && bootOv.style.display !== 'none';
+          if (ss && ss.classList.contains('hidden') && !bootVisible && typeof openScreensaver === 'function') {
+            openScreensaver();
+          }
+        }, delayMs);
+      }
+    }
+
     function applySystemPreferences() {
       const htmlEl = document.documentElement;
       if (htmlEl) {
         htmlEl.classList.toggle('large-text', !!state.largeText);
-        const h = new Date().getHours();
-        const isNightHour = h >= 19 || h < 6;
-        htmlEl.classList.toggle('night-dim-active', !!(state.nightDimming && isNightHour));
       }
+      if (state.themeMode === 'auto') {
+        state.theme = resolveEffectiveTheme();
+      } else if (state.themeMode === 'light' || state.themeMode === 'dark') {
+        state.theme = state.themeMode;
+      }
+      applyEffectiveBrightness(true);
+      scheduleIdleScreensaver();
       if (window.AndroidBridge && typeof window.AndroidBridge.setAlertThresholds === 'function') {
         try {
           window.AndroidBridge.setAlertThresholds(Math.round(state.lowPsiAlert || 26), Math.round(state.hotTempAlert || 105));
         } catch (e) { }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setScreenTimeoutMode === 'function') {
+        try { window.AndroidBridge.setScreenTimeoutMode(state.screenTimeout || '5m'); } catch (e) { }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setGpsSourceMode === 'function') {
+        try { window.AndroidBridge.setGpsSourceMode(state.gpsSource || 'tablet'); } catch (e) { }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setCoolingFanMode === 'function') {
+        try { window.AndroidBridge.setCoolingFanMode(state.fanMode || 'auto', Math.round(state.fanTempThreshold || 65), !!state.fanContinuous); } catch (e) { }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setIgnitionOffDelay === 'function') {
+        try { window.AndroidBridge.setIgnitionOffDelay(state.ignitionOffDelay || '1m'); } catch (e) { }
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.setOtaAutoCheck === 'function') {
+        try { window.AndroidBridge.setOtaAutoCheck(!!state.otaAutoWifi); } catch (e) { }
       }
     }
 
@@ -9546,62 +9977,499 @@
           lowPsiAlert: state.lowPsiAlert,
           hotTempAlert: state.hotTempAlert,
           speedLimitAlert: state.speedLimitAlert,
+          speedAlertEnabled: state.speedAlertEnabled,
+          alertChimeEnabled: state.alertChimeEnabled,
           nightDimming: state.nightDimming,
+          autoLightDimming: state.autoLightDimming,
+          themeMode: state.themeMode,
+          screenTimeout: state.screenTimeout,
+          startupTab: state.startupTab,
           bootAnimEnabled: state.bootAnimEnabled,
           largeText: state.largeText,
           fanMode: state.fanMode,
+          fanTempThreshold: state.fanTempThreshold,
+          fanContinuous: state.fanContinuous,
           brightness: state.brightness,
           allowSpeedLock: state.allowSpeedLock,
           valetMode: state.valetMode,
-          btAutoPlay: state.btAutoPlay
+          valetPin: state.valetPin || '1234',
+          btAutoPlay: state.btAutoPlay,
+          gpsSource: state.gpsSource,
+          preferredNavApp: state.preferredNavApp,
+          startupAudioSource: state.startupAudioSource,
+          ignitionOffDelay: state.ignitionOffDelay,
+          otaAutoWifi: state.otaAutoWifi
         };
-        localStorage.setItem('joyos_sys_prefs_v1', JSON.stringify(payload));
+        safeSetStorage('joyos_sys_prefs_v1', payload);
       } catch (e) { }
+    }
+
+    function setAjItemVal(catId, label, val) {
+      if (typeof ajData === 'undefined') return null;
+      const cat = ajData.find(c => c.id === catId);
+      const item = cat && cat.it ? cat.it.find(x => x.l === label) : null;
+      if (item) item.v = val;
+      return item;
+    }
+
+    function syncAllMoreSettingsControls() {
+      if (typeof ajData === 'undefined') return;
+      const tIdx = state.themeMode === 'light' ? 2 : (state.themeMode === 'auto' ? 0 : 1);
+      setAjItemVal('pan', 'Tema', tIdx);
+      setAjItemVal('pan', 'Brillo automático con luces', !!state.autoLightDimming);
+      setAjItemVal('pan', 'Brillo', state.brightness);
+      setAjItemVal('pan', 'Atenuar de noche', !!state.nightDimming);
+      setAjItemVal('pan', 'Tamaño de texto', state.largeText ? 1 : 0);
+      setAjItemVal('pan', 'Animación de arranque', !!state.bootAnimEnabled);
+      setAjItemVal('pan', 'Apagar pantalla tras', state.screenTimeout === '1m' ? 0 : (state.screenTimeout === 'never' ? 2 : 1));
+      const stMap = { home: 0, cockpit: 1, music: 2, map: 3 };
+      setAjItemVal('pan', 'Pantalla de inicio', typeof stMap[state.startupTab] === 'number' ? stMap[state.startupTab] : 0);
+
+      setAjItemVal('wifi', 'Wi-Fi', !!state.wifiEnabled);
+      setAjItemVal('wifi', 'Punto de acceso Wi-Fi (Hotspot)', !!state.wifiHotspot);
+      const gpsMap = { tablet: 0, phone: 1, hybrid: 2 };
+      setAjItemVal('wifi', 'Fuente de GPS', typeof gpsMap[state.gpsSource] === 'number' ? gpsMap[state.gpsSource] : 0);
+
+      setAjItemVal('fan', 'Modo de ventilador', state.fanMode === 'turbo' ? 2 : (state.fanMode === 'silent' ? 1 : 0));
+      setAjItemVal('fan', 'Activar enfriamiento sobre', state.fanTempThreshold);
+      setAjItemVal('fan', 'Enfriamiento continuo con pantalla encendida', !!state.fanContinuous);
+
+      setAjItemVal('con', 'Bluetooth', !!state.btEnabled);
+      setAjItemVal('con', 'Reproducir al conectar', !!state.btAutoPlay);
+      const audMap = { last: 0, bt: 1, radio: 2, usb: 3 };
+      setAjItemVal('con', 'Fuente de audio al iniciar', typeof audMap[state.startupAudioSource] === 'number' ? audMap[state.startupAudioSource] : 0);
+      setAjItemVal('con', 'Navegador externo preferido', state.preferredNavApp === 'maps' ? 1 : 0);
+
+      setAjItemVal('veh', 'Sistema', state.unitsSystem === 'imperial' ? 1 : 0);
+      setAjItemVal('veh', 'Presión de llantas', state.pressureUnit === 'bar' ? 1 : 0);
+      setAjItemVal('veh', 'Presión baja bajo', state.lowPsiAlert);
+      setAjItemVal('veh', 'Temperatura del motor sobre', state.hotTempAlert);
+      setAjItemVal('veh', 'Activar alerta de velocidad', !!state.speedAlertEnabled);
+      setAjItemVal('veh', 'Aviso de velocidad', state.speedLimitAlert);
+      setAjItemVal('veh', 'Timbre sonoro en alertas críticas', !!state.alertChimeEnabled);
+
+      setAjItemVal('cond', 'Bloquear ajustes en movimiento', !!state.allowSpeedLock);
+      setAjItemVal('cond', 'Modo valet con PIN', !!state.valetMode);
+      const ignMap = { '1m': 0, '5m': 1, 'never': 2 };
+      setAjItemVal('cond', 'Apagar al quitar el contacto', typeof ignMap[state.ignitionOffDelay] === 'number' ? ignMap[state.ignitionOffDelay] : 0);
+
+      setAjItemVal('info_hw', 'Buscar actualizaciones vía Wi-Fi', !!state.otaAutoWifi);
+      syncProfileLabelsToMoreSettings();
+    }
+
+    function syncProfileLabelsToMoreSettings() {
+      if (typeof ajData === 'undefined' || typeof profiles === 'undefined') return;
+      const condCat = ajData.find(c => c.id === 'cond');
+      const pItem = condCat && condCat.it ? condCat.it.find(x => x.l === 'Perfil activo') : null;
+      if (pItem && Array.isArray(profiles) && profiles.length > 0) {
+        const sliced = profiles.slice(0, 3);
+        pItem.o = sliced.map((p, idx) => p && p.name ? String(p.name).slice(0, 14) : ('Conductor ' + (idx + 1)));
+        const idx = typeof state.activeProfileIdx === 'number' ? state.activeProfileIdx : 0;
+        pItem.v = idx >= 0 && idx < pItem.o.length ? idx : 0;
+      }
     }
 
     function loadMoreSettingsPrefs() {
       try {
-        const raw = localStorage.getItem('joyos_sys_prefs_v1');
-        if (!raw) {
-          applySystemPreferences();
-          return;
+        let p = safeGetStorage('joyos_sys_prefs_v1');
+        if (!p) {
+          const raw = localStorage.getItem('joyos_sys_prefs_v1');
+          if (raw) p = JSON.parse(raw);
         }
-        const p = JSON.parse(raw);
-        if (p.unitsSystem === 'metric' || p.unitsSystem === 'imperial') state.unitsSystem = p.unitsSystem;
-        if (p.pressureUnit === 'psi' || p.pressureUnit === 'bar') state.pressureUnit = p.pressureUnit;
-        if (typeof p.lowPsiAlert === 'number') state.lowPsiAlert = p.lowPsiAlert;
-        if (typeof p.hotTempAlert === 'number') state.hotTempAlert = p.hotTempAlert;
-        if (typeof p.speedLimitAlert === 'number') state.speedLimitAlert = p.speedLimitAlert;
-        if (typeof p.nightDimming === 'boolean') state.nightDimming = p.nightDimming;
-        if (typeof p.bootAnimEnabled === 'boolean') state.bootAnimEnabled = p.bootAnimEnabled;
-        if (typeof p.largeText === 'boolean') state.largeText = p.largeText;
-        if (typeof p.fanMode === 'string') state.fanMode = p.fanMode;
-        if (typeof p.brightness === 'number') state.brightness = p.brightness;
-        if (typeof p.allowSpeedLock === 'boolean') state.allowSpeedLock = p.allowSpeedLock;
-        if (typeof p.valetMode === 'boolean') state.valetMode = p.valetMode;
-        if (typeof p.btAutoPlay === 'boolean') state.btAutoPlay = p.btAutoPlay;
-        if (typeof ajData !== 'undefined') {
-          const setAj = (catId, label, val) => {
-            const cat = ajData.find(c => c.id === catId);
-            const item = cat && cat.it ? cat.it.find(x => x.l === label) : null;
-            if (item) item.v = val;
-          };
-          setAj('pan', 'Brillo', state.brightness);
-          setAj('pan', 'Atenuar de noche', state.nightDimming);
-          setAj('pan', 'Tamaño de texto', state.largeText ? 1 : 0);
-          setAj('pan', 'Animación de arranque', state.bootAnimEnabled);
-          setAj('fan', 'Modo de ventilador', state.fanMode === 'turbo' ? 2 : (state.fanMode === 'silent' ? 1 : 0));
-          setAj('con', 'Reproducir al conectar', state.btAutoPlay);
-          setAj('veh', 'Sistema', state.unitsSystem === 'imperial' ? 1 : 0);
-          setAj('veh', 'Presión de llantas', state.pressureUnit === 'bar' ? 1 : 0);
-          setAj('veh', 'Presión baja bajo', state.lowPsiAlert);
-          setAj('veh', 'Temperatura del motor sobre', state.hotTempAlert);
-          setAj('veh', 'Aviso de velocidad', state.speedLimitAlert);
-          setAj('cond', 'Bloquear ajustes en movimiento', state.allowSpeedLock);
-          setAj('cond', 'Modo valet con PIN', state.valetMode);
+        if (p && typeof p === 'object') {
+          if (p.unitsSystem === 'metric' || p.unitsSystem === 'imperial') state.unitsSystem = p.unitsSystem;
+          if (p.pressureUnit === 'psi' || p.pressureUnit === 'bar') state.pressureUnit = p.pressureUnit;
+          if (typeof p.lowPsiAlert === 'number') state.lowPsiAlert = p.lowPsiAlert;
+          if (typeof p.hotTempAlert === 'number') state.hotTempAlert = p.hotTempAlert;
+          if (typeof p.speedLimitAlert === 'number') state.speedLimitAlert = p.speedLimitAlert;
+          if (typeof p.speedAlertEnabled === 'boolean') state.speedAlertEnabled = p.speedAlertEnabled;
+          if (typeof p.alertChimeEnabled === 'boolean') state.alertChimeEnabled = p.alertChimeEnabled;
+          if (typeof p.nightDimming === 'boolean') state.nightDimming = p.nightDimming;
+          if (typeof p.autoLightDimming === 'boolean') state.autoLightDimming = p.autoLightDimming;
+          if (p.themeMode === 'auto' || p.themeMode === 'dark' || p.themeMode === 'light') state.themeMode = p.themeMode;
+          if (p.screenTimeout === '1m' || p.screenTimeout === '5m' || p.screenTimeout === 'never') state.screenTimeout = p.screenTimeout;
+          if (p.startupTab === 'home' || p.startupTab === 'cockpit' || p.startupTab === 'music' || p.startupTab === 'map') state.startupTab = p.startupTab;
+          if (typeof p.bootAnimEnabled === 'boolean') state.bootAnimEnabled = p.bootAnimEnabled;
+          if (typeof p.largeText === 'boolean') state.largeText = p.largeText;
+          if (typeof p.fanMode === 'string') state.fanMode = p.fanMode;
+          if (typeof p.fanTempThreshold === 'number') state.fanTempThreshold = p.fanTempThreshold;
+          if (typeof p.fanContinuous === 'boolean') state.fanContinuous = p.fanContinuous;
+          if (typeof p.brightness === 'number') state.brightness = p.brightness;
+          if (typeof p.allowSpeedLock === 'boolean') state.allowSpeedLock = p.allowSpeedLock;
+          if (typeof p.valetMode === 'boolean') state.valetMode = p.valetMode;
+          if (typeof p.valetPin === 'string' && /^\d{4,6}$/.test(p.valetPin)) state.valetPin = p.valetPin;
+          if (typeof p.btAutoPlay === 'boolean') state.btAutoPlay = p.btAutoPlay;
+          if (p.gpsSource === 'tablet' || p.gpsSource === 'phone' || p.gpsSource === 'hybrid') state.gpsSource = p.gpsSource;
+          if (p.preferredNavApp === 'waze' || p.preferredNavApp === 'maps') state.preferredNavApp = p.preferredNavApp;
+          if (p.startupAudioSource === 'last' || p.startupAudioSource === 'bt' || p.startupAudioSource === 'radio' || p.startupAudioSource === 'usb') state.startupAudioSource = p.startupAudioSource;
+          if (p.ignitionOffDelay === '1m' || p.ignitionOffDelay === '5m' || p.ignitionOffDelay === 'never') state.ignitionOffDelay = p.ignitionOffDelay;
+          if (typeof p.otaAutoWifi === 'boolean') state.otaAutoWifi = p.otaAutoWifi;
         }
+        if (window.AndroidBridge && typeof window.AndroidBridge.isOtaAutoCheckEnabled === 'function') {
+          try { state.otaAutoWifi = !!window.AndroidBridge.isOtaAutoCheckEnabled(); } catch (e) { }
+        }
+        syncAllMoreSettingsControls();
       } catch (e) { }
       applySystemPreferences();
+    }
+
+    // --- IN-APP GLASSMORPHIC SYSTEM DIALOG & TOUCH KEYPAD ENGINE ---
+    let _joySysDialogOpts = null;
+    function showJoySysDialog(opts) {
+      const ov = document.getElementById('joy-sys-dialog');
+      const ttl = document.getElementById('joy-sys-title');
+      const msg = document.getElementById('joy-sys-msg');
+      const pre = document.getElementById('joy-sys-pre');
+      const btnExtra = document.getElementById('joy-sys-extra');
+      const btnCancel = document.getElementById('joy-sys-cancel');
+      const btnConfirm = document.getElementById('joy-sys-confirm');
+      if (!ov || !ttl || !msg || !btnConfirm) return;
+      _joySysDialogOpts = opts || {};
+      ttl.textContent = _joySysDialogOpts.title || 'Confirmar';
+      msg.textContent = _joySysDialogOpts.msg || '';
+      if (pre) {
+        if (_joySysDialogOpts.preText) {
+          pre.textContent = _joySysDialogOpts.preText;
+          pre.classList.remove('hidden');
+        } else {
+          pre.textContent = '';
+          pre.classList.add('hidden');
+        }
+      }
+      if (btnExtra) {
+        if (_joySysDialogOpts.extraLabel) {
+          btnExtra.textContent = _joySysDialogOpts.extraLabel;
+          btnExtra.classList.remove('hidden');
+          btnExtra.onclick = () => {
+            if (typeof _joySysDialogOpts.onExtra === 'function') _joySysDialogOpts.onExtra();
+          };
+        } else {
+          btnExtra.classList.add('hidden');
+        }
+      }
+      if (btnCancel) {
+        btnCancel.textContent = _joySysDialogOpts.cancelLabel || 'Cancelar';
+        btnCancel.classList.toggle('hidden', !!_joySysDialogOpts.hideCancel);
+      }
+      btnConfirm.textContent = _joySysDialogOpts.confirmLabel || 'Confirmar';
+      btnConfirm.className = 'joy-sys-btn ' + (_joySysDialogOpts.confirmDanger ? 'danger' : 'primary');
+      ov.classList.remove('hidden');
+    }
+
+    function closeJoySysDialog(confirmed) {
+      const ov = document.getElementById('joy-sys-dialog');
+      const opts = _joySysDialogOpts;
+      _joySysDialogOpts = null;
+      if (ov) ov.classList.add('hidden');
+      if (confirmed && opts && typeof opts.onConfirm === 'function') {
+        opts.onConfirm();
+      } else if (!confirmed && opts && typeof opts.onCancel === 'function') {
+        opts.onCancel();
+      }
+    }
+
+    let _joyPinOpts = null;
+    let _joyPinBuffer = '';
+    function renderJoyPinDots() {
+      const wrap = document.getElementById('joy-pin-dots');
+      if (!wrap) return;
+      const dots = wrap.querySelectorAll('.joy-pin-dot');
+      dots.forEach((d, idx) => d.classList.toggle('filled', idx < _joyPinBuffer.length));
+    }
+
+    function openJoyPinDialog(opts) {
+      const ov = document.getElementById('joy-pin-dialog');
+      const ttl = document.getElementById('joy-pin-title');
+      const sub = document.getElementById('joy-pin-sub');
+      const err = document.getElementById('joy-pin-err');
+      if (!ov) return;
+      _joyPinOpts = opts || {};
+      _joyPinBuffer = '';
+      if (ttl) ttl.textContent = _joyPinOpts.title || 'Modo Valet';
+      if (sub) sub.textContent = _joyPinOpts.sub || 'Ingresa el PIN de seguridad (4 dígitos)';
+      if (err) err.textContent = '';
+      renderJoyPinDots();
+      ov.classList.remove('hidden');
+    }
+
+    function cancelJoyPinDialog() {
+      const ov = document.getElementById('joy-pin-dialog');
+      const opts = _joyPinOpts;
+      _joyPinOpts = null;
+      _joyPinBuffer = '';
+      if (ov) ov.classList.add('hidden');
+      if (opts && typeof opts.onCancel === 'function') opts.onCancel();
+    }
+
+    function backspaceJoyPin() {
+      if (_joyPinBuffer.length > 0) {
+        _joyPinBuffer = _joyPinBuffer.slice(0, -1);
+        const err = document.getElementById('joy-pin-err');
+        if (err) err.textContent = '';
+        renderJoyPinDots();
+      }
+    }
+
+    function pressJoyPinKey(digit) {
+      if (!_joyPinOpts || _joyPinBuffer.length >= 4) return;
+      _joyPinBuffer += String(digit);
+      const err = document.getElementById('joy-pin-err');
+      if (err) err.textContent = '';
+      renderJoyPinDots();
+      if (_joyPinBuffer.length === 4) {
+        const entered = _joyPinBuffer;
+        const opts = _joyPinOpts;
+        if (opts.acceptAny) {
+          _joyPinOpts = null;
+          _joyPinBuffer = '';
+          const ov = document.getElementById('joy-pin-dialog');
+          if (ov) ov.classList.add('hidden');
+          if (typeof opts.onSuccess === 'function') opts.onSuccess(entered);
+          return;
+        }
+        const expected = String(opts.expectedPin || state.valetPin || '1234');
+        if (entered === expected) {
+          _joyPinOpts = null;
+          _joyPinBuffer = '';
+          const ov = document.getElementById('joy-pin-dialog');
+          if (ov) ov.classList.add('hidden');
+          playAlertChime('ok');
+          if (typeof opts.onSuccess === 'function') opts.onSuccess(entered);
+        } else {
+          _joyPinBuffer = '';
+          renderJoyPinDots();
+          if (err) err.textContent = 'PIN incorrecto · Intenta de nuevo';
+          playAlertChime('danger');
+        }
+      }
+    }
+
+    function startChangeValetPinFlow() {
+      const proceedNewPin = () => {
+        openJoyPinDialog({
+          title: 'Nuevo PIN de Modo Valet',
+          sub: 'Digita el nuevo PIN numérico de 4 dígitos',
+          acceptAny: true,
+          onSuccess: (newPin) => {
+            state.valetPin = newPin;
+            saveMoreSettingsPrefs();
+            enqueueNotification({
+              type: 'info',
+              dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0',
+              title: 'PIN de Modo Valet actualizado',
+              tag: 'Nuevo PIN de 4 dígitos guardado',
+              tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1'
+            });
+          }
+        });
+      };
+      if (state.valetMode) {
+        openJoyPinDialog({
+          title: 'Verificar PIN actual',
+          sub: 'Ingresa tu PIN actual antes de cambiarlo',
+          expectedPin: state.valetPin || '1234',
+          onSuccess: proceedNewPin
+        });
+      } else {
+        proceedNewPin();
+      }
+    }
+
+    const JOYOS_BACKUP_KEYS = [
+      'joyos_sys_prefs_v1',
+      'joyos_v8_profiles_min',
+      'joyos_v8_r5_vehicle',
+      'joyos_v8_dsp_state',
+      'joyos_v8_radio_presets',
+      'joyos_nav_state_v1'
+    ];
+
+    function buildJoyOsBackupBundle() {
+      const data = {};
+      JOYOS_BACKUP_KEYS.forEach(k => {
+        const val = safeGetStorage(k);
+        if (val !== null && val !== undefined) data[k] = val;
+      });
+      return {
+        app: 'JoyOS',
+        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.0',
+        exportedAt: new Date().toISOString(),
+        keys: data
+      };
+    }
+
+    function applyJoyOsBackupBundle(parsed) {
+      if (!parsed || typeof parsed !== 'object' || !parsed.keys || typeof parsed.keys !== 'object') {
+        return false;
+      }
+      let restoredCount = 0;
+      JOYOS_BACKUP_KEYS.forEach(k => {
+        if (Object.prototype.hasOwnProperty.call(parsed.keys, k) && parsed.keys[k] !== null && parsed.keys[k] !== undefined) {
+          safeSetStorage(k, parsed.keys[k]);
+          if (k === 'joyos_nav_state_v1') {
+            try {
+              const rawNav = JSON.stringify(parsed.keys[k]);
+              localStorage.setItem(NAV_STORE_KEY, rawNav);
+              if (window.AndroidBridge && typeof window.AndroidBridge.savePersistentJson === 'function') {
+                window.AndroidBridge.savePersistentJson(NAV_STORE_KEY, rawNav);
+              }
+            } catch (e) { }
+          }
+          restoredCount++;
+        }
+      });
+      if (restoredCount === 0) return false;
+      if (typeof loadNavState === 'function') loadNavState();
+      if (typeof loadDspStateLocal === 'function') loadDspStateLocal(true);
+      const pSaved = safeGetStorage('joyos_v8_profiles_min');
+      if (Array.isArray(pSaved) && pSaved.length > 0 && typeof profiles !== 'undefined') {
+        profiles.length = 0;
+        pSaved.forEach(item => profiles.push(item));
+      }
+      loadMoreSettingsPrefs();
+      renderMoreSettings();
+      renderProfilesUI();
+      renderAll();
+      return true;
+    }
+
+    function exportJoyOsBackup() {
+      const bundle = buildJoyOsBackupBundle();
+      const jsonStr = JSON.stringify(bundle, null, 2);
+      if (window.AndroidBridge && typeof window.AndroidBridge.exportBackupJson === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.exportBackupJson(jsonStr) || '{}');
+          if (res.ok) {
+            showJoySysDialog({
+              title: 'Copia de seguridad exportada',
+              msg: 'Guardada en almacenamiento interno de la tablet:\n' + (res.path || 'Download/JoyOS_Backups'),
+              preText: jsonStr.slice(0, 600) + (jsonStr.length > 600 ? '\n...' : ''),
+              confirmLabel: 'Listo',
+              hideCancel: true
+            });
+            return;
+          }
+        } catch (e) { }
+      }
+      try {
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'JoyOS_Backup.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (e) { }
+      showJoySysDialog({
+        title: 'Copia de seguridad lista',
+        msg: 'Incluye preferencias, perfiles, destinos, R5, ecualizador y emisoras FM.',
+        preText: jsonStr.slice(0, 800) + (jsonStr.length > 800 ? '\n...' : ''),
+        confirmLabel: 'Cerrar',
+        hideCancel: true,
+        extraLabel: 'Copiar JSON',
+        onExtra: () => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(jsonStr);
+              showJoyToast('Copiado', 'JSON de respaldo copiado al portapapeles', 'ok');
+            }
+          } catch (e) { }
+        }
+      });
+    }
+
+    function importJoyOsBackup() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.importBackupJson === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.importBackupJson() || '{}');
+          if (res.ok && res.json) {
+            const parsed = JSON.parse(res.json);
+            showJoySysDialog({
+              title: 'Restaurar copia de seguridad',
+              msg: 'Se encontró respaldo en ' + (res.path || 'la tablet') + '. ¿Deseas sobrescribir la configuración actual?',
+              confirmLabel: 'Restaurar',
+              onConfirm: () => {
+                if (applyJoyOsBackupBundle(parsed)) {
+                  showJoyToast('Respaldo restaurado', 'Configuración de JoyOS aplicada correctamente', 'ok');
+                }
+              }
+            });
+            return;
+          }
+        } catch (e) { }
+      }
+      const inp = document.getElementById('joy-backup-file-input');
+      if (inp) {
+        inp.value = '';
+        inp.click();
+      }
+    }
+
+    function handleBackupFileSelected(ev) {
+      const file = ev && ev.target && ev.target.files ? ev.target.files[0] : null;
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || '{}'));
+          if (applyJoyOsBackupBundle(parsed)) {
+            showJoyToast('Copia restaurada', 'Se restauraron tus ajustes y destinos', 'ok');
+          } else {
+            showJoyToast('Archivo no válido', 'El JSON seleccionado no corresponde a JoyOS', 'warn');
+          }
+        } catch (e) {
+          showJoyToast('Error de lectura', 'No se pudo interpretar el archivo JSON', 'warn');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function factoryResetJoyOsPrefs() {
+      showJoySysDialog({
+        title: 'Restablecer ajustes de fábrica',
+        msg: 'Se restaurarán los valores predeterminados de pantalla, alertas, ventilación, GPS, conductor y PIN Valet (1234). Los archivos USB no se borran.',
+        confirmLabel: 'Restablecer',
+        confirmDanger: true,
+        onConfirm: () => {
+          state.unitsSystem = 'metric';
+          state.pressureUnit = 'psi';
+          state.lowPsiAlert = 26;
+          state.hotTempAlert = 105;
+          state.speedLimitAlert = 100;
+          state.speedAlertEnabled = true;
+          state.alertChimeEnabled = true;
+          state.nightDimming = true;
+          state.autoLightDimming = true;
+          state.themeMode = 'dark';
+          state.theme = 'dark';
+          state.screenTimeout = '5m';
+          state.startupTab = 'home';
+          state.bootAnimEnabled = true;
+          state.largeText = false;
+          state.fanMode = 'auto';
+          state.fanTempThreshold = 65;
+          state.fanContinuous = true;
+          state.brightness = 85;
+          state.allowSpeedLock = true;
+          state.valetMode = false;
+          state.valetPin = '1234';
+          state._valetUnlockedSession = false;
+          state.btAutoPlay = false;
+          state.gpsSource = 'tablet';
+          state.preferredNavApp = 'waze';
+          state.startupAudioSource = 'last';
+          state.ignitionOffDelay = '1m';
+          state.otaAutoWifi = true;
+          saveMoreSettingsPrefs();
+          syncAllMoreSettingsControls();
+          applySystemPreferences();
+          renderMoreSettings();
+          renderAll();
+          showJoyToast('Ajustes restablecidos', 'Valores de fábrica de JoyOS aplicados', 'ok');
+        }
+      });
     }
 
     function openAppsDirect(sub, filter) {
@@ -9615,20 +10483,8 @@
       }
     }
 
-    function switchTab(t) {
-      if (t === 'settings' && state.valetMode) {
-        const pin = typeof prompt === 'function' ? prompt('Modo Valet activo · Ingresa el PIN (default 1234):', '') : null;
-        if (pin !== (state.valetPin || '1234')) {
-          enqueueNotification({
-            type: 'alert',
-            dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0',
-            title: 'Acceso restringido · Modo Valet',
-            tag: 'PIN incorrecto para abrir Ajustes',
-            tagClass: 'text-[11px] font-semibold text-amber-400 pl-1'
-          });
-          return;
-        }
-      }
+    function completeSwitchTab(t) {
+      if (t !== 'settings') state._valetUnlockedSession = false;
       state.settingsSubView = 'cards';
       state.appsSubView = 'drawer';
       state.tab = t;
@@ -9651,6 +10507,35 @@
       if (t === 'music') {
         refreshMusicFromDevice();
       }
+      if (t === 'settings') {
+        if (typeof updateMoreSystemReadouts === 'function') updateMoreSystemReadouts();
+        if (state.settingsSubView === 'more') renderMoreSettings();
+      }
+    }
+
+    function switchTab(t) {
+      if (t === 'settings' && state.valetMode && !state._valetUnlockedSession) {
+        openJoyPinDialog({
+          title: 'Acceso restringido · Modo Valet',
+          sub: 'Ingresa el PIN de 4 dígitos para abrir Ajustes',
+          expectedPin: state.valetPin || '1234',
+          onSuccess: () => {
+            state._valetUnlockedSession = true;
+            completeSwitchTab('settings');
+          },
+          onCancel: () => {
+            enqueueNotification({
+              type: 'alert',
+              dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0',
+              title: 'Acceso restringido · Modo Valet',
+              tag: 'PIN requerido para abrir Ajustes',
+              tagClass: 'text-[11px] font-semibold text-amber-400 pl-1'
+            });
+          }
+        });
+        return;
+      }
+      completeSwitchTab(t);
     }
 
     // --- 1. COLA FIFO APILADA DE NOTIFICACIONES Y VOLUMEN + SWIPE 4 DIRECCIONES + CLICK REDIRECT ---
@@ -9939,10 +10824,15 @@
     }
 
     function syncThemeToMoreSettings(themeMode) {
+      if (typeof ajData === 'undefined') return;
       const panCat = ajData.find(c => c.id === 'pan');
       if (panCat) {
         const tItem = panCat.it.find(x => x.l === 'Tema');
-        if (tItem) tItem.v = themeMode === 'light' ? 2 : 1;
+        if (tItem) {
+          if (themeMode === 'auto') tItem.v = 0;
+          else if (themeMode === 'light') tItem.v = 2;
+          else tItem.v = 1;
+        }
       }
     }
 
@@ -9993,10 +10883,18 @@
       const p = profiles[idx] || profiles[0];
       if (!p) return;
       state.activeProfileIdx = idx;
-      state.theme = p.theme || 'dark';
+      if (state.themeMode === 'auto') {
+        state.theme = resolveEffectiveTheme();
+        syncThemeToMoreSettings('auto');
+      } else {
+        state.theme = p.theme || 'dark';
+        state.themeMode = state.theme;
+        syncThemeToMoreSettings(state.theme);
+      }
       state.accent = p.accent || 'cyan';
-      syncThemeToMoreSettings(state.theme);
+      if (typeof syncProfileLabelsToMoreSettings === 'function') syncProfileLabelsToMoreSettings();
       renderProfilesUI();
+      if (state.settingsSubView === 'more') renderMoreSettings();
       renderAll();
     }
 
@@ -10065,6 +10963,7 @@
         renderAll();
       } else if (field === 'theme') {
         state.theme = val;
+        state.themeMode = val;
         syncThemeToMoreSettings(val);
         renderAll();
       }
@@ -10176,6 +11075,10 @@
       }
 
       safeSetStorage('joyos_v8_profiles_min', profiles);
+      if (state.themeMode !== 'auto' && profiles[state.activeProfileIdx] && profiles[state.activeProfileIdx].theme) {
+        state.themeMode = profiles[state.activeProfileIdx].theme;
+      }
+      saveMoreSettingsPrefs();
       applyProfile(state.activeProfileIdx);
       state.draftProfile = null;
       state.editingProfileIdx = null;
@@ -11317,6 +12220,7 @@
       const qEl = document.getElementById('aj-q');
       if (qEl) qEl.value = '';
       state.settingsSubView = 'more';
+      if (typeof updateMoreSystemReadouts === 'function') updateMoreSystemReadouts();
       renderAll();
       renderMoreSettings();
     }
@@ -11710,58 +12614,101 @@
       ? (window.AndroidBridge.getAppVersion() || JOYOS_VERSION)
       : JOYOS_VERSION;
 
-    // --- MÁS AJUSTES DATA MODEL & LOGIC (SIN SONIDO; CON WI-FI, VENTILADOR E INFO DEL SISTEMA) ---
+    // --- MÁS AJUSTES DATA MODEL & LOGIC (WI-FI, VENTILADOR, PERMISOS, RESPALDO E INFO DEL SISTEMA) ---
     const ajData = [
       {
         id: 'pan', n: 'Pantalla', it: [
-          { h: 'Apariencia' }, { t: 'seg', l: 'Tema', o: ['Auto', 'Oscuro', 'Claro'], v: 1, d: 'Auto sigue las luces del carro' },
-          { t: 'tog', l: 'Brillo automático con luces', v: true }, { t: 'rng', l: 'Brillo', min: 10, max: 100, v: 85, u: '%' },
-          { t: 'tog', l: 'Atenuar de noche', d: 'Reduce el brillo después de las 7 p. m.', v: true },
-          { h: 'Legibilidad' }, { t: 'seg', l: 'Tamaño de texto', o: ['Normal', 'Grande'], v: 0 },
-          { t: 'tog', l: 'Animación de arranque', v: true }, { t: 'seg', l: 'Apagar pantalla tras', o: ['1 min', '5 min', 'Nunca'], v: 1 }
+          { h: 'Apariencia' },
+          { t: 'seg', l: 'Tema', o: ['Auto', 'Oscuro', 'Claro'], v: 1, d: 'Auto sigue las luces del carro y la hora del día' },
+          { t: 'tog', l: 'Brillo automático con luces', v: true, d: 'Reduce el brillo al encender faros bajos o altos' },
+          { t: 'rng', l: 'Brillo', min: 10, max: 100, v: 85, u: '%' },
+          { t: 'tog', l: 'Atenuar de noche', d: 'Reduce el brillo suavemente entre 7:00 p. m. y 6:00 a. m.', v: true },
+          { h: 'Legibilidad y Reposo' },
+          { t: 'seg', l: 'Tamaño de texto', o: ['Normal', 'Grande'], v: 0 },
+          { t: 'tog', l: 'Animación de arranque', v: true },
+          { t: 'seg', l: 'Apagar pantalla tras', o: ['1 min', '5 min', 'Nunca'], v: 1, d: 'Activa salvapantallas por inactividad y mantiene o libera bloqueo de pantalla' },
+          { h: 'Comportamiento al iniciar' },
+          { t: 'seg', l: 'Pantalla de inicio', o: ['Inicio', 'Cockpit', 'Música', 'Mapa'], v: 0, d: 'Vista predeterminada al encender JoyOS' },
+          { t: 'act', l: 'Ajustes de pantalla Android', b: 'Abrir', d: 'Brillo nativo, rotación y fuente del sistema Android' }
         ]
       },
       {
         id: 'wifi', n: 'Wi-Fi y Red', it: [
-          { h: 'Conexión Wi-Fi' }, { t: 'tog', l: 'Wi-Fi', v: true, d: 'Conexión inalámbrica a Internet' },
+          { h: 'Conexión Wi-Fi' },
+          { t: 'tog', l: 'Wi-Fi', v: true, d: 'Conexión inalámbrica a Internet' },
           { t: 'info', l: 'Red conectada', v: 'Desconectado' },
+          { t: 'info', l: 'Dirección IP y ADB inalámbrico', v: 'Sin asignar' },
           { t: 'act', l: 'Buscar redes Wi-Fi cercanas', b: 'Buscar' },
-          { h: 'Zona portátil y GPS' }, { t: 'tog', l: 'Punto de acceso Wi-Fi (Hotspot)', v: false },
-          { t: 'seg', l: 'Fuente de GPS', o: ['Antena tablet', 'Teléfono'], v: 0 }
+          { h: 'Zona portátil y Ubicación GPS' },
+          { t: 'tog', l: 'Punto de acceso Wi-Fi (Hotspot)', v: false, d: 'Comparte datos desde o hacia la unidad Android' },
+          { t: 'seg', l: 'Fuente de GPS', o: ['Antena tablet', 'Teléfono', 'Híbrido'], v: 0, d: 'Selecciona receptor principal o fusión GPS + red' },
+          { t: 'info', l: 'Estado del receptor GPS', v: 'Esperando señal GPS...' },
+          { t: 'act', l: 'Ajustes de ubicación Android', b: 'Abrir', d: 'Modo de alta precisión y permisos de ubicación' }
         ]
       },
       {
         id: 'fan', n: 'Ventiladores', it: [
-          { h: 'Control Térmico del Chasis' }, { t: 'seg', l: 'Modo de ventilador', o: ['Auto', 'Silencio', 'Turbo'], v: 0, d: 'Regula el disipador térmico de la tablet' },
+          { h: 'Control Térmico del Chasis' },
+          { t: 'seg', l: 'Modo de ventilador', o: ['Auto', 'Silencio', 'Turbo'], v: 0, d: 'Regula el disipador térmico y gobernador de la tablet' },
           { t: 'info', l: 'Temperatura del procesador', v: '-- °C' },
           { t: 'info', l: 'Velocidad del disipador', v: 'Control térmico automático' },
-          { t: 'rng', l: 'Activar enfriamiento sobre', min: 55, max: 85, v: 65, u: ' °C' },
-          { t: 'tog', l: 'Enfriamiento continuo con pantalla encendida', v: true }
+          { t: 'rng', l: 'Activar enfriamiento sobre', min: 55, max: 85, v: 65, u: ' °C', d: 'Umbral de CPU para activar enfriamiento en modo Auto' },
+          { t: 'tog', l: 'Enfriamiento continuo con pantalla encendida', v: true, d: 'Mantiene flujo térmico base mientras la pantalla está activa' },
+          { t: 'act', l: 'Aplicar perfil térmico ahora', b: 'Aplicar', d: 'Sincroniza gobernador térmico y lectura del sensor CPU' }
         ]
       },
       {
         id: 'con', n: 'Conectividad', it: [
-          { h: 'Bluetooth' }, { t: 'tog', l: 'Bluetooth', v: true }, { t: 'info', l: 'Dispositivo vinculado', v: 'Sin vincular' },
-          { t: 'act', l: 'Administrar dispositivos Bluetooth', b: 'Abrir' },
-          { t: 'tog', l: 'Reproducir al conectar', v: false },
-          { h: 'Proyección' }, { t: 'info', l: 'Z-Link / CarPlay / Android Auto', v: 'Disponible' }, { t: 'act', l: 'Abrir Z-Link', b: 'Abrir' }
+          { h: 'Bluetooth' },
+          { t: 'tog', l: 'Bluetooth', v: true },
+          { t: 'info', l: 'Dispositivo vinculado', v: 'Sin vincular' },
+          { t: 'act', l: 'Gestor Bluetooth JoyOS', b: 'Abrir', d: 'Lista de dispositivos vinculados, batería y reconexión rápida' },
+          { t: 'act', l: 'Emparejar Bluetooth Android', b: 'Vincular', d: 'Abre los ajustes Bluetooth nativos de la tablet' },
+          { t: 'tog', l: 'Reproducir al conectar', v: false, d: 'Envía Play AVRCP automático al reconectar tu teléfono' },
+          { h: 'Audio & Navegación por defecto' },
+          { t: 'seg', l: 'Fuente de audio al iniciar', o: ['Última', 'BT', 'Radio', 'USB'], v: 0, d: 'Fuente de sonido al encender la unidad' },
+          { t: 'seg', l: 'Navegador externo preferido', o: ['Waze', 'Google Maps'], v: 0, d: 'App predeterminada para abrir rutas externas' },
+          { h: 'Proyección y Audio OS' },
+          { t: 'info', l: 'Z-Link / CarPlay / Android Auto', v: 'Verificando...' },
+          { t: 'act', l: 'Abrir Z-Link', b: 'Abrir' },
+          { t: 'act', l: 'Ajustes de sonido Android', b: 'Abrir', d: 'Balance maestro y volúmenes nativos del sistema' }
         ]
       },
       {
         id: 'veh', n: 'Vehículo', it: [
-          { h: 'Unidades' }, { t: 'seg', l: 'Sistema', o: ['Métrico', 'Imperial'], v: 0 }, { t: 'seg', l: 'Presión de llantas', o: ['PSI', 'bar'], v: 0 },
-          { h: 'Alertas' }, { t: 'rng', l: 'Presión baja bajo', min: 20, max: 36, v: 26, u: ' PSI' }, { t: 'rng', l: 'Temperatura del motor sobre', min: 95, max: 118, v: 105, u: ' °C' },
-          { t: 'rng', l: 'Aviso de velocidad', min: 40, max: 140, v: 100, u: ' km/h' },
-          { h: 'Sensores' }, { t: 'info', l: 'Adaptador OBD2', v: 'Sin conexión OBD2' }, { t: 'info', l: 'Sensores de llantas', v: 'Sin receptor TPMS' },
+          { h: 'Unidades' },
+          { t: 'seg', l: 'Sistema', o: ['Métrico', 'Imperial'], v: 0 },
+          { t: 'seg', l: 'Presión de llantas', o: ['PSI', 'bar'], v: 0 },
+          { h: 'Alertas y Seguridad Activa' },
+          { t: 'rng', l: 'Presión baja bajo', min: 20, max: 36, v: 26, u: ' PSI' },
+          { t: 'rng', l: 'Temperatura del motor sobre', min: 95, max: 118, v: 105, u: ' °C' },
+          { t: 'tog', l: 'Activar alerta de velocidad', v: true, d: 'Notifica cuando superas el límite configurado' },
+          { t: 'rng', l: 'Aviso de velocidad', min: 40, max: 160, v: 100, u: ' km/h' },
+          { t: 'tog', l: 'Timbre sonoro en alertas críticas', v: true, d: 'Emite tono acústico en sobrecalentamiento, llanta baja o exceso' },
+          { h: 'Sensores, Odómetro y R5' },
+          { t: 'info', l: 'Adaptador OBD2', v: 'Sin conexión OBD2' },
+          { t: 'info', l: 'Sensores de llantas', v: 'Sin receptor TPMS' },
+          { t: 'info', l: 'Trip actual (Odómetro parcial)', v: '0,0 km' },
+          { t: 'act', l: 'Reiniciar Trip parcial', b: 'Reiniciar', d: 'Pone en cero el recorrido parcial del viaje actual' },
           { t: 'act', l: 'Vincular escáner OBD2', b: 'Vincular' },
-          { t: 'act', l: 'Reconectar escáner OBD2 y TPMS USB', b: 'Reconectar' }
+          { t: 'act', l: 'Reconectar escáner OBD2 y TPMS USB', b: 'Reconectar' },
+          { t: 'act', l: 'Documentos R5 y Pico y Placa', b: 'Ver', d: 'Acceso rápido a SOAT, Tecnomecánica y placa' }
         ]
       },
       {
         id: 'cond', n: 'Conductor', it: [
-          { h: 'Perfil' }, { t: 'seg', l: 'Perfil activo', o: ['Conductor 1', 'Conductor 2', 'Invitado'], v: 0, d: 'Guarda tema, sonido y destinos' },
-          { h: 'Seguridad' }, { t: 'tog', l: 'Bloquear ajustes en movimiento', v: true }, { t: 'tog', l: 'Modo valet con PIN', v: false },
-          { h: 'Emergencia' }, { t: 'seg', l: 'Apagar al quitar el contacto', o: ['1 min', '5 min', 'Nunca'], v: 0 }
+          { h: 'Perfil' },
+          { t: 'seg', l: 'Perfil activo', o: ['Conductor 1', 'Conductor 2', 'Invitado'], v: 0, d: 'Guarda tema, acento y preferencias del conductor' },
+          { t: 'act', l: 'Administrar y editar perfiles', b: 'Editar', d: 'Personaliza nombre, avatar, tema y colores' },
+          { h: 'Seguridad' },
+          { t: 'tog', l: 'Bloquear ajustes en movimiento', v: true },
+          { t: 'tog', l: 'Modo valet con PIN', v: false, d: 'Solicita PIN táctil para entrar a Ajustes' },
+          { t: 'act', l: 'Cambiar PIN de Modo Valet', b: 'Cambiar', d: 'Actualiza el PIN de 4 dígitos del teclado táctil' },
+          { h: 'Contacto y Copia de Seguridad' },
+          { t: 'seg', l: 'Apagar al quitar el contacto', o: ['1 min', '5 min', 'Nunca'], v: 0, d: 'Retardo de suspensión al retirar la llave ACC' },
+          { t: 'act', l: 'Exportar copia de seguridad (JSON)', b: 'Exportar', d: 'Respalda ajustes, perfiles, favoritos, R5, EQ y radio' },
+          { t: 'act', l: 'Restaurar copia de seguridad', b: 'Importar', d: 'Carga un archivo de respaldo JSON previo' },
+          { t: 'act', l: 'Restablecer ajustes de fábrica', b: 'Restablecer', cls: 'danger', d: 'Restaura configuración predeterminada de JoyOS (no borra archivos)' }
         ]
       },
       {
@@ -11769,7 +12716,15 @@
           { h: 'Actualizaciones OTA (GitHub)' },
           { t: 'info', l: 'Versión instalada de JoyOS', v: `v${detectedJoyVer} Producción (Chevrolet Joy)` },
           { t: 'act', l: 'Buscar actualizaciones en GitHub', b: 'Buscar' },
-          { t: 'tog', l: 'Buscar actualizaciones vía Wi-Fi', v: true, d: 'Comprueba nuevos lanzamientos al encender' },
+          { t: 'tog', l: 'Buscar actualizaciones vía Wi-Fi', v: true, d: 'Comprueba nuevos lanzamientos automáticamente al encender' },
+          { h: 'Permisos del Sistema Android' },
+          { t: 'info', l: 'Ubicación GPS (Mapa / Clima)', v: 'Vista previa web' },
+          { t: 'info', l: 'Bluetooth y Escáner OBD2', v: 'Vista previa web' },
+          { t: 'info', l: 'Almacenamiento de Archivos / Copias', v: 'Vista previa web' },
+          { t: 'info', l: 'Brillo del Sistema (WRITE_SETTINGS)', v: 'Vista previa web' },
+          { t: 'info', l: 'Instalar Actualizaciones APK', v: 'Vista previa web' },
+          { t: 'act', l: 'Conceder permisos faltantes', b: 'Conceder', cls: 'accent', d: 'Solicita permisos de ejecución o abre el ajuste faltante' },
+          { t: 'act', l: 'Ajustes de la App JoyOS en Android', b: 'Abrir', d: 'Revisa permisos, almacenamiento e instalación de origen desconocido' },
           { h: 'Ingeniería Inversa (REA · ZXDZ_01 / AC8227L)' },
           { t: 'act', l: '🔬 Ejecutar Inspector REA de Hardware', b: 'Escanear', d: 'Inspecciona paquetes OEM (Radio/BT/MCU cm69), puertos USB/serie y propiedades del kernel' },
           { t: 'info', l: 'Paquetes OEM detectados', v: 'Toca Escanear' },
@@ -11777,12 +12732,14 @@
           { t: 'info', l: 'Dispositivos USB conectados (VID:PID)', v: 'Toca Escanear' },
           { t: 'info', l: 'Trama USB TPMS raw (hex)', v: 'Toca Escanear' },
           { t: 'info', l: 'Estado OBD2 (Vgate iCar Pro)', v: 'Toca Escanear' },
-          { t: 'info', l: 'WebView / Resolución real', v: 'Toca Escanear' },
+          { t: 'info', l: 'WebView / Resolución real', v: 'Calculando...' },
           { t: 'info', l: 'Último evento AVRCP / Audio BT', v: 'Esperando stream A2DP' },
+          { t: 'act', l: 'Copiar reporte de diagnóstico REA', b: 'Copiar', d: 'Genera y copia un diagnóstico técnico completo de JoyOS' },
           { h: 'Optimización de Hardware & Audio' },
           { t: 'act', l: '⚡ Optimizar Hardware al 100% (Super Mode)', b: 'Optimizar', d: 'Audio DSP al 100%, animaciones a 0.5x y limpieza segura de RAM (protege servicios OEM)' },
           { h: 'Seguridad & Salidas del Sistema' },
           { t: 'act', l: 'Abrir Ajustes de Android', b: 'Abrir', d: 'Acceso directo a la configuración original de la tablet' },
+          { t: 'act', l: 'Fecha, hora y zona horaria Android', b: 'Abrir', d: 'Configura sincronización de reloj y zona horaria' },
           { t: 'act', l: 'Cambiar Launcher de Inicio (Salir)', b: 'Elegir', d: 'Permite cambiar al launcher de fábrica u otro' },
           { t: 'act', l: 'Restaurar Launchers de Fábrica', b: 'Restaurar', d: 'Verifica y habilita todos los servicios y launchers originales' },
           { h: 'Especificaciones de la Tablet' },
@@ -11796,94 +12753,202 @@
           { t: 'info', l: 'Resolution info', v: '1280*720_YT090IBNK12018-A12' },
           { h: 'Mantenimiento del Sistema' },
           { t: 'act', l: 'Liberar RAM', b: 'Liberar' },
-          { t: 'act', l: 'Reiniciar sistema', b: 'Reiniciar' }
+          { t: 'act', l: 'Limpiar caché de JoyOS', b: 'Limpiar', d: 'Limpia caché temporal de WebView y mapas (conserva tus ajustes)' },
+          { t: 'act', l: 'Reiniciar sistema', b: 'Reiniciar', cls: 'danger' }
         ]
       }
     ];
 
     let ajCur = 'pan';
     let ajQuery = '';
+    let _ajRangeDragging = false;
     const ajFlat = ajData.flatMap(c => c.it);
+
+    function setAjCatInfo(catId, lbl, val, desc) {
+      const cat = ajData.find(c => c.id === catId);
+      if (!cat || !cat.it) return;
+      const item = cat.it.find(i => i.l === lbl);
+      if (item) {
+        item.v = val;
+        if (desc !== undefined) item.d = desc;
+      }
+    }
+
+    function applyNativeHardwareJsonToInfo(data) {
+      if (!data || typeof data !== 'object') return;
+      const pkgs = Array.isArray(data.oemPackages) ? data.oemPackages : [];
+      setAjCatInfo(
+        'info_hw',
+        'Paquetes OEM detectados',
+        pkgs.length > 0
+          ? `${pkgs.length} activos (${pkgs.slice(0, 3).map(p => p.package.split('.').pop()).join(', ')})`
+          : 'Estándar Android',
+        pkgs.map(p => `${p.label} [${p.package}]`).join(' · ')
+      );
+      const nodes = Array.isArray(data.hardwareNodes) ? data.hardwareNodes : [];
+      setAjCatInfo('info_hw', 'Nodos serie MCU / FM', nodes.length > 0 ? nodes.map(n => n.path).join(', ') : 'Control vía Broadcast MCU');
+      const usbDevs = Array.isArray(data.usbDevices) ? data.usbDevices : [];
+      setAjCatInfo(
+        'info_hw',
+        'Dispositivos USB conectados (VID:PID)',
+        usbDevs.length > 0
+          ? usbDevs.map(u => `${u.vid}:${u.pid} (${u.product || 'USB'}${u.hasPermission ? ' OK' : ' Sin permiso'})`).join(' | ')
+          : 'Ningún dispositivo USB Host'
+      );
+      if (data.tpms) {
+        const tpmsSummary = data.tpms.lastRawHex
+          ? `${data.tpms.source || 'usb'} · ${data.tpms.lastRawHex}`
+          : (data.tpms.connected ? `${data.tpms.source || 'usb'} activo (sin trama nueva)` : 'Sin receptor TPMS USB');
+        setAjCatInfo('info_hw', 'Trama USB TPMS raw (hex)', tpmsSummary, data.tpms.deviceLabel || undefined);
+      }
+      if (data.obd) {
+        const obdTxt = data.obd.connected
+          ? `${(data.obd.transport || 'bt').toUpperCase()} · ${data.obd.deviceName || 'OBD2'} (${data.obd.rpm || 0} RPM)`
+          : (data.obd.lastError ? `Desconectado (${data.obd.lastError})` : `Desconectado (${data.obd.transport || 'idle'})`);
+        setAjCatInfo('info_hw', 'Estado OBD2 (Vgate iCar Pro)', obdTxt);
+      }
+      const uaMatch = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent.match(/Chrome\/([\d.]+)/) : null;
+      const chromeVer = uaMatch ? uaMatch[1] : 'N/A';
+      if (data.screen && data.screen.widthPx) {
+        setAjCatInfo(
+          'info_hw',
+          'WebView / Resolución real',
+          `${window.innerWidth}x${window.innerHeight} CSS · Nativo ${data.screen.widthPx}x${data.screen.heightPx} (${data.screen.densityDpi}dpi) · Chrome ${chromeVer}`
+        );
+        setAjCatInfo('info_hw', 'Resolution info', `${data.screen.widthPx}*${data.screen.heightPx} @${data.screen.densityDpi}dpi`);
+      }
+      if (data.btMetadata && data.btMetadata.title) {
+        setAjCatInfo('info_hw', 'Último evento AVRCP / Audio BT', `${data.btMetadata.title} (${data.btMetadata.artist || 'BT'})`);
+      }
+      if (data.androidVer) {
+        setAjCatInfo('info_hw', 'Versión de Android', `Android ${data.androidVer} (SDK ${data.sdkInt || 27})`);
+      }
+      if (data.model || data.board) {
+        setAjCatInfo('info_hw', 'Plataforma del sistema', `${data.model || 'Android Car'} · ${data.board || 'ARM'} (${data.abi || 'armeabi'})`);
+      }
+      if (data.display) {
+        setAjCatInfo('info_hw', 'Número de versión del sistema', data.display);
+      }
+      if (data.properties && (data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version'])) {
+        setAjCatInfo('info_hw', 'Versión mcu', data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version']);
+      }
+    }
+
+    function updateMoreSystemReadouts() {
+      const uaMatch = (typeof navigator !== 'undefined' && navigator.userAgent) ? navigator.userAgent.match(/Chrome\/([\d.]+)/) : null;
+      const chromeVer = uaMatch ? uaMatch[1] : 'N/A';
+      const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
+      setAjCatInfo('info_hw', 'WebView / Resolución real', `${window.innerWidth}x${window.innerHeight} @${dpr}x (WebView Chrome ${chromeVer})`);
+      setAjCatInfo('info_hw', 'Resolution info', `${window.innerWidth}*${window.innerHeight} CSS (@${dpr}x)`);
+
+      // Live Vehicle Telemetry Readouts
+      const obdLabel = state.obdConnected
+        ? `Conectado (${(state.obdTransport || 'BT').toUpperCase()}) · ${state.obdDevice || 'Vgate iCar Pro'}${typeof state.obdTemp === 'number' ? ' · ' + formatTemp(state.obdTemp) : ''}`
+        : 'Sin conexión OBD2';
+      setAjCatInfo('veh', 'Adaptador OBD2', obdLabel);
+
+      const avgPsi = getAveragePsi();
+      const tpmsLabel = state.tpmsConnected
+        ? `Activo (${(state.tpmsSource || 'USB').toUpperCase()})${avgPsi !== null ? ' · Prom ' + formatPressure(avgPsi, true) : ''}`
+        : 'Sin receptor TPMS';
+      setAjCatInfo('veh', 'Sensores de llantas', tpmsLabel);
+
+      const tripDist = state.unitsSystem === 'imperial'
+        ? ((Number(state.tripKm || 0) * 0.621371).toFixed(1).replace('.', ',') + ' mi')
+        : (Number(state.tripKm || 0).toFixed(1).replace('.', ',') + ' km');
+      setAjCatInfo('veh', 'Trip actual (Odómetro parcial)', tripDist);
+
+      // Bluetooth bonded/active readout
+      setAjCatInfo('con', 'Dispositivo vinculado', state.btConnected ? `${state.btDeviceName || 'Conectado'} (Activo)` : (state.btEnabled ? 'Esperando vinculación' : 'Bluetooth apagado'));
+
+      // Fan thermal readout
+      const cpuC = typeof state.cpuTemp === 'number' ? state.cpuTemp : null;
+      if (cpuC !== null) {
+        setAjCatInfo('fan', 'Temperatura del procesador', formatTemp(cpuC));
+      }
+      const thresholdC = Number(state.fanTempThreshold || 65);
+      const fanLabel = state.fanMode === 'turbo'
+        ? 'Modo Turbo Activo (100%)'
+        : (state.fanMode === 'silent'
+          ? 'Modo Silencioso (Bajo ruido)'
+          : (cpuC !== null && cpuC >= thresholdC
+            ? `Enfriando activamente (>${formatTemp(thresholdC)})`
+            : (state.fanContinuous ? `Flujo base + Auto >${formatTemp(thresholdC)}` : `En espera térmica (<${formatTemp(thresholdC)})`)));
+      setAjCatInfo('fan', 'Velocidad del disipador', fanLabel);
+
+      // Native hardware / Z-Link / Permissions / RAM / Storage if AndroidBridge exists
+      if (window.AndroidBridge) {
+        try {
+          if (typeof window.AndroidBridge.isZlinkInstalled === 'function') {
+            const zl = !!window.AndroidBridge.isZlinkInstalled();
+            state.zlinkInstalled = zl;
+            setAjCatInfo('con', 'Z-Link / CarPlay / Android Auto', zl ? 'Instalado y listo' : 'No detectado en la tablet');
+          }
+          if (typeof window.AndroidBridge.inspectOemHardware === 'function') {
+            const rawHw = window.AndroidBridge.inspectOemHardware();
+            if (rawHw) applyNativeHardwareJsonToInfo(JSON.parse(rawHw));
+          }
+          if (typeof window.AndroidBridge.getSystemPermissionsStatus === 'function') {
+            const p = JSON.parse(window.AndroidBridge.getSystemPermissionsStatus() || '{}');
+            setAjCatInfo('info_hw', 'Ubicación GPS (Mapa / Clima)', p.location ? 'Concedido' : 'Pendiente');
+            setAjCatInfo('info_hw', 'Bluetooth y Escáner OBD2', p.bluetooth ? 'Concedido' : 'Pendiente');
+            setAjCatInfo('info_hw', 'Almacenamiento de Archivos / Copias', p.storage ? 'Concedido' : 'Pendiente');
+            setAjCatInfo('info_hw', 'Brillo del Sistema (WRITE_SETTINGS)', p.writeSettings ? 'Concedido' : 'Requiere activar');
+            setAjCatInfo('info_hw', 'Instalar Actualizaciones APK', p.installPackages ? 'Concedido' : 'Requiere activar');
+          }
+        } catch (e) { }
+      } else {
+        setAjCatInfo('con', 'Z-Link / CarPlay / Android Auto', 'Disponible en tablet Android');
+        const ua = typeof navigator !== 'undefined' ? navigator.platform || 'Navegador' : 'Web';
+        setAjCatInfo('info_hw', 'Versión de Android', 'Vista previa web (' + ua + ')');
+        setAjCatInfo('info_hw', 'Memoria RAM (Uso / Total)', (navigator.deviceMemory ? navigator.deviceMemory + ' GB estimados (Web)' : 'Solo lectura en tablet Android'));
+        setAjCatInfo('info_hw', 'Almacenamiento Interno', 'Solo lectura en tablet Android');
+        setAjCatInfo('wifi', 'Dirección IP y ADB inalámbrico', 'localhost / Vista previa web');
+      }
+    }
+
+    function buildReaReportText() {
+      updateMoreSystemReadouts();
+      const lines = [
+        '=== JOYOS DIAGNOSTIC REPORT ===',
+        'Fecha: ' + new Date().toLocaleString('es-CO'),
+        'Versión JoyOS: ' + detectedJoyVer,
+        'Tema: ' + state.themeMode + ' (activo: ' + state.theme + ') · Brillo: ' + state.brightness + '%',
+        'Unidades: ' + state.unitsSystem + ' / ' + state.pressureUnit,
+        'Wi-Fi: ' + (state.wifiConnected ? (state.wifiSsid + ' · IP ' + (state.wifiIp || '--')) : 'Desconectado'),
+        'GPS: ' + (state.gpsProvider || '--') + ' · Fuente=' + state.gpsSource,
+        'BT: ' + (state.btConnected ? state.btDeviceName : 'Desconectado') + ' · Z-Link=' + state.zlinkInstalled,
+        'OBD2: ' + (state.obdConnected ? (state.obdDevice + ' @ ' + state.obdTransport) : 'Desconectado'),
+        'TPMS: ' + (state.tpmsConnected ? state.tpmsSource : 'Desconectado') + ' · Trip=' + state.tripKm + ' km'
+      ];
+      const hwCat = ajData.find(c => c.id === 'info_hw');
+      if (hwCat && hwCat.it) {
+        hwCat.it.filter(x => x.t === 'info').forEach(x => {
+          lines.push(x.l + ': ' + x.v);
+        });
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.inspectOemHardware === 'function') {
+        try {
+          lines.push('');
+          lines.push('--- RAW OEM INSPECT ---');
+          lines.push(window.AndroidBridge.inspectOemHardware());
+        } catch (e) { }
+      }
+      return lines.join('\n');
+    }
 
     function runReaHardwareInspector(btnEl, xItem) {
       if (btnEl) btnEl.textContent = 'Escaneando...';
-      const hwCat = ajData.find(c => c.id === 'info_hw');
-      const setHw = (lbl, val, desc) => {
-        if (!hwCat) return;
-        const item = hwCat.it.find(i => i.l === lbl);
-        if (item) {
-          item.v = val;
-          if (desc !== undefined) item.d = desc;
-        }
-      };
-
-      const uaMatch = (typeof navigator !== 'undefined' && navigator.userAgent)
-        ? navigator.userAgent.match(/Chrome\/([\d.]+)/)
-        : null;
-      const chromeVer = uaMatch ? uaMatch[1] : 'N/A';
-      const dpr = typeof window !== 'undefined' ? (window.devicePixelRatio || 1) : 1;
-      const webDim = `${window.innerWidth}x${window.innerHeight} @${dpr}x (WebView Chrome ${chromeVer})`;
-      setHw('WebView / Resolución real', webDim);
+      updateMoreSystemReadouts();
 
       if (window.AndroidBridge && typeof window.AndroidBridge.inspectOemHardware === 'function') {
         try {
           const raw = window.AndroidBridge.inspectOemHardware();
           const data = JSON.parse(raw || '{}');
+          applyNativeHardwareJsonToInfo(data);
           const pkgs = Array.isArray(data.oemPackages) ? data.oemPackages : [];
-          setHw(
-            'Paquetes OEM detectados',
-            pkgs.length > 0
-              ? `${pkgs.length} activos (${pkgs.slice(0, 3).map(p => p.package.split('.').pop()).join(', ')})`
-              : 'Estándar Android',
-            pkgs.map(p => `${p.label} [${p.package}]`).join(' · ')
-          );
           const nodes = Array.isArray(data.hardwareNodes) ? data.hardwareNodes : [];
-          setHw(
-            'Nodos serie MCU / FM',
-            nodes.length > 0 ? nodes.map(n => n.path).join(', ') : 'Control vía Broadcast MCU'
-          );
           const usbDevs = Array.isArray(data.usbDevices) ? data.usbDevices : [];
-          setHw(
-            'Dispositivos USB conectados (VID:PID)',
-            usbDevs.length > 0
-              ? usbDevs.map(u => `${u.vid}:${u.pid} (${u.product || 'USB'}${u.hasPermission ? ' OK' : ' Sin permiso'})`).join(' | ')
-              : 'Ningún dispositivo USB Host'
-          );
-          if (data.tpms) {
-            const tpmsSummary = data.tpms.lastRawHex
-              ? `${data.tpms.source || 'usb'} · ${data.tpms.lastRawHex}`
-              : (data.tpms.connected ? `${data.tpms.source || 'usb'} activo (sin trama nueva)` : 'Sin receptor TPMS USB');
-            setHw('Trama USB TPMS raw (hex)', tpmsSummary, data.tpms.deviceLabel || undefined);
-          }
-          if (data.obd) {
-            const obdTxt = data.obd.connected
-              ? `${(data.obd.transport || 'bt').toUpperCase()} · ${data.obd.deviceName || 'OBD2'} (${data.obd.rpm || 0} RPM)`
-              : (data.obd.lastError ? `Desconectado (${data.obd.lastError})` : `Desconectado (${data.obd.transport || 'idle'})`);
-            setHw('Estado OBD2 (Vgate iCar Pro)', obdTxt);
-          }
-          if (data.screen && data.screen.widthPx) {
-            setHw(
-              'WebView / Resolución real',
-              `${window.innerWidth}x${window.innerHeight} CSS · Nativo ${data.screen.widthPx}x${data.screen.heightPx} (${data.screen.densityDpi}dpi) · Chrome ${chromeVer}`
-            );
-          }
-          if (data.btMetadata) {
-            setHw(
-              'Último evento AVRCP / Audio BT',
-              data.btMetadata.title
-                ? `${data.btMetadata.title} (${data.btMetadata.artist || 'BT'})`
-                : 'Listo · Escuchando AVRCP'
-            );
-          }
-          if (data.androidVer) {
-            setHw('Versión de Android', `Android ${data.androidVer} (SDK ${data.sdkInt || 27})`);
-          }
-          if (data.display) {
-            setHw('Número de versión del sistema', data.display);
-          }
-          if (data.properties && (data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version'])) {
-            setHw('Versión mcu', data.properties['ro.custom.build.version'] || data.properties['sys.mcu.version']);
-          }
           if (btnEl) {
             btnEl.textContent = 'Completado';
             setTimeout(() => { if (btnEl && xItem) btnEl.textContent = xItem.b; }, 2000);
@@ -11902,9 +12967,9 @@
           console.warn('REA inspect error:', e);
         }
       } else {
-        setHw('Dispositivos USB conectados (VID:PID)', 'Modo navegador (sin USB Host)');
-        setHw('Trama USB TPMS raw (hex)', state.tpmsConnected ? 'Simulado / Web' : 'Sin receptor TPMS USB');
-        setHw('Estado OBD2 (Vgate iCar Pro)', state.obdConnected ? 'En línea (Web)' : 'Sin adaptador OBD2 en navegador');
+        setAjCatInfo('info_hw', 'Dispositivos USB conectados (VID:PID)', 'Modo navegador (sin USB Host)');
+        setAjCatInfo('info_hw', 'Trama USB TPMS raw (hex)', state.tpmsConnected ? 'Simulado / Web' : 'Sin receptor TPMS USB');
+        setAjCatInfo('info_hw', 'Estado OBD2 (Vgate iCar Pro)', state.obdConnected ? 'En línea (Web)' : 'Sin adaptador OBD2 en navegador');
       }
       if (btnEl) {
         btnEl.textContent = 'Escaneado';
@@ -11913,12 +12978,84 @@
       renderMoreSettings();
     }
 
+    function getAjRangeMeta(x) {
+      if (x.l === 'Aviso de velocidad') {
+        const canonical = Math.min(160, Math.max(40, Number(x.v) || 100));
+        if (state.unitsSystem === 'imperial') {
+          return {
+            min: 25,
+            max: 100,
+            val: Math.min(100, Math.max(25, Math.round(canonical * 0.621371))),
+            label: Math.min(100, Math.max(25, Math.round(canonical * 0.621371))) + ' mph',
+            toCanonical: (dispVal) => Math.min(160, Math.max(40, Math.round(dispVal / 0.621371)))
+          };
+        }
+        return {
+          min: 40,
+          max: 160,
+          val: Math.round(canonical),
+          label: Math.round(canonical) + ' km/h',
+          toCanonical: (dispVal) => Math.min(160, Math.max(40, Math.round(dispVal)))
+        };
+      }
+      if (x.l === 'Temperatura del motor sobre' || x.l === 'Activar enfriamiento sobre') {
+        const canonical = Math.min(x.max, Math.max(x.min, Number(x.v) || x.min));
+        if (state.unitsSystem === 'imperial') {
+          const dMin = Math.round((x.min * 9) / 5 + 32);
+          const dMax = Math.round((x.max * 9) / 5 + 32);
+          const dVal = Math.round((canonical * 9) / 5 + 32);
+          return {
+            min: dMin,
+            max: dMax,
+            val: dVal,
+            label: dVal + ' °F',
+            toCanonical: (dispVal) => Math.min(x.max, Math.max(x.min, Math.round(((dispVal - 32) * 5) / 9)))
+          };
+        }
+        return {
+          min: x.min,
+          max: x.max,
+          val: Math.round(canonical),
+          label: Math.round(canonical) + ' °C',
+          toCanonical: (dispVal) => Math.min(x.max, Math.max(x.min, Math.round(dispVal)))
+        };
+      }
+      if (x.l === 'Presión baja bajo') {
+        const canonical = Math.min(x.max, Math.max(x.min, Number(x.v) || 26));
+        return {
+          min: x.min,
+          max: x.max,
+          val: Math.round(canonical),
+          label: state.pressureUnit === 'bar'
+            ? ((canonical * 0.0689476).toFixed(1) + ' bar')
+            : (Math.round(canonical) + ' PSI'),
+          toCanonical: (dispVal) => Math.min(x.max, Math.max(x.min, Math.round(dispVal)))
+        };
+      }
+      return {
+        min: x.min,
+        max: x.max,
+        val: x.v,
+        label: String(x.v) + String(x.u || ''),
+        toCanonical: (dispVal) => dispVal
+      };
+    }
+
     function ajCtl(x) {
       if (x.t === 'seg') return `<div class="aj-seg">${x.o.map((o, i) => `<button data-a="s" aria-pressed="${i === x.v}" data-i="${i}">${o}</button>`).join('')}</div>`;
       if (x.t === 'tog') return `<button class="aj-sw" role="switch" aria-checked="${x.v}" aria-label="${x.l}" data-a="t"></button>`;
-      if (x.t === 'rng') return `<div class="aj-rg"><input type="range" min="${x.min}" max="${x.max}" value="${x.v}" aria-label="${x.l}" data-a="r"><span class="aj-v">${x.v}${x.u}</span></div>`;
-      if (x.t === 'info') return `<span class="aj-v">${x.v}</span>`;
-      return `<button class="aj-act" data-a="b">${x.b}</button>`;
+      if (x.t === 'rng') {
+        const rm = getAjRangeMeta(x);
+        return `<div class="aj-rg"><input type="range" min="${rm.min}" max="${rm.max}" value="${rm.val}" aria-label="${x.l}" data-a="r"><span class="aj-v">${rm.label}</span></div>`;
+      }
+      if (x.t === 'info') {
+        const txt = String(x.v || '');
+        if (txt === 'Concedido' || txt === 'Instalado y listo') return `<span class="aj-badge">${txt}</span>`;
+        if (txt === 'Pendiente' || txt === 'Requiere activar') return `<span class="aj-badge warn">${txt}</span>`;
+        return `<span class="aj-v">${x.v}</span>`;
+      }
+      const cls = x.cls ? (' ' + x.cls) : '';
+      return `<button class="aj-act${cls}" data-a="b">${x.b}</button>`;
     }
 
     function ajRow(x, tag) {
@@ -11934,7 +13071,7 @@
       const all = ajData.flatMap(c => c.it.filter(x => x.l).map(x => ({ x, c })));
       let h = '';
       if (ajQuery) {
-        const r = all.filter(o => o.x.l.toLowerCase().includes(ajQuery));
+        const r = all.filter(o => o.x.l.toLowerCase().includes(ajQuery) || (o.x.d && o.x.d.toLowerCase().includes(ajQuery)));
         ttl.textContent = 'Resultados';
         sub.textContent = r.length + ' encontrados';
         h = r.map(o => ajRow(o.x, o.c.n)).join('') || '<div class="aj-empty">Sin resultados</div>';
@@ -11966,6 +13103,7 @@
           ajQuery = '';
           qInput.value = '';
           ajCur = c.id;
+          updateMoreSystemReadouts();
           renderMoreSettings();
         };
         nav.appendChild(b);
@@ -11975,6 +13113,18 @@
         ajQuery = e.target.value.trim().toLowerCase();
         renderMoreSettings();
       };
+
+      list.addEventListener('pointerdown', e => {
+        if (e.target && e.target.dataset && e.target.dataset.a === 'r') {
+          _ajRangeDragging = true;
+        }
+      });
+      window.addEventListener('pointerup', () => {
+        _ajRangeDragging = false;
+      });
+      window.addEventListener('pointercancel', () => {
+        _ajRangeDragging = false;
+      });
 
       list.addEventListener('click', e => {
         const b = e.target.closest('[data-a]');
@@ -11987,93 +13137,119 @@
         if (b.dataset.a === 's') {
           x.v = +b.dataset.i;
           if (x.l === 'Tema') {
-            state.theme = x.v === 2 ? 'light' : 'dark';
+            const modes = ['auto', 'dark', 'light'];
+            state.themeMode = modes[x.v] || 'dark';
+            state.theme = resolveEffectiveTheme();
+            if (profiles[state.activeProfileIdx] && state.themeMode !== 'auto') {
+              profiles[state.activeProfileIdx].theme = state.theme;
+              safeSetStorage('joyos_v8_profiles_min', profiles);
+            }
           } else if (x.l === 'Tamaño de texto') {
             state.largeText = x.v === 1;
-            applySystemPreferences();
+          } else if (x.l === 'Apagar pantalla tras') {
+            const tModes = ['1m', '5m', 'never'];
+            state.screenTimeout = tModes[x.v] || '5m';
+          } else if (x.l === 'Pantalla de inicio') {
+            const tabs = ['home', 'cockpit', 'music', 'map'];
+            state.startupTab = tabs[x.v] || 'home';
+          } else if (x.l === 'Fuente de GPS') {
+            const gModes = ['tablet', 'phone', 'hybrid'];
+            state.gpsSource = gModes[x.v] || 'tablet';
           } else if (x.l === 'Modo de ventilador') {
             const fModes = ['auto', 'silent', 'turbo'];
             state.fanMode = fModes[x.v] || 'auto';
-            const fanCat = ajData.find(c => c.id === 'fan');
-            const tItem = (fanCat && fanCat.it) ? fanCat.it.find(i => i.l === 'Temperatura del procesador') : null;
-            const rItem = (fanCat && fanCat.it) ? fanCat.it.find(i => i.l === 'Velocidad del disipador') : null;
-            if (window.AndroidBridge && typeof window.AndroidBridge.getCpuTemperature === 'function') {
-              try {
-                const realCpu = window.AndroidBridge.getCpuTemperature();
-                if (tItem && realCpu > 0) tItem.v = formatTemp(realCpu);
-              } catch (e) { }
-            }
-            if (rItem) {
-              rItem.v = state.fanMode === 'turbo' ? 'Modo Turbo Activo' : (state.fanMode === 'silent' ? 'Modo Silencioso' : 'Control térmico automático');
-            }
+          } else if (x.l === 'Fuente de audio al iniciar') {
+            const aModes = ['last', 'bt', 'radio', 'usb'];
+            state.startupAudioSource = aModes[x.v] || 'last';
+          } else if (x.l === 'Navegador externo preferido') {
+            state.preferredNavApp = x.v === 1 ? 'maps' : 'waze';
           } else if (x.l === 'Sistema') {
             state.unitsSystem = x.v === 1 ? 'imperial' : 'metric';
-            const vehCat = ajData.find(c => c.id === 'veh');
-            const spAlertItem = (vehCat && vehCat.it) ? vehCat.it.find(i => i.l === 'Aviso de velocidad') : null;
-            if (spAlertItem) spAlertItem.u = state.unitsSystem === 'imperial' ? ' mph' : ' km/h';
           } else if (x.l === 'Presión de llantas') {
             state.pressureUnit = x.v === 1 ? 'bar' : 'psi';
           } else if (x.l === 'Perfil activo') {
             if (typeof applyProfile === 'function') applyProfile(x.v);
+          } else if (x.l === 'Apagar al quitar el contacto') {
+            const ignModes = ['1m', '5m', 'never'];
+            state.ignitionOffDelay = ignModes[x.v] || '1m';
           }
+          applySystemPreferences();
           saveMoreSettingsPrefs();
+          updateMoreSystemReadouts();
           renderMoreSettings();
           renderAll();
         }
+
         if (b.dataset.a === 't') {
           if (x.l === 'Modo valet con PIN') {
             if (x.v) {
-              const pin = typeof prompt === 'function' ? prompt('Ingresa el PIN actual para desactivar Modo Valet:', '') : null;
-              if (pin !== (state.valetPin || '1234')) {
-                enqueueNotification({
-                  type: 'alert',
-                  dotClass: 'w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0',
-                  title: 'PIN incorrecto',
-                  tag: 'El Modo Valet sigue activo',
-                  tagClass: 'text-[11px] font-semibold text-rose-400 pl-1'
-                });
-                return;
-              }
-              x.v = false;
-              state.valetMode = false;
+              openJoyPinDialog({
+                title: 'Desactivar Modo Valet',
+                sub: 'Ingresa el PIN actual para desproteger Ajustes',
+                expectedPin: state.valetPin || '1234',
+                onSuccess: () => {
+                  x.v = false;
+                  state.valetMode = false;
+                  state._valetUnlockedSession = false;
+                  saveMoreSettingsPrefs();
+                  renderMoreSettings();
+                  renderAll();
+                }
+              });
             } else {
               x.v = true;
               state.valetMode = true;
+              state._valetUnlockedSession = true;
               enqueueNotification({
                 type: 'info',
                 dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0',
                 title: 'Modo Valet activado',
-                tag: `PIN de seguridad: ${state.valetPin || '1234'}`,
+                tag: 'PIN de seguridad activo (4 dígitos)',
                 tagClass: 'text-[11px] font-semibold text-amber-400 pl-1'
               });
+              saveMoreSettingsPrefs();
+              renderMoreSettings();
+              renderAll();
             }
-            saveMoreSettingsPrefs();
-            renderMoreSettings();
-            renderAll();
             return;
           }
           x.v = !x.v;
-          if (x.l === 'Bluetooth') {
+          if (x.l === 'Brillo automático con luces') {
+            state.autoLightDimming = x.v;
+          } else if (x.l === 'Atenuar de noche') {
+            state.nightDimming = x.v;
+          } else if (x.l === 'Animación de arranque') {
+            state.bootAnimEnabled = x.v;
+          } else if (x.l === 'Bluetooth') {
             state.btEnabled = x.v;
             if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
               try { window.AndroidBridge.setBluetoothPower(x.v); } catch (e) { }
             }
           } else if (x.l === 'Wi-Fi') {
             state.wifiEnabled = x.v;
-            if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+            let handled = false;
+            if (window.AndroidBridge && typeof window.AndroidBridge.setWifiEnabled === 'function') {
+              try { handled = !!window.AndroidBridge.setWifiEnabled(x.v); } catch (e) { }
+            }
+            if (!handled && window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
               window.AndroidBridge.openWifiSettings();
             }
           } else if (x.l === 'Punto de acceso Wi-Fi (Hotspot)') {
-            if (window.AndroidBridge && typeof window.AndroidBridge.openAndroidSettings === 'function') {
+            state.wifiHotspot = x.v;
+            if (window.AndroidBridge && typeof window.AndroidBridge.openHotspotSettings === 'function') {
+              window.AndroidBridge.openHotspotSettings();
+            } else if (window.AndroidBridge && typeof window.AndroidBridge.openAndroidSettings === 'function') {
               window.AndroidBridge.openAndroidSettings();
             }
+          } else if (x.l === 'Enfriamiento continuo con pantalla encendida') {
+            state.fanContinuous = x.v;
           } else if (x.l === 'Reproducir al conectar') {
             state.btAutoPlay = x.v;
-          } else if (x.l === 'Atenuar de noche') {
-            state.nightDimming = x.v;
-            applySystemPreferences();
-          } else if (x.l === 'Animación de arranque') {
-            state.bootAnimEnabled = x.v;
+          } else if (x.l === 'Activar alerta de velocidad') {
+            state.speedAlertEnabled = x.v;
+          } else if (x.l === 'Timbre sonoro en alertas críticas') {
+            state.alertChimeEnabled = x.v;
+            if (x.v) playAlertChime('ok');
           } else if (x.l === 'Bloquear ajustes en movimiento') {
             state.allowSpeedLock = x.v;
             if (!state.allowSpeedLock) {
@@ -12081,11 +13257,16 @@
               const u = document.getElementById('aj-unit');
               if (u) u.classList.remove('moving');
             }
+          } else if (x.l === 'Buscar actualizaciones vía Wi-Fi') {
+            state.otaAutoWifi = x.v;
           }
+          applySystemPreferences();
           saveMoreSettingsPrefs();
+          updateMoreSystemReadouts();
           renderMoreSettings();
           renderAll();
         }
+
         if (b.dataset.a === 'b') {
           if (x.l.includes('Reconectar escáner')) {
             b.textContent = 'Reconectando...';
@@ -12106,13 +13287,93 @@
             runReaHardwareInspector(b, x);
             return;
           }
+          if (x.l.includes('Copiar reporte')) {
+            const report = buildReaReportText();
+            try {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(report);
+              }
+            } catch (e) { }
+            showJoySysDialog({
+              title: 'Reporte de diagnóstico REA',
+              msg: 'Diagnóstico listo (copiado al portapapeles si el navegador lo permite).',
+              preText: report,
+              confirmLabel: 'Cerrar',
+              hideCancel: true
+            });
+            return;
+          }
           if (x.l.includes('Buscar actualizaciones')) {
             b.textContent = 'Buscando...';
             triggerOtaCheck(b, x);
             return;
           }
+          if (x.l.includes('Conceder permisos')) {
+            if (window.AndroidBridge) {
+              try {
+                if (typeof window.AndroidBridge.requestMissingPermissions === 'function') {
+                  window.AndroidBridge.requestMissingPermissions();
+                }
+                const p = typeof window.AndroidBridge.getSystemPermissionsStatus === 'function'
+                  ? JSON.parse(window.AndroidBridge.getSystemPermissionsStatus() || '{}')
+                  : {};
+                if (!p.writeSettings && typeof window.AndroidBridge.openWriteSettingsPermission === 'function') {
+                  window.AndroidBridge.openWriteSettingsPermission();
+                } else if (!p.installPackages && typeof window.AndroidBridge.openInstallUnknownAppsPermission === 'function') {
+                  window.AndroidBridge.openInstallUnknownAppsPermission();
+                }
+              } catch (e) { }
+              setTimeout(() => {
+                updateMoreSystemReadouts();
+                renderMoreSettings();
+              }, 800);
+            } else {
+              showJoyToast('Permisos Android', 'En la tablet concede Ubicación, BT y Modificar ajustes', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('App JoyOS en Android')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openAppSettings === 'function') {
+              window.AndroidBridge.openAppSettings();
+            } else {
+              showJoyToast('Ajustes de la App', 'Disponible instalado en Android', 'info');
+            }
+            return;
+          }
           if (x.l.includes('Optimizar Hardware')) {
             triggerHardwareOptimization(b, x);
+            return;
+          }
+          if (x.l.includes('Ajustes de pantalla Android')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openDisplaySettings === 'function') {
+              window.AndroidBridge.openDisplaySettings();
+            } else {
+              showJoyToast('Pantalla Android', 'Disponible en la tablet del vehículo', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('Ajustes de ubicación Android')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openLocationSettings === 'function') {
+              window.AndroidBridge.openLocationSettings();
+            } else {
+              showJoyToast('Ubicación Android', 'Disponible en la tablet del vehículo', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('Ajustes de sonido Android')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openSoundSettings === 'function') {
+              window.AndroidBridge.openSoundSettings();
+            } else {
+              showJoyToast('Sonido Android', 'Disponible en la tablet del vehículo', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('Fecha, hora')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openDateTimeSettings === 'function') {
+              window.AndroidBridge.openDateTimeSettings();
+            } else {
+              showJoyToast('Fecha y Hora', 'Disponible en la tablet del vehículo', 'info');
+            }
             return;
           }
           if (x.l.includes('Ajustes de Android')) {
@@ -12132,25 +13393,36 @@
             return;
           }
           if (x.l.includes('Restaurar Launchers')) {
-            if (confirm('¿Verificar y habilitar todos los launchers y servicios de fábrica originales?')) {
-              b.textContent = 'Restaurando...';
-              if (window.AndroidBridge && typeof window.AndroidBridge.restoreFactoryLaunchers === 'function') {
-                const ok = window.AndroidBridge.restoreFactoryLaunchers();
-                b.textContent = ok ? 'Restaurado' : 'Fallo';
-              } else {
-                b.textContent = 'Restaurado';
+            showJoySysDialog({
+              title: 'Restaurar Launchers de Fábrica',
+              msg: '¿Verificar y habilitar todos los launchers y servicios OEM originales de la tablet?',
+              confirmLabel: 'Restaurar',
+              onConfirm: () => {
+                b.textContent = 'Restaurando...';
+                if (window.AndroidBridge && typeof window.AndroidBridge.restoreFactoryLaunchers === 'function') {
+                  const ok = window.AndroidBridge.restoreFactoryLaunchers();
+                  b.textContent = ok ? 'Restaurado' : 'Fallo';
+                } else {
+                  b.textContent = 'Restaurado';
+                }
+                setTimeout(() => { if (b) b.textContent = x.b; }, 2000);
               }
-              setTimeout(() => { b.textContent = x.b; }, 2000);
-            }
+            });
             return;
           }
-          if (x.l.includes('Wi-Fi')) {
-            if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
-              window.AndroidBridge.openWifiSettings();
-              return;
-            }
+          if (x.l.includes('Aplicar perfil térmico')) {
+            applySystemPreferences();
+            updateHardwareStatus();
+            updateMoreSystemReadouts();
+            renderMoreSettings();
+            showJoyToast('Control térmico aplicado', 'Modo ' + state.fanMode.toUpperCase() + ' · Umbral ' + formatTemp(state.fanTempThreshold), 'ok');
+            return;
           }
-          if (x.l.includes('Bluetooth') || x.l.includes('OBD2') || x.l.includes('Vincular')) {
+          if (x.l.includes('Gestor Bluetooth JoyOS')) {
+            openBluetoothDirect();
+            return;
+          }
+          if (x.l.includes('Emparejar Bluetooth Android') || x.l.includes('OBD2') || x.l.includes('Vincular')) {
             if (window.AndroidBridge && typeof window.AndroidBridge.openBluetoothSettings === 'function') {
               window.AndroidBridge.openBluetoothSettings();
               return;
@@ -12158,25 +13430,94 @@
             openBluetoothDirect();
             return;
           }
+          if (x.l.includes('Wi-Fi')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+              window.AndroidBridge.openWifiSettings();
+              return;
+            }
+            showJoyToast('Wi-Fi', 'Ajuste Wi-Fi disponible en Android', 'info');
+            return;
+          }
           if (x.l.includes('Z-Link')) {
             launchOsApp('zlink');
             return;
           }
-          if (x.l === 'Reiniciar sistema') {
-            if (confirm('¿Reiniciar la pantalla del carro?')) {
-              b.textContent = 'Reiniciando...';
-              if (window.AndroidBridge && typeof window.AndroidBridge.rebootDevice === 'function') {
-                window.AndroidBridge.rebootDevice();
-              } else {
-                triggerBootCeremony(false);
+          if (x.l.includes('Reiniciar Trip')) {
+            showJoySysDialog({
+              title: 'Reiniciar odómetro Trip',
+              msg: '¿Poner en cero el odómetro parcial del viaje actual?',
+              confirmLabel: 'Reiniciar',
+              onConfirm: () => {
+                state.tripKm = 0;
+                if (window.AndroidBridge && typeof window.AndroidBridge.resetTripOdometer === 'function') {
+                  try { window.AndroidBridge.resetTripOdometer(); } catch (e) { }
+                }
+                updateMoreSystemReadouts();
+                renderMoreSettings();
+                renderAll();
+                showJoyToast('Trip reiniciado', 'Odómetro parcial en 0,0', 'ok');
               }
+            });
+            return;
+          }
+          if (x.l.includes('Documentos R5')) {
+            openSettingsSubView('r5');
+            return;
+          }
+          if (x.l.includes('editar perfiles')) {
+            openProfileSelector();
+            return;
+          }
+          if (x.l.includes('Cambiar PIN')) {
+            startChangeValetPinFlow();
+            return;
+          }
+          if (x.l.includes('Exportar copia')) {
+            exportJoyOsBackup();
+            return;
+          }
+          if (x.l.includes('Restaurar copia')) {
+            importJoyOsBackup();
+            return;
+          }
+          if (x.l.includes('Restablecer ajustes')) {
+            factoryResetJoyOsPrefs();
+            return;
+          }
+          if (x.l === 'Limpiar caché de JoyOS') {
+            b.textContent = 'Limpiando...';
+            if (window.AndroidBridge && typeof window.AndroidBridge.clearAppCache === 'function') {
+              try {
+                const res = JSON.parse(window.AndroidBridge.clearAppCache() || '{}');
+                showJoyToast('Caché liberado', res.ok ? `Se liberaron ${res.freedKb || 0} KB de caché temporal` : 'Limpieza completada', 'ok');
+              } catch (e) { }
+            } else {
+              showJoyToast('Caché limpiado', 'Archivos temporales liberados (ajustes intactos)', 'ok');
             }
+            setTimeout(() => { if (b) b.textContent = x.b; }, 1400);
+            return;
+          }
+          if (x.l === 'Reiniciar sistema') {
+            showJoySysDialog({
+              title: 'Reiniciar sistema',
+              msg: '¿Reiniciar ahora la pantalla del Chevrolet Joy?',
+              confirmLabel: 'Reiniciar',
+              confirmDanger: true,
+              onConfirm: () => {
+                b.textContent = 'Reiniciando...';
+                if (window.AndroidBridge && typeof window.AndroidBridge.rebootDevice === 'function') {
+                  window.AndroidBridge.rebootDevice();
+                } else {
+                  triggerBootCeremony(false);
+                }
+              }
+            });
             return;
           }
           if (x.l.includes('Liberar RAM')) {
             b.textContent = 'Liberando...';
             optimizeRam();
-            setTimeout(() => { b.textContent = x.b; }, 1400);
+            setTimeout(() => { if (b) b.textContent = x.b; }, 1400);
             return;
           }
         }
@@ -12186,30 +13527,40 @@
         const b = e.target;
         if (b.dataset.a === 'r') {
           const x = ajFlat[b.closest('.aj-row').dataset.k];
-          x.v = +b.value;
-          b.nextElementSibling.textContent = x.v + x.u;
+          if (!x) return;
+          const rm = getAjRangeMeta(x);
+          const canonical = rm.toCanonical(+b.value);
+          x.v = canonical;
+          if (b.nextElementSibling) b.nextElementSibling.textContent = getAjRangeMeta(x).label;
+
           if (x.l === 'Brillo') {
-            state.brightness = x.v;
-            if (window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
-              try { window.AndroidBridge.setSystemBrightness(x.v); } catch (e) { }
+            state.brightness = canonical;
+            if (window.AndroidBridge && typeof window.AndroidBridge.canWriteSystemSettings === 'function' && !window.AndroidBridge.canWriteSystemSettings()) {
+              showJoyToast('Permiso de brillo', 'Activa "Modificar ajustes del sistema" en Info -> Permisos', 'warn');
             }
+            applyEffectiveBrightness(true);
+          } else if (x.l === 'Activar enfriamiento sobre') {
+            state.fanTempThreshold = canonical;
+            applySystemPreferences();
+            updateMoreSystemReadouts();
           } else if (x.l === 'Presión baja bajo') {
-            state.lowPsiAlert = x.v;
+            state.lowPsiAlert = canonical;
             state.tireAlert = computeTireAlerts();
             applySystemPreferences();
             renderAll();
           } else if (x.l === 'Temperatura del motor sobre') {
-            state.hotTempAlert = x.v;
+            state.hotTempAlert = canonical;
             if (typeof state.obdTemp === 'number') state.engineHot = state.obdTemp >= state.hotTempAlert;
             applySystemPreferences();
             renderAll();
           } else if (x.l === 'Aviso de velocidad') {
-            state.speedLimitAlert = x.v;
+            state.speedLimitAlert = canonical;
           }
           saveMoreSettingsPrefs();
         }
       });
 
+      updateMoreSystemReadouts();
       renderMoreSettings();
     }
 
@@ -12495,12 +13846,18 @@
 
     function toggleTheme() {
       state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      state.themeMode = state.theme;
       if (profiles[state.activeProfileIdx]) {
         profiles[state.activeProfileIdx].theme = state.theme;
         safeSetStorage('joyos_v8_profiles_min', profiles);
       }
-      syncThemeToMoreSettings(state.theme);
+      syncThemeToMoreSettings(state.themeMode);
+      applySystemPreferences();
+      saveMoreSettingsPrefs();
       renderAll();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
       if (state.draftProfile) {
         state.draftProfile.theme = state.theme;
         updateDraftEditorUI();
@@ -12667,7 +14024,11 @@
 
     function toggleLightMode(m) {
       state.lights = state.lights === m ? 'off' : m;
+      applySystemPreferences();
       renderAll();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
     }
 
     function toggleHazard() {
@@ -12764,7 +14125,14 @@
 
     function setFanMode(mode) {
       state.fanMode = mode;
+      setAjItemVal('fan', 'Modo de ventilador', mode === 'turbo' ? 2 : (mode === 'silent' ? 1 : 0));
+      applySystemPreferences();
+      saveMoreSettingsPrefs();
+      updateMoreSystemReadouts();
       renderAll();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
     }
 
     let lastPresetTapTime = 0;
@@ -12824,10 +14192,13 @@
 
     function cycleBrightness() {
       state.brightness = state.brightness === 85 ? 100 : (state.brightness === 100 ? 60 : 85);
-      if (window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
-        try { window.AndroidBridge.setSystemBrightness(state.brightness); } catch (e) { }
-      }
+      setAjItemVal('pan', 'Brillo', state.brightness);
+      applyEffectiveBrightness(true);
+      saveMoreSettingsPrefs();
       renderAll();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
     }
 
     function optimizeRam() {
@@ -14328,20 +15699,21 @@
     }
 
     function launchNavAppWithActiveDest(appId) {
+      const targetApp = appId || state.preferredNavApp || 'waze';
       const dest = navState.activeDest;
       if (!dest) {
-        launchOsApp(appId);
+        launchOsApp(targetApp);
         return;
       }
       if (window.AndroidBridge && typeof window.AndroidBridge.navigateToLocation === 'function') {
         try {
-          if (window.AndroidBridge.navigateToLocation(dest.lat, dest.lon, dest.name, appId)) {
+          if (window.AndroidBridge.navigateToLocation(dest.lat, dest.lon, dest.name, targetApp)) {
             return;
           }
         } catch (e) { }
       }
-      const appName = appId === 'waze' ? 'Waze' : 'Google Maps';
-      const extUrl = appId === 'waze'
+      const appName = targetApp === 'waze' ? 'Waze' : 'Google Maps';
+      const extUrl = targetApp === 'waze'
         ? ('https://waze.com/ul?ll=' + dest.lat.toFixed(6) + ',' + dest.lon.toFixed(6) + '&navigate=yes')
         : ('https://www.google.com/maps/dir/?api=1&destination=' + dest.lat.toFixed(6) + ',' + dest.lon.toFixed(6));
       showJoyToast('Navegación en ' + appName, 'Abriendo ruta hacia ' + dest.name, 'info');
@@ -14648,11 +16020,17 @@
 
       const lat = typeof data.lat === 'number' ? data.lat : data.latitude;
       const lon = typeof data.lon === 'number' ? data.lon : data.longitude;
+      if (typeof data.provider === 'string' && data.provider) state.gpsProvider = data.provider;
+      if (typeof data.accuracy === 'number' && data.accuracy > 0) state.gpsAccuracy = Math.round(data.accuracy);
 
       if (typeof lat === 'number' && typeof lon === 'number' && (lat !== 0 || lon !== 0)) {
         lastGpsCoords = [lat, lon];
         lastGpsBearing = data.bearing || 0;
         hasReceivedFix = !!data.hasFix;
+        const gpsSummary = (hasReceivedFix ? 'Fix Activo' : 'Buscando satélites') +
+          ' · ' + (state.gpsProvider && state.gpsProvider !== '--' ? state.gpsProvider.toUpperCase() : 'GNSS') +
+          (state.gpsAccuracy > 0 ? (' (±' + state.gpsAccuracy + ' m)') : '');
+        setAjCatInfo('wifi', 'Estado del receptor GPS', gpsSummary);
 
         const nearestCity = findNearestColombiaCity(lat, lon);
         const labelEl = document.getElementById('map-gps-city-label');
@@ -15912,12 +17290,20 @@
 
     function updateHardwareStatus() {
       if (!window.AndroidBridge) return;
-      // 1. Wi-Fi
+      // 1. Wi-Fi, IP, Internet & Hotspot
       try {
         if (typeof window.AndroidBridge.getWifiStatus === 'function') {
           const w = JSON.parse(window.AndroidBridge.getWifiStatus() || '{}');
+          state.wifiEnabled = !!w.enabled;
           state.wifiConnected = !!w.connected;
           state.wifiSsid = w.ssid || 'Desconectado';
+          state.wifiIp = w.ip || '';
+          state.wifiRssi = typeof w.rssi === 'number' ? w.rssi : 0;
+          state.wifiLinkSpeed = typeof w.linkSpeed === 'number' ? w.linkSpeed : 0;
+          state.wifiInternet = !!w.internet;
+          state.wifiHotspot = !!w.hotspot;
+          setAjItemVal('wifi', 'Wi-Fi', !!w.enabled);
+          setAjItemVal('wifi', 'Punto de acceso Wi-Fi (Hotspot)', !!w.hotspot);
           const wifiIco = document.getElementById('top-wifi-icon');
           if (wifiIco) {
             if (w.connected) {
@@ -15933,20 +17319,35 @@
               wifiIco.setAttribute('title', 'Wi-Fi apagado');
             }
           }
-          const wifiCat = ajData.find(c => c.id === 'wifi');
-          const wifiItem = (wifiCat && wifiCat.it) ? wifiCat.it.find(i => i.l === 'Red conectada') : null;
-          if (wifiItem) {
-            wifiItem.v = w.connected ? `${w.ssid} (Conectado)` : (w.enabled ? 'Desconectado' : 'Apagado');
-          }
+          const connLabel = w.connected
+            ? `${w.ssid}${w.linkSpeed > 0 ? ' · ' + w.linkSpeed + ' Mbps' : ''}${w.internet ? ' · Con Internet' : ' · Sin Internet'}`
+            : (w.enabled ? 'Desconectado' : 'Apagado');
+          setAjCatInfo('wifi', 'Red conectada', connLabel);
+          setAjCatInfo('wifi', 'Dirección IP y ADB inalámbrico', w.ip ? `${w.ip} (adb connect ${w.ip}:5555)` : 'Sin IP asignada');
         }
       } catch (e) { }
 
-      // 2. Bluetooth
+      // 2. Bluetooth + Auto-Play Edge Trigger
       try {
         if (typeof window.AndroidBridge.getBluetoothStatus === 'function') {
           const b = JSON.parse(window.AndroidBridge.getBluetoothStatus() || '{}');
+          const wasBtConnected = !!state._prevBtConnected;
+          state.btEnabled = typeof b.enabled === 'boolean' ? b.enabled : state.btEnabled;
           state.btConnected = !!b.connected;
+          state._prevBtConnected = state.btConnected;
           state.btDeviceName = b.device || 'Sin dispositivo';
+          setAjItemVal('con', 'Bluetooth', !!state.btEnabled);
+          if (!wasBtConnected && state.btConnected && state.btAutoPlay) {
+            try {
+              if (typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
+                window.AndroidBridge.sendMediaKeyEvent('play');
+              }
+            } catch (e2) { }
+            if (!state.playing && typeof togglePlay === 'function') {
+              togglePlay();
+            }
+            showJoyToast('Audio Bluetooth automático', `Reproduciendo tras conectar ${state.btDeviceName}`, 'ok');
+          }
           const btIco = document.getElementById('top-bt-icon');
           const phoneWrap = document.getElementById('top-phone-wrap');
           const sigIco = document.getElementById('top-signal-icon');
@@ -16012,19 +17413,21 @@
         }
       } catch (e) { }
 
-      // 4. CPU Temp, RAM & Storage
+      // 4. CPU Temp, Thermal Governor, RAM & Storage
       try {
         if (typeof window.AndroidBridge.getCpuTemperature === 'function') {
           const cpuT = window.AndroidBridge.getCpuTemperature();
           if (cpuT > 0) {
             state.cpuTemp = cpuT;
-            const fanCat = ajData.find(c => c.id === 'fan');
-            const fanItem = (fanCat && fanCat.it) ? fanCat.it.find(i => i.l === 'Temperatura del procesador') : null;
-            if (fanItem) fanItem.v = formatTemp(cpuT);
             const subBattCpuTxt = document.getElementById('r5-sub-batt-cpu-txt');
             if (subBattCpuTxt) {
               const vStr = state.voltage ? `${state.voltage.toFixed(1)} V` : '-- V';
               subBattCpuTxt.textContent = `${vStr} · CPU ${formatTemp(cpuT)}`;
+            }
+            if (state.fanMode === 'auto' && typeof window.AndroidBridge.setCoolingFanMode === 'function') {
+              try {
+                window.AndroidBridge.setCoolingFanMode('auto', Math.round(state.fanTempThreshold || 65), !!state.fanContinuous);
+              } catch (e2) { }
             }
           }
         }
@@ -16047,6 +17450,10 @@
           }
         }
       } catch (e) { }
+      updateMoreSystemReadouts();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
     }
 
     initNativeHardwareMode();
@@ -16062,17 +17469,16 @@
         state.speed = Math.round(data.speed);
         state.obdSpeed = state.speed;
         state.gear = state.speed === 0 ? 1 : Math.min(5, Math.max(1, Math.ceil(state.speed / 38)));
-        const limitKmh = state.unitsSystem === 'imperial'
-          ? (state.speedLimitAlert || 100) / 0.621371
-          : (state.speedLimitAlert || 100);
+        const limitKmh = Number(state.speedLimitAlert || 100);
         const nowTs = Date.now();
-        if (state.speed > limitKmh && nowTs - (state.lastSpeedWarnAt || 0) > 30000) {
+        if (state.speedAlertEnabled && state.speed > limitKmh && nowTs - (state.lastSpeedWarnAt || 0) > 30000) {
           state.lastSpeedWarnAt = nowTs;
+          playAlertChime('warn');
           enqueueNotification({
             type: 'alert',
             dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0',
             title: `Límite de velocidad (${formatSpeedVal(state.speed)} ${speedUnitLabel()})`,
-            tag: `Aviso configurado en ${state.speedLimitAlert || 100} ${speedUnitLabel()}`,
+            tag: `Aviso configurado en ${formatSpeedVal(limitKmh)} ${speedUnitLabel()}`,
             tagClass: 'text-[11px] font-semibold text-amber-400 pl-1'
           });
         }
@@ -16137,6 +17543,15 @@
       if (typeof data.tempRl === 'number') state.tireTemps.rl = data.tempRl;
       if (typeof data.tempRr === 'number') state.tireTemps.rr = data.tempRr;
       state.tireAlert = computeTireAlerts() || Boolean(data.tireAlert);
+      const alertNowTs = Date.now();
+      if (state.engineHot && alertNowTs - (state.lastTempWarnAt || 0) > 30000) {
+        state.lastTempWarnAt = alertNowTs;
+        playAlertChime('danger');
+      }
+      if (state.tireAlert && alertNowTs - (state.lastTireWarnAt || 0) > 30000) {
+        state.lastTireWarnAt = alertNowTs;
+        playAlertChime('warn');
+      }
       if (typeof data.vol === 'number') {
         state.vol = data.vol;
       }
@@ -16144,6 +17559,10 @@
       if (typeof data.btEnabled === 'boolean') state.btEnabled = data.btEnabled;
       if (typeof data.phoneBattery === 'number') state.phoneBattery = data.phoneBattery;
       if (typeof data.phoneSignal === 'number') state.phoneSignal = data.phoneSignal;
+      updateMoreSystemReadouts();
+      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
+        renderMoreSettings();
+      }
       renderAll();
     };
 
@@ -16236,9 +17655,25 @@
       updateEqCurve();
       updateSoundStageUI();
     });
+    ['pointerdown', 'keydown', 'touchstart'].forEach(evtName => {
+      document.addEventListener(evtName, () => scheduleIdleScreensaver(), { passive: true });
+    });
+    scheduleIdleScreensaver();
     bindGlobalViewSwipe();
     bindSongCoverSwipe();
     applyProfile(0);
+    if (state.startupAudioSource && state.startupAudioSource !== 'last') {
+      if (state.startupAudioSource === 'radio') state.audioMode = 'radio';
+      else if (state.startupAudioSource === 'bt') state.audioMode = 'bt';
+      else if (state.startupAudioSource === 'usb') {
+        state.audioMode = 'bt';
+        state.fileDrive = 'usb';
+      }
+    }
+    if (state.startupTab && state.startupTab !== 'home' && ['cockpit', 'music', 'map'].includes(state.startupTab)) {
+      completeSwitchTab(state.startupTab);
+    }
+    updateMoreSystemReadouts();
     // Safety Boot Handler: Run once when window dimensions are settled, and allow 1-tap skip
     let _bootPerformed = false;
     function safeBootSequence() {
