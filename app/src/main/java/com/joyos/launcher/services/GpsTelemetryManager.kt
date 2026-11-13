@@ -34,15 +34,42 @@ class GpsTelemetryManager(
     var currentGpsData = GpsData()
         private set
 
+    private var lastGpsFixMs: Long = 0L
+
     @SuppressLint("MissingPermission")
     fun startTracking() {
         if (isTracking) return
         try {
-            if (locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == true) {
-                locationManager.requestLocationUpdates(
+            val mgr = locationManager ?: return
+            val seedLocation = listOf(
+                LocationManager.GPS_PROVIDER,
+                LocationManager.NETWORK_PROVIDER,
+                LocationManager.PASSIVE_PROVIDER
+            ).firstNotNullOfOrNull { provider ->
+                try {
+                    if (mgr.isProviderEnabled(provider)) mgr.getLastKnownLocation(provider) else null
+                } catch (_: Throwable) {
+                    null
+                }
+            }
+            if (seedLocation != null) {
+                emitLocation(seedLocation, isHardwareGps = seedLocation.provider == LocationManager.GPS_PROVIDER)
+            }
+
+            if (mgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                mgr.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
                     500L, // 2 Hz update interval for responsive speedometer sweep
                     0.5f,
+                    this
+                )
+                isTracking = true
+            }
+            if (mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                mgr.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER,
+                    5000L,
+                    15f,
                     this
                 )
                 isTracking = true
@@ -63,6 +90,17 @@ class GpsTelemetryManager(
     }
 
     override fun onLocationChanged(location: Location) {
+        val isHwGps = location.provider == LocationManager.GPS_PROVIDER
+        if (!isHwGps && (System.currentTimeMillis() - lastGpsFixMs) < 15000L && lastGpsFixMs > 0L) {
+            return
+        }
+        emitLocation(location, isHardwareGps = isHwGps)
+    }
+
+    private fun emitLocation(location: Location, isHardwareGps: Boolean) {
+        if (isHardwareGps) {
+            lastGpsFixMs = System.currentTimeMillis()
+        }
         val speedMps = if (location.hasSpeed()) location.speed else 0f
         val speedKmh = (speedMps * 3.6f).roundToInt().coerceAtLeast(0)
 
