@@ -78,8 +78,8 @@ class JoyAudioDspEngine(private val context: Context) {
     }
 
     private fun initHardwareEffects() {
-        // Priority Int.MAX_VALUE ensures JoyOS holds primary DSP authority over global session 0
-        val priority = Int.MAX_VALUE
+        // Priority 0 avoids preempting AC8227L HAL BT/media audio sinks when JoyOS DSP is at idle
+        val priority = 0
         val sessionId = 0
 
         // 1. Equalizer Hardware Initialization
@@ -107,8 +107,8 @@ class JoyAudioDspEngine(private val context: Context) {
                     hwBandMap[i] = bestBand
                 }
 
-                enabled = true
                 applyAllBands(currentBars)
+                enabled = currentBars.any { it != 0 }
             }
             Log.i(TAG, "Hardware Equalizer initialized with ${equalizer?.numberOfBands} bands [Range: $bandMinLevel..$bandMaxLevel mB]")
         } catch (e: Throwable) {
@@ -118,18 +118,17 @@ class JoyAudioDspEngine(private val context: Context) {
         // 2. BassBoost Hardware Initialization
         try {
             bassBoost = BassBoost(priority, sessionId).apply {
-                enabled = true
                 applySubwoofer(subwooferLevel)
+                enabled = subwooferLevel > 0
             }
             Log.i(TAG, "Hardware BassBoost initialized for Subwoofer")
         } catch (e: Throwable) {
             Log.w(TAG, "BassBoost init warning on session 0: ${e.message}")
         }
 
-        // 3. LoudnessEnhancer Hardware Initialization
+        // 3. LoudnessEnhancer Hardware Initialization (only active when reinforcement is requested)
         try {
             loudnessEnhancer = LoudnessEnhancer(sessionId).apply {
-                enabled = true
                 applyLoudnessGain()
             }
             Log.i(TAG, "Hardware LoudnessEnhancer initialized for Bit-Perfect clean pre-amp")
@@ -140,7 +139,6 @@ class JoyAudioDspEngine(private val context: Context) {
         // 4. Virtualizer Hardware Initialization
         try {
             virtualizer = Virtualizer(priority, sessionId).apply {
-                enabled = true
                 applySoundStage(soundStageX, soundStageY)
             }
             Log.i(TAG, "Hardware Virtualizer initialized for Cabin Sound Stage")
@@ -160,7 +158,10 @@ class JoyAudioDspEngine(private val context: Context) {
         try {
             val hwBand = hwBandMap[bandIdx]
             val mB = (clamped * 100).coerceIn(bandMinLevel.toInt(), bandMaxLevel.toInt()).toShort()
-            equalizer?.setBandLevel(hwBand, mB)
+            equalizer?.let { eq ->
+                eq.setBandLevel(hwBand, mB)
+                eq.enabled = currentBars.any { it != 0 }
+            }
             prefs.edit().putInt("band_$bandIdx", clamped).apply()
         } catch (e: Throwable) {
             Log.w(TAG, "Failed to set band level $bandIdx to $clamped dB: ${e.message}")
@@ -192,6 +193,7 @@ class JoyAudioDspEngine(private val context: Context) {
                     val mB = (bars[i] * 100).coerceIn(bandMinLevel.toInt(), bandMaxLevel.toInt()).toShort()
                     eq.setBandLevel(hwBand, mB)
                 }
+                eq.enabled = bars.any { it != 0 }
             }
         } catch (e: Throwable) {
             Log.w(TAG, "Failed to apply all bands: ${e.message}")
@@ -289,14 +291,15 @@ class JoyAudioDspEngine(private val context: Context) {
     private fun applyLoudnessGain() {
         try {
             loudnessEnhancer?.let { le ->
-                val baseGainMb = 350 // +3.5 dB clean headroom
                 val subGainMb = subwooferLevel * 20 // Up to +2.0 dB for low-end punch
                 val speedGainMb = if (isSpeedVolActive && currentSpeedKmh > 40) {
                     ((currentSpeedKmh - 40) * 4).coerceIn(0, 250) // Up to +2.5 dB at 100+ km/h
                 } else 0
-
+                val needsBoost = subGainMb > 0 || speedGainMb > 0
+                val baseGainMb = if (needsBoost) 250 else 0
                 val totalGainMb = (baseGainMb + subGainMb + speedGainMb).coerceIn(0, 1000)
                 le.setTargetGain(totalGainMb)
+                le.enabled = needsBoost && totalGainMb > 0
             }
         } catch (e: Throwable) {
             Log.w(TAG, "Failed to apply loudness gain: ${e.message}")

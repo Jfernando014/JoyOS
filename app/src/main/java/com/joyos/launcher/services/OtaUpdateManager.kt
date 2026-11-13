@@ -37,8 +37,41 @@ class OtaUpdateManager(private val context: Context) {
     companion object {
         private const val TAG = "OtaUpdateManager"
         private const val GITHUB_API_URL = "https://api.github.com/repos/Jfernando014/JoyOS/releases/latest"
-        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.0"
+        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.1"
         private const val TIMEOUT_MS = 15000
+    }
+
+    private fun openDownloadConnection(initialUrl: String): HttpURLConnection {
+        var currentUrl = initialUrl
+        for (hop in 0 until 6) {
+            val conn = (URL(currentUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = TIMEOUT_MS
+                readTimeout = TIMEOUT_MS
+                setRequestProperty("User-Agent", USER_AGENT)
+                instanceFollowRedirects = false
+            }
+            val code = conn.responseCode
+            if (code in listOf(
+                    HttpURLConnection.HTTP_MOVED_PERM,
+                    HttpURLConnection.HTTP_MOVED_TEMP,
+                    HttpURLConnection.HTTP_SEE_OTHER,
+                    307,
+                    308
+                )
+            ) {
+                val loc = conn.getHeaderField("Location")
+                conn.disconnect()
+                if (loc.isNullOrBlank()) throw Exception("Redirect HTTP $code without Location")
+                currentUrl = URL(URL(currentUrl), loc).toString()
+                continue
+            }
+            if (code !in 200..299) {
+                conn.disconnect()
+                throw Exception("OTA download HTTP $code")
+            }
+            return conn
+        }
+        throw Exception("Too many redirects")
     }
 
     /**
@@ -114,13 +147,7 @@ class OtaUpdateManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
-            val url = URL(urlStr)
-            connection = (url.openConnection() as HttpURLConnection).apply {
-                connectTimeout = TIMEOUT_MS
-                readTimeout = TIMEOUT_MS
-                setRequestProperty("User-Agent", USER_AGENT)
-                instanceFollowRedirects = true
-            }
+            connection = openDownloadConnection(urlStr)
 
             val totalBytes = connection.contentLength
             val tempFile = File(context.filesDir, "joy_os_live.tmp")
@@ -180,13 +207,7 @@ class OtaUpdateManager(private val context: Context) {
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
         try {
-            val url = URL(urlStr)
-            connection = (url.openConnection() as HttpURLConnection).apply {
-                connectTimeout = TIMEOUT_MS
-                readTimeout = TIMEOUT_MS
-                setRequestProperty("User-Agent", USER_AGENT)
-                instanceFollowRedirects = true
-            }
+            connection = openDownloadConnection(urlStr)
 
             val totalBytes = connection.contentLength
             val downloadDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.cacheDir

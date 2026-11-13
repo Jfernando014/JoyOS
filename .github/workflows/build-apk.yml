@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -34,9 +36,28 @@ jobs:
           APP_VER=$(grep -oE 'versionName\s*=\s*"[^"]+"' app/build.gradle.kts | head -n1 | cut -d'"' -f2)
           echo "APP_VER=${APP_VER}" >> "$GITHUB_ENV"
           if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
-            echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+            RELEASE_TAG="${GITHUB_REF#refs/tags/}"
           else
-            echo "RELEASE_TAG=v${APP_VER}" >> "$GITHUB_ENV"
+            RELEASE_TAG="v${APP_VER}"
+          fi
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
+
+          PREV_TAG=$(git tag -l "v1.*" --sort=-v:refname | grep -Fxv "${RELEASE_TAG}" | head -n1 || echo "")
+          NATIVE_CHANGED="true"
+          if [[ -n "$PREV_TAG" ]]; then
+            NON_VER_GRADLE=$(git diff "$PREV_TAG"..HEAD -- app/build.gradle.kts | grep -E '^[+-]' | grep -Ev '^[+-]{3}|versionCode|versionName' || true)
+            OTHER_NATIVE=$(git diff --name-only "$PREV_TAG"..HEAD -- app/src/main/java app/src/main/AndroidManifest.xml app/src/main/res || true)
+            if [[ -z "$NON_VER_GRADLE" && -z "$OTHER_NATIVE" ]]; then
+              NATIVE_CHANGED="false"
+            fi
+          fi
+          mkdir -p release_assets
+          cp app/build/outputs/apk/debug/JoyOSLauncher.apk release_assets/JoyOSLauncher.apk
+          if [[ "$NATIVE_CHANGED" == "false" ]]; then
+            cp joy_os_live.html release_assets/joy_os_live.html
+            echo "OTA_NOTE=Incluye actualización rápida Hot-Update (UI) y APK completo." >> "$GITHUB_ENV"
+          else
+            echo "OTA_NOTE=[APK] Actualización nativa (Android/Kotlin): requiere instalar JoyOSLauncher.apk completo." >> "$GITHUB_ENV"
           fi
 
       - name: Upload JoyOSLauncher APK Artifact
@@ -54,12 +75,11 @@ jobs:
           name: "JoyOS Production v${{ env.APP_VER }} (Chevrolet Joy · 9\" AC8227L)"
           body: |
             ### 🚀 JoyOS Production v${{ env.APP_VER }} — Chevrolet Joy (9" AC8227L / 1280×720)
+            - ${{ env.OTA_NOTE }}
             - **OBD2 Vgate iCar Pro Dual (BT Classic SPP + BLE GATT)**: Soporte nativo para `ANDROID-VLINK` e `IOS-VLINK`, RPM, temperatura real de refrigerante, velocidad ECU, voltaje de batería (`ATRV`) y consumo estimado por MAF/MAP.
             - **TPMS USB 433.92 MHz Plug & Play**: Driver USB Serial integrado (`usb-serial-for-android 3.8.1`, sin apps externas) para receptor Jansite/CH340 con lectura individual por rueda (`FL`, `FR`, `RL`, `RR`), temperatura y diagnóstico hex en REA.
             - **Compatibilidad WebView Android 8.1 + UI Multi-DPI**: Tailwind precompilado 100% offline, JS compatible ES2017 y diseño responsive sin recortes en 1280×720, 1280×672, 1080×600, 1024×600, 960×540 y 853×480.
             - **Cero Datos Quemados**: Toda la telemetría parte en estado de espera (`--` / `0 km/h`) hasta recibir señales reales.
-          files: |
-            app/build/outputs/apk/debug/JoyOSLauncher.apk
-            joy_os_live.html
+          files: release_assets/*
           prerelease: false
           make_latest: true
