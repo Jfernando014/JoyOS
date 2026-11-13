@@ -55,6 +55,9 @@ class MainActivity : AppCompatActivity() {
     @Volatile
     private var hotTempThresholdC: Int = 104
 
+    @Volatile
+    private var screenTimeoutMode: String = "never"
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +70,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         try {
+            val sysPrefs = getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+            screenTimeoutMode = sysPrefs.getString("screen_timeout_mode", "never") ?: "never"
+        } catch (_: Throwable) {}
+
+        try {
             hideSystemUI()
+            applyScreenTimeoutMode(screenTimeoutMode)
         } catch (e: Throwable) {
             Log.w("JoyOS", "System UI hide warning: ${e.message}")
         }
@@ -88,10 +97,12 @@ class MainActivity : AppCompatActivity() {
             val lonFormatted = String.format(Locale.US, "%.6f", data.longitude)
             val bearFormatted = String.format(Locale.US, "%.1f", data.bearing)
             val altFormatted = String.format(Locale.US, "%.1f", data.altitude)
+            val accFormatted = String.format(Locale.US, "%.0f", data.accuracyM)
+            val providerQuoted = JSONObject.quote(data.provider)
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
-                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted, lat: $latFormatted, lon: $lonFormatted, bearing: $bearFormatted, altitude: $altFormatted, hasFix: ${data.hasFix} });",
+                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted, lat: $latFormatted, lon: $lonFormatted, bearing: $bearFormatted, altitude: $altFormatted, hasFix: ${data.hasFix}, provider: $providerQuoted, accuracy: $accFormatted });",
                         null
                     )
                     webView.evaluateJavascript(
@@ -118,6 +129,11 @@ class MainActivity : AppCompatActivity() {
                 try { obdManager.triggerReconnect() } catch (_: Throwable) {}
                 try { tpmsReceiver.triggerReprobe() } catch (_: Throwable) {}
             },
+            onSetGpsSource = { mode -> gpsManager.setSourceMode(mode) },
+            onResetTrip = { gpsManager.resetTripOdometer() },
+            onSetScreenTimeout = { mode -> runOnUiThread { applyScreenTimeoutMode(mode) } },
+            onRequestPermissions = { runOnUiThread { ensureAutomotivePermissions() } },
+            onClearWebCache = { runOnUiThread { try { webView.clearCache(true) } catch (_: Throwable) {} } },
             onReloadUi = { runOnUiThread { loadJoyOS() } },
             onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
         )
@@ -528,9 +544,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun applyScreenTimeoutMode(mode: String) {
+        screenTimeoutMode = when (mode.lowercase()) {
+            "1m", "1 min" -> "1m"
+            "5m", "5 min" -> "5m"
+            else -> "never"
+        }
+        try {
+            getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                .edit()
+                .putString("screen_timeout_mode", screenTimeoutMode)
+                .apply()
+            if (screenTimeoutMode == "never") {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
+            if (android.provider.Settings.System.canWrite(this)) {
+                val timeoutMs = when (screenTimeoutMode) {
+                    "1m" -> 60_000
+                    "5m" -> 300_000
+                    else -> 1_800_000
+                }
+                android.provider.Settings.System.putInt(
+                    contentResolver,
+                    android.provider.Settings.System.SCREEN_OFF_TIMEOUT,
+                    timeoutMs
+                )
+            }
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "applyScreenTimeoutMode handled: ${e.message}")
+        }
+    }
+
     @Suppress("DEPRECATION")
     private fun hideSystemUI() {
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (screenTimeoutMode == "never") {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.let { controller ->
@@ -553,6 +606,12 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 delay(8000)
+                val autoCheck = getSharedPreferences("joyos_system_prefs", Context.MODE_PRIVATE)
+                    .getBoolean("ota_auto_wifi", true)
+                if (!autoCheck) {
+                    Log.i("JoyOS", "Background OTA check disabled by user setting")
+                    return@launch
+                }
                 val res = otaManager.checkLatestRelease(bridge.getAppVersion())
                 if (res.isSuccess && res.getOrNull()?.isNewer == true) {
                     val info = res.getOrNull()!!
