@@ -13,6 +13,11 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.hardware.usb.UsbManager
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
@@ -26,6 +31,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
 import android.telecom.TelecomManager
+import android.util.Base64
 import android.util.Log
 import android.view.KeyEvent
 import android.webkit.JavascriptInterface
@@ -48,8 +54,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.net.URLDecoder
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Native bridge interface between JoyOS WebView UI and Android automotive subsystem.
@@ -544,15 +553,21 @@ class AndroidBridge(
     @JavascriptInterface
     fun sendMediaKeyEvent(action: String) {
         try {
+            val normalizedAction = action.lowercase(Locale.ROOT)
+            if (normalizedAction == "play") {
+                activateBtAudioSink()
+            }
             val handledBySession = try {
-                onMediaTransportAction?.invoke(action.lowercase()) == true
+                onMediaTransportAction?.invoke(normalizedAction) == true
             } catch (_: Throwable) {
                 false
             }
             if (handledBySession) return
 
-            val key = when (action.lowercase()) {
-                "play", "pause", "toggle" -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+            val key = when (normalizedAction) {
+                "play" -> KeyEvent.KEYCODE_MEDIA_PLAY
+                "pause" -> KeyEvent.KEYCODE_MEDIA_PAUSE
+                "toggle" -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
                 "next" -> KeyEvent.KEYCODE_MEDIA_NEXT
                 "prev" -> KeyEvent.KEYCODE_MEDIA_PREVIOUS
                 else -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
@@ -564,6 +579,135 @@ class AndroidBridge(
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Media key event error: ${e.message}")
         }
+    }
+
+    /**
+     * Ensures Android music stream is unmuted, audio mode is normal outside calls,
+     * and wakes AC8227L OEM A2DP sink services if idle.
+     */
+    @JavascriptInterface
+    fun activateBtAudioSink(): Boolean {
+        return try {
+            audioManager?.let { am ->
+                try {
+                    @Suppress("DEPRECATION")
+                    am.setStreamMute(AudioManager.STREAM_MUSIC, false)
+                } catch (_: Throwable) {}
+                try {
+                    am.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0)
+                } catch (_: Throwable) {}
+                val curVol = am.getStreamVolume(AudioManager.STREAM_MUSIC)
+                if (curVol <= 0) {
+                    val max = am.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    am.setStreamVolume(AudioManager.STREAM_MUSIC, (max / 3).coerceAtLeast(1), 0)
+                }
+                val inCall = synchronized(callLock) { callState != "idle" }
+                if (!inCall && am.mode != AudioManager.MODE_NORMAL) {
+                    am.mode = AudioManager.MODE_NORMAL
+                }
+            }
+            val wakeIntents = listOf(
+                Intent("com.ts.bt.ACTION_A2DP_PLAY"),
+                Intent("com.xyauto.bt.A2DP_PLAY"),
+                Intent("com.autochips.bluetooth.BtMusic.PLAY"),
+                Intent("com.forfan.btmusic.PLAY")
+            )
+            for (wakeIntent in wakeIntents) {
+                try { context.sendBroadcast(wakeIntent) } catch (_: Throwable) {}
+            }
+            try {
+                bluetoothAdapter?.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
+                    override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
+                        if (proxy == null) return
+                        try {
+                            for (dev in proxy.connectedDevices) {
+                                try {
+                                    proxy.javaClass.getMethod("connect", BluetoothDevice::class.java).invoke(proxy, dev)
+                                } catch (_: Throwable) {}
+                            }
+                        } catch (_: Throwable) {
+                        } finally {
+                            try { bluetoothAdapter?.closeProfileProxy(profile, proxy) } catch (_: Throwable) {}
+                        }
+                    }
+                    override fun onServiceDisconnected(profile: Int) {}
+                }, 11)
+            } catch (_: Throwable) {}
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "activateBtAudioSink handled: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Opens the head unit's native Bluetooth / BTMusic app so MCU activates the A2DP audio channel when needed.
+     */
+    @JavascriptInterface
+    fun openNativeBtMusic(): Boolean {
+        val btPkgs = listOf(
+            "com.ts.bt",
+            "com.xyauto.bt",
+            "com.autochips.bluetooth",
+            "com.forfan.btmusic",
+            "com.forfan.bt",
+            "com.nwd.btmusic",
+            "com.syu.bt",
+            "com.tw.bt",
+            "com.fyt.bt"
+        )
+        for (pkg in btPkgs) {
+            if (launchApp(pkg)) return true
+        }
+        try {
+            val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+            @Suppress("DEPRECATION")
+            val activities = packageManager.queryIntentActivities(intent, 0)
+            for (ri in activities) {
+                val pkg = ri.activityInfo?.packageName ?: continue
+                if (pkg == context.packageName) continue
+                val label = try { ri.loadLabel(packageManager).toString().lowercase(Locale.ROOT) } catch (_: Throwable) { "" }
+                val lowerPkg = pkg.lowercase(Locale.ROOT)
+                if ((lowerPkg.contains("btmusic") || label == "bluetooth" || label.contains("bt music")) && !lowerPkg.contains("settings")) {
+                    if (launchApp(pkg)) return true
+                }
+            }
+        } catch (_: Throwable) {}
+        return false
+    }
+
+    private val appIconCache = ConcurrentHashMap<String, String>()
+
+    private fun drawableToDataUri(drawable: Drawable?): String {
+        if (drawable == null) return ""
+        return try {
+            val size = 64
+            val bmp = if (drawable is BitmapDrawable && drawable.bitmap != null) {
+                Bitmap.createScaledBitmap(drawable.bitmap, size, size, true)
+            } else {
+                Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888).also { out ->
+                    val canvas = Canvas(out)
+                    drawable.setBounds(0, 0, size, size)
+                    drawable.draw(canvas)
+                }
+            }
+            val baos = ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.PNG, 85, baos)
+            "data:image/png;base64," + Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+        } catch (_: Throwable) {
+            ""
+        }
+    }
+
+    private fun getCachedAppIconDataUri(resolveInfo: ResolveInfo, pkg: String): String {
+        appIconCache[pkg]?.let { return it }
+        val encoded = try {
+            drawableToDataUri(resolveInfo.loadIcon(packageManager))
+        } catch (_: Throwable) {
+            ""
+        }
+        appIconCache[pkg] = encoded
+        return encoded
     }
 
     /**
@@ -608,11 +752,13 @@ class AndroidBridge(
                     pkg
                 }
 
+                val iconUri = getCachedAppIconDataUri(resolveInfo, pkg)
                 val appObj = JSONObject().apply {
                     put("id", pkg)
                     put("name", label)
                     put("package", pkg)
                     put("category", categorizeApp(pkg))
+                    if (iconUri.isNotEmpty()) put("iconDataUri", iconUri)
                 }
                 appList.put(appObj)
             }
@@ -1120,15 +1266,52 @@ class AndroidBridge(
     }
 
     /**
-     * Returns the currently installed JoyOS version name (e.g. "8.0.0").
+     * Returns the currently installed JoyOS version name (e.g. "1.1.1").
      */
     @JavascriptInterface
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "8.0.0"
+            pInfo.versionName ?: "1.1.1"
         } catch (_: Throwable) {
-            "8.0.0"
+            "1.1.1"
+        }
+    }
+
+    private fun isSemVerHigher(candidate: String, baseline: String): Boolean {
+        val pa = candidate.removePrefix("v").trim().split('.').map { it.toIntOrNull() ?: 0 }
+        val pb = baseline.removePrefix("v").trim().split('.').map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(pa.size, pb.size)) {
+            val va = pa.getOrElse(i) { 0 }
+            val vb = pb.getOrElse(i) { 0 }
+            if (va != vb) return va > vb
+        }
+        return false
+    }
+
+    /**
+     * Returns the newer of installed APK versionName or a valid hot-updated joy_os_live.html marker,
+     * so hot-updated UIs don't re-prompt for their own version while native APK bumps still match.
+     */
+    @JavascriptInterface
+    fun getEffectiveInstalledVersion(): String {
+        val apkVer = getAppVersion()
+        return try {
+            val liveFile = File(context.filesDir, "joy_os_live.html")
+            if (liveFile.exists() && liveFile.length() > 1024) {
+                val head = liveFile.bufferedReader(Charsets.UTF_8).use { reader ->
+                    val buf = CharArray(4096)
+                    val n = reader.read(buf)
+                    if (n > 0) String(buf, 0, n) else ""
+                }
+                val liveVer = Regex("JOYOS_PROD_VER=([0-9]+\\.[0-9]+\\.[0-9]+)").find(head)?.groupValues?.getOrNull(1)
+                if (!liveVer.isNullOrBlank() && isSemVerHigher(liveVer, apkVer)) {
+                    return liveVer
+                }
+            }
+            apkVer
+        } catch (_: Throwable) {
+            apkVer
         }
     }
 
@@ -1139,7 +1322,7 @@ class AndroidBridge(
     @JavascriptInterface
     fun checkForUpdates() {
         if (otaManager == null) return
-        val currentVer = getAppVersion()
+        val currentVer = getEffectiveInstalledVersion()
         CoroutineScope(Dispatchers.IO).launch {
             val result = otaManager.checkLatestRelease(currentVer)
             val json = JSONObject()
@@ -1663,6 +1846,37 @@ class AndroidBridge(
     @Volatile private var lastBtCoverDataUri: String = ""
     @Volatile private var lastBtColor1: String = ""
     @Volatile private var lastBtColor2: String = ""
+    @Volatile private var lastBtQueueJson: String = "[]"
+    @Volatile private var lastBtSupportsSeek: Boolean = true
+
+    companion object {
+        private val PLUS_WORD_JOIN_REGEX = Regex("[A-Za-z0-9ÁÉÍÓÚÑáéíóúñ\\)\\]\\.'\"!?]\\+[A-Za-z0-9ÁÉÍÓÚÑáéíóúñ\\(\\['\"]")
+        private val PLACEHOLDER_MEDIA_VALUES = setOf(
+            "not provided", "<unknown>", "unknown", "unknown artist", "unknown album",
+            "no title", "n/a", "null", "none", "undefined"
+        )
+
+        fun decodeMediaText(raw: String?): String {
+            if (raw.isNullOrBlank()) return ""
+            var s = raw.trim()
+            if (s.contains('%')) {
+                try {
+                    val safe = s.replace("+", "%2B")
+                    s = URLDecoder.decode(safe, "UTF-8")
+                } catch (_: Throwable) {}
+            }
+            if (s.contains('+') && !s.contains(' ') && !s.contains("++") && PLUS_WORD_JOIN_REGEX.containsMatchIn(s)) {
+                s = s.replace('+', ' ')
+            }
+            return s.replace(Regex("\\s{2,}"), " ").trim()
+        }
+
+        fun cleanMediaField(raw: String?): String {
+            val decoded = decodeMediaText(raw)
+            if (decoded.isEmpty()) return ""
+            return if (PLACEHOLDER_MEDIA_VALUES.contains(decoded.lowercase(Locale.ROOT))) "" else decoded
+        }
+    }
 
     private fun buildBtMetadataJson(): JSONObject {
         return JSONObject().apply {
@@ -1674,7 +1888,9 @@ class AndroidBridge(
             put("playing", lastBtPlaying)
             put("source", lastBtActionSource)
             put("sourceApp", lastBtSourceApp)
+            put("supportsSeek", lastBtSupportsSeek)
             put("hasNotificationAccess", JoyMediaNotificationListener.isEnabled(context))
+            put("queue", try { JSONArray(lastBtQueueJson) } catch (_: Throwable) { JSONArray() })
             if (lastBtCoverDataUri.isNotEmpty()) put("coverDataUri", lastBtCoverDataUri)
             if (lastBtColor1.isNotEmpty()) put("color1", lastBtColor1)
             if (lastBtColor2.isNotEmpty()) put("color2", lastBtColor2)
@@ -1693,7 +1909,9 @@ class AndroidBridge(
         color1: String? = null,
         color2: String? = null,
         sourceApp: String? = null,
-        artUrlHint: String? = null
+        artUrlHint: String? = null,
+        queueJson: String? = null,
+        supportsSeek: Boolean = true
     ) {
         var needOnlineLookup = false
         var queryTitle = ""
@@ -1701,8 +1919,9 @@ class AndroidBridge(
         val json: JSONObject
 
         synchronized(btMetaLock) {
-            val nextTitle = title?.trim().orEmpty()
-            val nextArtist = artist?.trim().orEmpty()
+            val nextTitle = cleanMediaField(title)
+            val nextArtist = cleanMediaField(artist)
+            val nextAlbum = cleanMediaField(album)
             val trackChanged = nextTitle.isNotEmpty() && (
                 !nextTitle.equals(lastBtTitle, ignoreCase = true) ||
                     (nextArtist.isNotEmpty() && !nextArtist.equals(lastBtArtist, ignoreCase = true))
@@ -1713,16 +1932,19 @@ class AndroidBridge(
                 lastBtColor1 = ""
                 lastBtColor2 = ""
                 if (positionSec < 0) lastBtPositionSec = 0
+                if (queueJson == null) lastBtQueueJson = "[]"
             }
 
             if (nextTitle.isNotEmpty()) lastBtTitle = nextTitle
             if (nextArtist.isNotEmpty()) lastBtArtist = nextArtist
-            if (!album.isNullOrBlank()) lastBtAlbum = album.trim()
+            if (nextAlbum.isNotEmpty()) lastBtAlbum = nextAlbum
             if (durationSec > 0) lastBtDurationSec = durationSec
             if (positionSec >= 0) lastBtPositionSec = positionSec
             if (isPlaying != null) lastBtPlaying = isPlaying
             if (sourceAction.isNotBlank()) lastBtActionSource = sourceAction
             if (!sourceApp.isNullOrBlank()) lastBtSourceApp = sourceApp
+            if (!queueJson.isNullOrBlank()) lastBtQueueJson = queueJson
+            lastBtSupportsSeek = supportsSeek
 
             if (!coverDataUri.isNullOrBlank()) {
                 lastBtCoverDataUri = coverDataUri

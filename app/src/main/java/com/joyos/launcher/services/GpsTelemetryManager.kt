@@ -30,15 +30,38 @@ class GpsTelemetryManager(
 ) : LocationListener {
 
     private val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
+    private val prefs = context.getSharedPreferences("joyos_gps_prefs", Context.MODE_PRIVATE)
     private var lastLocation: Location? = null
     private var accumulatedMeters: Double = 0.0
     private var isTracking = false
-    var sourceMode: String = "tablet" // "tablet" | "phone" | "hybrid"
+    var sourceMode: String = "hybrid" // "tablet" | "phone" | "hybrid"
         private set
-    var currentGpsData = GpsData()
+    var currentGpsData = loadInitialGpsData()
         private set
 
     private var lastGpsFixMs: Long = 0L
+
+    private fun loadInitialGpsData(): GpsData {
+        return try {
+            if (prefs.contains("last_lat") && prefs.contains("last_lon")) {
+                val lat = Double.fromBits(prefs.getLong("last_lat", 0L))
+                val lon = Double.fromBits(prefs.getLong("last_lon", 0L))
+                val alt = Double.fromBits(prefs.getLong("last_alt", java.lang.Double.doubleToRawLongBits(2600.0)))
+                if (lat in -90.0..90.0 && lon in -180.0..180.0 && (lat != 0.0 || lon != 0.0)) {
+                    return GpsData(
+                        latitude = lat,
+                        longitude = lon,
+                        altitude = alt,
+                        hasFix = false,
+                        provider = "cached"
+                    )
+                }
+            }
+            GpsData()
+        } catch (_: Throwable) {
+            GpsData()
+        }
+    }
 
     fun setSourceMode(mode: String) {
         val clean = when (mode.lowercase()) {
@@ -71,12 +94,16 @@ class GpsTelemetryManager(
                 "hybrid" -> listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
                 else -> listOf(LocationManager.GPS_PROVIDER, LocationManager.PASSIVE_PROVIDER, LocationManager.NETWORK_PROVIDER)
             }
-            val seedLocation = seedOrder.firstNotNullOfOrNull { provider ->
+            val seedCandidates = seedOrder.mapNotNull { provider ->
                 try {
-                    if (mgr.isProviderEnabled(provider)) mgr.getLastKnownLocation(provider) else null
+                    mgr.getLastKnownLocation(provider)
                 } catch (_: Throwable) {
                     null
                 }
+            }
+            val seedLocation = seedCandidates.maxByOrNull { loc ->
+                val gpsBonus = if (loc.provider == LocationManager.GPS_PROVIDER) 60000L else 0L
+                loc.time + gpsBonus
             }
             if (seedLocation != null) {
                 emitLocation(seedLocation, isHardwareGps = seedLocation.provider == LocationManager.GPS_PROVIDER)
@@ -85,25 +112,30 @@ class GpsTelemetryManager(
             if (sourceMode != "phone" && mgr.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 mgr.requestLocationUpdates(
                     LocationManager.GPS_PROVIDER,
-                    500L, // 2 Hz update interval for responsive speedometer sweep
+                    1000L, // 1 Hz hardware GPS stream for speed + map lock without binder flood
                     0.5f,
                     this
                 )
                 isTracking = true
             }
-            if (sourceMode != "tablet" && mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            if (mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                // Keep network provider active as fast fallback until a live hardware GPS fix arrives
                 mgr.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER,
-                    if (sourceMode == "phone") 2000L else 5000L,
-                    if (sourceMode == "phone") 3f else 15f,
+                    if (sourceMode == "phone") 2000L else 3500L,
+                    if (sourceMode == "phone") 3f else 10f,
                     this
                 )
                 isTracking = true
             }
-            if (sourceMode == "tablet" && !isTracking && mgr.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                // Fallback if GPS hardware provider is disabled in system settings
-                mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000L, 15f, this)
-                isTracking = true
+            if (sourceMode != "tablet") {
+                try {
+                    if (mgr.allProviders.contains(LocationManager.PASSIVE_PROVIDER)) {
+                        mgr.requestLocationUpdates(LocationManager.PASSIVE_PROVIDER, 1000L, 1f, this)
+                        isTracking = true
+                    }
+                } catch (_: Throwable) {
+                }
             }
         } catch (_: SecurityException) {
             // Permission will be granted by user on first launch
@@ -156,6 +188,16 @@ class GpsTelemetryManager(
             accuracyM = if (location.hasAccuracy()) location.accuracy else -1f
         )
         currentGpsData = data
+        try {
+            if (location.latitude != 0.0 || location.longitude != 0.0) {
+                prefs.edit()
+                    .putLong("last_lat", java.lang.Double.doubleToRawLongBits(location.latitude))
+                    .putLong("last_lon", java.lang.Double.doubleToRawLongBits(location.longitude))
+                    .putLong("last_alt", java.lang.Double.doubleToRawLongBits(data.altitude))
+                    .apply()
+            }
+        } catch (_: Throwable) {
+        }
         onGpsUpdate(data)
     }
 

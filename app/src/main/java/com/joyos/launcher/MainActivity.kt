@@ -13,6 +13,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -28,6 +29,8 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -48,8 +51,13 @@ import com.joyos.launcher.services.TpmsUsbReceiver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import java.security.MessageDigest
 import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
@@ -771,6 +779,17 @@ class MainActivity : AppCompatActivity() {
                             } catch (_: Throwable) {}
                         }
                     }
+                    "android.media.VOLUME_CHANGED_ACTION" -> {
+                        val stream = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", AudioManager.STREAM_MUSIC)
+                        if (stream == AudioManager.STREAM_MUSIC) {
+                            val vol = bridge.getMasterVolume()
+                            runOnUiThread {
+                                try {
+                                    webView.evaluateJavascript("if (typeof window.onHardwareVolumeChanged === 'function') window.onHardwareVolumeChanged($vol);", null)
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    }
                 }
             } catch (e: Throwable) {
                 Log.w("JoyOS", "Connectivity/call broadcast error: ${e.message}")
@@ -797,6 +816,7 @@ class MainActivity : AppCompatActivity() {
                 addAction("com.fyt.bt.call")
                 addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
                 addAction("android.net.wifi.WIFI_AP_STATE_CHANGED")
+                addAction("android.media.VOLUME_CHANGED_ACTION")
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(connectivityCallReceiver, filter, Context.RECEIVER_EXPORTED)
@@ -859,6 +879,13 @@ class MainActivity : AppCompatActivity() {
                         syncFromMediaController(ctrl)
                     }
                 }
+
+                override fun onQueueChanged(queue: MutableList<android.media.session.MediaSession.QueueItem>?) {
+                    val primary = selectPrimaryMediaController()
+                    if (primary == null || primary.sessionToken == ctrl.sessionToken) {
+                        syncFromMediaController(ctrl)
+                    }
+                }
             }
             try {
                 ctrl.registerCallback(cb)
@@ -878,24 +905,60 @@ class MainActivity : AppCompatActivity() {
             ?: activeControllers.firstOrNull()
     }
 
+    private fun extractQueueSliceJson(ctrl: MediaController, currentTitle: String?): String {
+        return try {
+            val rawQueue = ctrl.queue ?: return "[]"
+            if (rawQueue.isEmpty()) return "[]"
+            val activeId = ctrl.playbackState?.activeQueueItemId ?: -1L
+            var activeIdx = if (activeId >= 0L) rawQueue.indexOfFirst { it.queueId == activeId } else -1
+            if (activeIdx < 0 && !currentTitle.isNullOrBlank()) {
+                activeIdx = rawQueue.indexOfFirst { item ->
+                    val qt = AndroidBridge.cleanMediaField(item.description?.title?.toString())
+                    qt.equals(currentTitle, ignoreCase = true)
+                }
+            }
+            if (activeIdx < 0) activeIdx = 0
+            val start = (activeIdx - 2).coerceAtLeast(0)
+            val end = (activeIdx + 2).coerceAtMost(rawQueue.size - 1)
+            val arr = JSONArray()
+            for (idx in start..end) {
+                val desc = rawQueue[idx].description ?: continue
+                val qTitle = AndroidBridge.cleanMediaField(desc.title?.toString())
+                if (qTitle.isEmpty()) continue
+                val qArtist = AndroidBridge.cleanMediaField(desc.subtitle?.toString())
+                val qAlbum = AndroidBridge.cleanMediaField(desc.description?.toString())
+                arr.put(JSONObject().apply {
+                    put("title", qTitle)
+                    put("artist", qArtist)
+                    put("album", qAlbum)
+                    put("active", idx == activeIdx)
+                    put("offset", idx - activeIdx)
+                })
+            }
+            arr.toString()
+        } catch (_: Throwable) {
+            "[]"
+        }
+    }
+
     private fun syncFromMediaController(ctrl: MediaController) {
         try {
             val meta = ctrl.metadata
             val pb = ctrl.playbackState
 
-            val title = meta?.let {
-                it.getString(MediaMetadata.METADATA_KEY_TITLE)
-                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
-            }?.trim()
-            val artist = meta?.let {
-                it.getString(MediaMetadata.METADATA_KEY_ARTIST)
-                    ?: it.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
-                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
-            }?.trim()
-            val album = meta?.let {
-                it.getString(MediaMetadata.METADATA_KEY_ALBUM)
-                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)
-            }?.trim()
+            val title = AndroidBridge.cleanMediaField(
+                meta?.getString(MediaMetadata.METADATA_KEY_TITLE)
+                    ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+            )
+            val artist = AndroidBridge.cleanMediaField(
+                meta?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                    ?: meta?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                    ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
+            )
+            val album = AndroidBridge.cleanMediaField(
+                meta?.getString(MediaMetadata.METADATA_KEY_ALBUM)
+                    ?: meta?.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)
+            )
 
             val rawDur = meta?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
             val durSec = if (rawDur > 1000) (rawDur / 1000).toInt() else rawDur.toInt()
@@ -903,16 +966,19 @@ class MainActivity : AppCompatActivity() {
             val isPlaying: Boolean? = pb?.let {
                 it.state == PlaybackState.STATE_PLAYING || it.state == PlaybackState.STATE_BUFFERING
             }
+            val supportsSeek = pb == null || (pb.actions and PlaybackState.ACTION_SEEK_TO) != 0L
 
-            if (title.isNullOrBlank() && isPlaying == null) return
+            if (title.isEmpty() && isPlaying == null) return
 
-            val trackKey = "${ctrl.packageName}|${title ?: ""}|${artist ?: ""}|${album ?: ""}"
+            val trackKey = "${ctrl.packageName}|$title|$artist|$album"
             if (trackKey != lastSessionTrackKey || lastSessionArt == null) {
                 val (artRes, artHint) = JoyMediaArtworkHelper.processMetadataArtwork(this, meta)
                 lastSessionTrackKey = trackKey
                 lastSessionArt = artRes
                 lastSessionArtHint = artHint
             }
+
+            val queueJson = extractQueueSliceJson(ctrl, title)
 
             bridge.updateLiveBtMetadata(
                 title = title,
@@ -926,7 +992,9 @@ class MainActivity : AppCompatActivity() {
                 color1 = lastSessionArt?.color1,
                 color2 = lastSessionArt?.color2,
                 sourceApp = ctrl.packageName,
-                artUrlHint = lastSessionArtHint
+                artUrlHint = lastSessionArtHint,
+                queueJson = queueJson,
+                supportsSeek = supportsSeek
             )
         } catch (e: Throwable) {
             Log.w("JoyOS", "syncFromMediaController warning: ${e.message}")
@@ -938,11 +1006,19 @@ class MainActivity : AppCompatActivity() {
         return try {
             val controls = ctrl.transportControls
             when (action) {
-                "play" -> controls.play()
+                "play" -> {
+                    bridge.activateBtAudioSink()
+                    controls.play()
+                }
                 "pause" -> controls.pause()
                 "toggle" -> {
-                    if (ctrl.playbackState?.state == PlaybackState.STATE_PLAYING) controls.pause()
-                    else controls.play()
+                    val state = ctrl.playbackState?.state
+                    if (state == PlaybackState.STATE_PLAYING || state == PlaybackState.STATE_BUFFERING) {
+                        controls.pause()
+                    } else {
+                        bridge.activateBtAudioSink()
+                        controls.play()
+                    }
                 }
                 "next" -> controls.skipToNext()
                 "prev" -> controls.skipToPrevious()
@@ -956,6 +1032,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun seekSessionPosition(posMs: Long): Boolean {
         val ctrl = selectPrimaryMediaController() ?: return false
+        val pb = ctrl.playbackState
+        if (pb != null && (pb.actions and PlaybackState.ACTION_SEEK_TO) == 0L) {
+            return false
+        }
         return try {
             ctrl.transportControls.seekTo(posMs.coerceAtLeast(0L))
             true
@@ -1124,6 +1204,7 @@ class MainActivity : AppCompatActivity() {
                 allowUniversalAccessFromFileURLs = true
                 mediaPlaybackRequiresUserGesture = false
                 cacheMode = WebSettings.LOAD_DEFAULT
+                mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 useWideViewPort = true
                 loadWithOverviewMode = true
                 displayZoomControls = false
@@ -1131,13 +1212,19 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.0"
+                        userAgentString = "$baseUa JoyOS/1.1.1"
                     }
                 } catch (_: Throwable) {}
             }
 
             webChromeClient = WebChromeClient()
             webViewClient = object : WebViewClient() {
+                override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                    val urlStr = request?.url?.toString() ?: return null
+                    if (!isMapTileRequest(urlStr)) return null
+                    return serveCachedMapTile(urlStr)
+                }
+
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
                     try {
@@ -1152,6 +1239,104 @@ class MainActivity : AppCompatActivity() {
 
             addJavascriptInterface(bridge, "AndroidBridge")
         }
+    }
+
+    private val mapTileCacheDir: File by lazy {
+        File(cacheDir, "joy_map_tiles").apply { if (!exists()) mkdirs() }
+    }
+
+    private fun isMapTileRequest(url: String): Boolean {
+        val lower = url.lowercase(Locale.ROOT)
+        return (lower.startsWith("http://") || lower.startsWith("https://")) && (
+            lower.contains("basemaps.cartocdn.com/") ||
+                lower.contains("tile.openstreetmap.org/") ||
+                lower.contains("arcgisonline.com/arcgis/rest/services/")
+            )
+    }
+
+    private fun sha256Hex(text: String): String {
+        val bytes = MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
+        return bytes.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun fetchTileBytes(tileUrl: String): Pair<ByteArray, String>? {
+        var conn: HttpURLConnection? = null
+        return try {
+            conn = (URL(tileUrl).openConnection() as HttpURLConnection).apply {
+                connectTimeout = 4500
+                readTimeout = 5500
+                instanceFollowRedirects = true
+                setRequestProperty("User-Agent", "JoyOS-Launcher/1.1 (ChevroletJoy)")
+                setRequestProperty("Accept", "image/png,image/jpeg,image/*,*/*")
+            }
+            val code = conn.responseCode
+            if (code !in 200..299) return null
+            val bytes = conn.inputStream.use { it.readBytes() }
+            if (bytes.size < 64) return null
+            val mime = conn.contentType?.substringBefore(';')?.trim()?.ifEmpty { "image/png" } ?: "image/png"
+            bytes to mime
+        } catch (_: Throwable) {
+            null
+        } finally {
+            try { conn?.disconnect() } catch (_: Throwable) {}
+        }
+    }
+
+    private fun buildTileFallbacks(originalUrl: String): List<String> {
+        val urls = mutableListOf(originalUrl)
+        // Legacy Android 8.1 WebView can reject newer HTTPS CDN root certs; public Carto raster mirrors work over HTTP
+        if (originalUrl.startsWith("https://", ignoreCase = true) && originalUrl.contains("basemaps.cartocdn.com", ignoreCase = true)) {
+            urls.add("http://" + originalUrl.substring(8))
+        }
+        val zxyMatch = Regex("/(\\d+)/(\\d+)/(\\d+)\\.png").find(originalUrl)
+        if (zxyMatch != null && originalUrl.contains("tile.openstreetmap.org", ignoreCase = true)) {
+            val (z, x, y) = zxyMatch.destructured
+            urls.add("http://a.basemaps.cartocdn.com/rastertiles/voyager/$z/$x/$y.png")
+        }
+        return urls
+    }
+
+    private fun serveCachedMapTile(originalUrl: String): WebResourceResponse? {
+        val key = sha256Hex(originalUrl)
+        val cacheFile = File(mapTileCacheDir, "$key.tile")
+        val maxAgeMs = 14L * 24L * 3600L * 1000L
+        val now = System.currentTimeMillis()
+        if (cacheFile.exists() && cacheFile.length() > 64 && (now - cacheFile.lastModified()) < maxAgeMs) {
+            return try {
+                val data = cacheFile.readBytes()
+                val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
+                WebResourceResponse("image/png", null, 200, "OK", headers, ByteArrayInputStream(data))
+            } catch (_: Throwable) {
+                null
+            }
+        }
+
+        for (candidate in buildTileFallbacks(originalUrl)) {
+            val fetched = fetchTileBytes(candidate)
+            if (fetched != null) {
+                val (bytes, mime) = fetched
+                try {
+                    val tmp = File(mapTileCacheDir, "$key.tmp")
+                    tmp.writeBytes(bytes)
+                    if (cacheFile.exists()) cacheFile.delete()
+                    tmp.renameTo(cacheFile)
+                } catch (_: Throwable) {}
+                val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
+                return WebResourceResponse(mime, null, 200, "OK", headers, ByteArrayInputStream(bytes))
+            }
+        }
+
+        // Offline fallback: serve stale disk tile if present so previously visited routes stay visible
+        if (cacheFile.exists() && cacheFile.length() > 64) {
+            return try {
+                val data = cacheFile.readBytes()
+                val headers = mapOf("Access-Control-Allow-Origin" to "*")
+                WebResourceResponse("image/png", null, 200, "OK", headers, ByteArrayInputStream(data))
+            } catch (_: Throwable) {
+                null
+            }
+        }
+        return null
     }
 
     private fun isHotUpdateCompatible(htmlText: String): Boolean {
@@ -1269,7 +1454,7 @@ class MainActivity : AppCompatActivity() {
                     Log.i("JoyOS", "Background OTA check disabled by user setting")
                     return@launch
                 }
-                val res = otaManager.checkLatestRelease(bridge.getAppVersion())
+                val res = otaManager.checkLatestRelease(bridge.getEffectiveInstalledVersion())
                 if (res.isSuccess && res.getOrNull()?.isNewer == true) {
                     val info = res.getOrNull()!!
                     val json = JSONObject().apply {
