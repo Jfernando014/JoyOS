@@ -2,7 +2,7 @@
 set -e
 
 echo "====================================================================="
-echo "   🚀 JoyOS v8.0 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO"
+echo "   🚀 JoyOS v1.1.0 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO"
 echo "   Chevrolet Joy 2022 · Unidad AC8227L / ZXDZ_01 (1024x600)"
 echo "====================================================================="
 echo ""
@@ -35,17 +35,21 @@ if ! adb shell pm list packages | grep -q "com.joyos.launcher"; then
         echo "  ⚠️ No se encontró el APK local. Descárgalo de GitHub Releases."
     fi
 else
-    echo "  -> JoyOS v8.0 ya está presente en la tablet."
+    echo "  -> JoyOS ya está presente en la tablet."
 fi
 echo ""
 
 echo "[3/6] Otorgando permisos de sistema y hardware..."
 adb shell pm grant com.joyos.launcher android.permission.ACCESS_FINE_LOCATION 2>/dev/null || true
 adb shell pm grant com.joyos.launcher android.permission.ACCESS_COARSE_LOCATION 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.READ_EXTERNAL_STORAGE 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.WRITE_EXTERNAL_STORAGE 2>/dev/null || true
+adb shell pm grant com.joyos.launcher android.permission.READ_MEDIA_AUDIO 2>/dev/null || true
 adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_CONNECT 2>/dev/null || true
 adb shell pm grant com.joyos.launcher android.permission.BLUETOOTH_SCAN 2>/dev/null || true
 adb shell appops set com.joyos.launcher WRITE_SETTINGS allow 2>/dev/null || true
-echo "  -> Permisos de GPS, Bluetooth y brillo otorgados."
+adb shell appops set com.joyos.launcher REQUEST_INSTALL_PACKAGES allow 2>/dev/null || true
+echo "  -> Permisos de GPS, almacenamiento, Bluetooth, brillo y OTA otorgados."
 echo ""
 
 echo "[4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)..."
@@ -75,6 +79,6 @@ fi
 
 echo ""
 echo "====================================================================="
-echo "   🎉 ¡OPTIMIZACIÓN COMPLETA! Iniciando JoyOS v8.0..."
+echo "   🎉 ¡OPTIMIZACIÓN COMPLETA! Iniciando JoyOS v1.1.0..."
 echo "====================================================================="
 adb shell am start -n com.joyos.launcher/.MainActivity 2>/dev/null || true

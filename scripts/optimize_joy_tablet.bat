@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableDelayedExpansion
-title Optimizador 100%% Hardware - JoyOS v8.1 Chevrolet Joy
+title Optimizador 100%% Hardware - JoyOS v1.1.0 Chevrolet Joy
 cls
 echo =====================================================================
-echo    🚀 JoyOS v8.1 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO
+echo    🚀 JoyOS v1.1.0 — OPTIMIZADOR AUTOMÁTICO DE HARDWARE Y AUDIO
 echo    Chevrolet Joy 2022 · Unidad AC8227L / ZXDZ_01 (1024x600)
 echo =====================================================================
 echo.
@@ -62,7 +62,7 @@ del "%~dp0adb_check.tmp" >nul 2>&1
 echo   -> Tablet conectada y autorizada correctamente.
 echo.
 
-echo [2/6] Instalando / Actualizando JoyOSLauncher.apk (v8.1.0)...
+echo [2/6] Instalando / Actualizando JoyOSLauncher.apk (v1.1.0)...
 if exist "%~dp0..\JoyOSLauncher.apk" (
     echo   -> Instalando JoyOSLauncher.apk con todos los permisos pre-concedidos...
     "%ADB_CMD%" install -r -g "%~dp0..\JoyOSLauncher.apk"
@@ -133,7 +133,7 @@ if /i "!DESACTIVAR!"=="S" (
 echo.
 echo =====================================================================
 echo    🎉 ¡OPTIMIZACIÓN COMPLETA!
-echo    Iniciando JoyOS v8.1 en la pantalla del Chevrolet Joy...
+echo    Iniciando JoyOS v1.1.0 en la pantalla del Chevrolet Joy...
 echo =====================================================================
 "%ADB_CMD%" shell am start -n com.joyos.launcher/.MainActivity >nul 2>&1
 echo.
