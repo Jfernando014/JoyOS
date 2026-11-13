@@ -3,14 +3,17 @@ package com.joyos.launcher
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -31,6 +34,8 @@ import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.JoyMediaArtworkHelper
+import com.joyos.launcher.services.JoyMediaNotificationListener
 import com.joyos.launcher.services.ObdBleManager
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsUsbReceiver
@@ -57,6 +62,14 @@ class MainActivity : AppCompatActivity() {
 
     @Volatile
     private var screenTimeoutMode: String = "never"
+
+    private var mediaSessionManager: MediaSessionManager? = null
+    private val controllerCallbacks = mutableMapOf<MediaController, MediaController.Callback>()
+    private var activeControllers: List<MediaController> = emptyList()
+    private var sessionsChangedListener: MediaSessionManager.OnActiveSessionsChangedListener? = null
+    @Volatile private var lastSessionTrackKey: String = ""
+    @Volatile private var lastSessionArt: JoyMediaArtworkHelper.ArtworkResult? = null
+    @Volatile private var lastSessionArtHint: String? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,7 +148,9 @@ class MainActivity : AppCompatActivity() {
             onRequestPermissions = { runOnUiThread { ensureAutomotivePermissions() } },
             onClearWebCache = { runOnUiThread { try { webView.clearCache(true) } catch (_: Throwable) {} } },
             onReloadUi = { runOnUiThread { loadJoyOS() } },
-            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
+            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } },
+            onMediaTransportAction = { action -> handleSessionTransportAction(action) },
+            onSeekMediaPosition = { posMs -> seekSessionPosition(posMs) }
         )
 
         obdManager = ObdBleManager(this) { obd ->
@@ -195,6 +210,10 @@ class MainActivity : AppCompatActivity() {
         loadJoyOS()
         ensureAutomotivePermissions()
         registerAutomotiveMediaReceivers()
+        JoyMediaNotificationListener.setOnListenerReadyCallback {
+            runOnUiThread { attachMediaSessionsIfAllowed() }
+        }
+        attachMediaSessionsIfAllowed()
         scheduleBackgroundOtaCheck()
 
         // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
@@ -253,19 +272,66 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
+                    var artResult: JoyMediaArtworkHelper.ArtworkResult? = null
+                    var artUrlHint: String? = null
+
                     // Check if a MediaMetadata parcelable was sent (AVRCP Controller standard)
                     try {
                         @Suppress("DEPRECATION")
                         val meta = extras.getParcelable<MediaMetadata>("android.bluetooth.avrcp-controller.profile.extra.METADATA")
                             ?: extras.getParcelable<MediaMetadata>("metadata")
                         if (meta != null) {
-                            meta.getString(MediaMetadata.METADATA_KEY_TITLE)?.let { if (it.isNotBlank()) title = it }
-                            meta.getString(MediaMetadata.METADATA_KEY_ARTIST)?.let { if (it.isNotBlank()) artist = it }
-                            meta.getString(MediaMetadata.METADATA_KEY_ALBUM)?.let { if (it.isNotBlank()) album = it }
+                            (meta.getString(MediaMetadata.METADATA_KEY_TITLE)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE))
+                                ?.let { if (it.isNotBlank()) title = it.trim() }
+                            (meta.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE))
+                                ?.let { if (it.isNotBlank()) artist = it.trim() }
+                            (meta.getString(MediaMetadata.METADATA_KEY_ALBUM)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION))
+                                ?.let { if (it.isNotBlank()) album = it.trim() }
                             val d = meta.getLong(MediaMetadata.METADATA_KEY_DURATION)
                             if (d > 0) durationMs = d
+                            val pair = JoyMediaArtworkHelper.processMetadataArtwork(this@MainActivity, meta)
+                            artResult = pair.first
+                            artUrlHint = pair.second
                         }
                     } catch (_: Throwable) {}
+
+                    if (artResult == null) {
+                        val artKeys = listOf(
+                            "android.bluetooth.avrcp-controller.profile.extra.ARTWORK",
+                            "artwork",
+                            "cover",
+                            "album_art",
+                            "bitmap"
+                        )
+                        for (k in artKeys) {
+                            if (!extras.containsKey(k)) continue
+                            @Suppress("DEPRECATION")
+                            val raw = extras.get(k)
+                            when (raw) {
+                                is Bitmap -> {
+                                    artResult = JoyMediaArtworkHelper.processBitmapToArtwork(raw)
+                                    if (artResult != null) break
+                                }
+                                is Uri -> {
+                                    val bytes = try {
+                                        contentResolver.openInputStream(raw)?.use { it.readBytes() }
+                                    } catch (_: Throwable) { null }
+                                    artResult = JoyMediaArtworkHelper.processBytesToArtwork(bytes)
+                                    if (artResult != null) break
+                                }
+                                is String -> {
+                                    val trimmed = raw.trim()
+                                    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                                        artUrlHint = trimmed
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     try {
                         @Suppress("DEPRECATION")
@@ -275,6 +341,24 @@ class MainActivity : AppCompatActivity() {
                             isPlaying = (pb.state == PlaybackState.STATE_PLAYING)
                         }
                     } catch (_: Throwable) {}
+
+                    if (!title.isNullOrBlank() || isPlaying != null) {
+                        val durSec = if (durationMs > 1000) (durationMs / 1000).toInt() else durationMs.toInt()
+                        bridge.updateLiveBtMetadata(
+                            title = title,
+                            artist = artist,
+                            album = album,
+                            durationSec = durSec,
+                            isPlaying = isPlaying,
+                            sourceAction = action,
+                            coverDataUri = artResult?.dataUri,
+                            color1 = artResult?.color1,
+                            color2 = artResult?.color2,
+                            artUrlHint = artUrlHint
+                        )
+                    }
+                } else {
+                    // Nothing in extras
                 }
 
                 // Check radio frequency broadcasts from ZXDZ_01 / TS / XYAuto / AutoChips MCU
@@ -289,11 +373,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                }
-
-                if (!title.isNullOrBlank() || isPlaying != null) {
-                    val durSec = if (durationMs > 1000) (durationMs / 1000).toInt() else durationMs.toInt()
-                    bridge.updateLiveBtMetadata(title, artist, album, durSec, isPlaying, action)
                 }
             } catch (e: Throwable) {
                 Log.w("JoyOS", "btMediaReceiver warning: ${e.message}")
@@ -339,6 +418,162 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun attachMediaSessionsIfAllowed() {
+        if (!JoyMediaNotificationListener.isEnabled(this)) return
+        try {
+            val mgr = mediaSessionManager ?: (getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager)
+                ?.also { mediaSessionManager = it } ?: return
+            val listenerComp = ComponentName(this, JoyMediaNotificationListener::class.java)
+
+            if (sessionsChangedListener == null) {
+                sessionsChangedListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
+                    runOnUiThread {
+                        bindMediaControllers(controllers ?: emptyList())
+                    }
+                }
+                mgr.addOnActiveSessionsChangedListener(sessionsChangedListener!!, listenerComp)
+            }
+
+            val current = mgr.getActiveSessions(listenerComp)
+            bindMediaControllers(current)
+        } catch (se: SecurityException) {
+            Log.d("JoyOS", "MediaSession access pending user notification permission: ${se.message}")
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "attachMediaSessions warning: ${e.message}")
+        }
+    }
+
+    private fun unregisterMediaControllerCallbacks() {
+        controllerCallbacks.forEach { (ctrl, cb) ->
+            try { ctrl.unregisterCallback(cb) } catch (_: Throwable) {}
+        }
+        controllerCallbacks.clear()
+    }
+
+    private fun bindMediaControllers(controllers: List<MediaController>) {
+        unregisterMediaControllerCallbacks()
+        activeControllers = controllers.filter { it.packageName != packageName }
+
+        activeControllers.forEach { ctrl ->
+            val cb = object : MediaController.Callback() {
+                override fun onMetadataChanged(metadata: MediaMetadata?) {
+                    val primary = selectPrimaryMediaController()
+                    if (primary == null || primary.sessionToken == ctrl.sessionToken) {
+                        syncFromMediaController(ctrl)
+                    }
+                }
+
+                override fun onPlaybackStateChanged(state: PlaybackState?) {
+                    val primary = selectPrimaryMediaController()
+                    if (primary == null || primary.sessionToken == ctrl.sessionToken || state?.state == PlaybackState.STATE_PLAYING) {
+                        syncFromMediaController(ctrl)
+                    }
+                }
+            }
+            try {
+                ctrl.registerCallback(cb)
+                controllerCallbacks[ctrl] = cb
+            } catch (_: Throwable) {}
+        }
+
+        selectPrimaryMediaController()?.let { syncFromMediaController(it) }
+    }
+
+    private fun selectPrimaryMediaController(): MediaController? {
+        if (activeControllers.isEmpty()) return null
+        return activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_BUFFERING }
+            ?: activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PAUSED && it.metadata != null }
+            ?: activeControllers.firstOrNull { it.metadata != null }
+            ?: activeControllers.firstOrNull()
+    }
+
+    private fun syncFromMediaController(ctrl: MediaController) {
+        try {
+            val meta = ctrl.metadata
+            val pb = ctrl.playbackState
+
+            val title = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_TITLE)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+            }?.trim()
+            val artist = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
+            }?.trim()
+            val album = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_ALBUM)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)
+            }?.trim()
+
+            val rawDur = meta?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+            val durSec = if (rawDur > 1000) (rawDur / 1000).toInt() else rawDur.toInt()
+            val posSec = pb?.position?.let { if (it >= 0) (it / 1000).toInt() else -1 } ?: -1
+            val isPlaying: Boolean? = pb?.let {
+                it.state == PlaybackState.STATE_PLAYING || it.state == PlaybackState.STATE_BUFFERING
+            }
+
+            if (title.isNullOrBlank() && isPlaying == null) return
+
+            val trackKey = "${ctrl.packageName}|${title ?: ""}|${artist ?: ""}|${album ?: ""}"
+            if (trackKey != lastSessionTrackKey || lastSessionArt == null) {
+                val (artRes, artHint) = JoyMediaArtworkHelper.processMetadataArtwork(this, meta)
+                lastSessionTrackKey = trackKey
+                lastSessionArt = artRes
+                lastSessionArtHint = artHint
+            }
+
+            bridge.updateLiveBtMetadata(
+                title = title,
+                artist = artist,
+                album = album,
+                durationSec = durSec,
+                isPlaying = isPlaying,
+                sourceAction = "MediaSession",
+                positionSec = posSec,
+                coverDataUri = lastSessionArt?.dataUri,
+                color1 = lastSessionArt?.color1,
+                color2 = lastSessionArt?.color2,
+                sourceApp = ctrl.packageName,
+                artUrlHint = lastSessionArtHint
+            )
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "syncFromMediaController warning: ${e.message}")
+        }
+    }
+
+    private fun handleSessionTransportAction(action: String): Boolean {
+        val ctrl = selectPrimaryMediaController() ?: return false
+        return try {
+            val controls = ctrl.transportControls
+            when (action) {
+                "play" -> controls.play()
+                "pause" -> controls.pause()
+                "toggle" -> {
+                    if (ctrl.playbackState?.state == PlaybackState.STATE_PLAYING) controls.pause()
+                    else controls.play()
+                }
+                "next" -> controls.skipToNext()
+                "prev" -> controls.skipToPrevious()
+                else -> return false
+            }
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun seekSessionPosition(posMs: Long): Boolean {
+        val ctrl = selectPrimaryMediaController() ?: return false
+        return try {
+            ctrl.transportControls.seekTo(posMs.coerceAtLeast(0L))
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -358,6 +593,7 @@ class MainActivity : AppCompatActivity() {
         try { gpsManager.startTracking() } catch (_: Throwable) {}
         try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
         try { tpmsReceiver.register() } catch (_: Throwable) {}
+        try { attachMediaSessionsIfAllowed() } catch (_: Throwable) {}
     }
 
     override fun onPause() {
@@ -369,6 +605,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        try { JoyMediaNotificationListener.setOnListenerReadyCallback(null) } catch (_: Throwable) {}
+        try { unregisterMediaControllerCallbacks() } catch (_: Throwable) {}
+        try {
+            sessionsChangedListener?.let { mediaSessionManager?.removeOnActiveSessionsChangedListener(it) }
+        } catch (_: Throwable) {}
         try { unregisterReceiver(btMediaReceiver) } catch (_: Throwable) {}
         try { dspEngine.release() } catch (_: Throwable) {}
     }

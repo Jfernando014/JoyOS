@@ -97,7 +97,8 @@ if %errorlevel% equ 0 set "JOY_PKG=com.joyos.launcher.debug"
 "%ADB_CMD%" shell pm grant !JOY_PKG! android.permission.BLUETOOTH_SCAN >nul 2>&1
 "%ADB_CMD%" shell appops set !JOY_PKG! WRITE_SETTINGS allow >nul 2>&1
 "%ADB_CMD%" shell appops set !JOY_PKG! REQUEST_INSTALL_PACKAGES allow >nul 2>&1
-echo   -> Permisos de GPS, almacenamiento, Bluetooth, brillo fisico y OTA otorgados (!JOY_PKG!).
+"%ADB_CMD%" shell cmd notification allow_listener !JOY_PKG!/com.joyos.launcher.services.JoyMediaNotificationListener >nul 2>&1
+echo   -> Permisos de GPS, almacenamiento, Bluetooth, brillo fisico, MediaSession y OTA otorgados (!JOY_PKG!).
 echo.
 
 echo [4/6] Configurando JoyOS como el UNICO Launcher Principal (HOME)...

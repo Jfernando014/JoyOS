@@ -33,11 +33,15 @@ import androidx.core.content.FileProvider
 import com.joyos.launcher.services.GpsData
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.JoyMediaArtworkHelper
+import com.joyos.launcher.services.JoyMediaNotificationListener
 import com.joyos.launcher.services.ObdState
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -65,7 +69,9 @@ class AndroidBridge(
     private val onRequestPermissions: (() -> Unit)? = null,
     private val onClearWebCache: (() -> Unit)? = null,
     private val onReloadUi: (() -> Unit)? = null,
-    private val onEvaluateJs: ((String) -> Unit)? = null
+    private val onEvaluateJs: ((String) -> Unit)? = null,
+    private val onMediaTransportAction: ((String) -> Boolean)? = null,
+    private val onSeekMediaPosition: ((Long) -> Boolean)? = null
 ) {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -319,11 +325,18 @@ class AndroidBridge(
     }
 
     /**
-     * Dispatches real hardware media keys (Play/Pause, Next, Prev) to whichever music app is running.
+     * Dispatches real hardware media keys (Play/Pause, Next, Prev) to active MediaSession or system.
      */
     @JavascriptInterface
     fun sendMediaKeyEvent(action: String) {
         try {
+            val handledBySession = try {
+                onMediaTransportAction?.invoke(action.lowercase()) == true
+            } catch (_: Throwable) {
+                false
+            }
+            if (handledBySession) return
+
             val key = when (action.lowercase()) {
                 "play", "pause", "toggle" -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
                 "next" -> KeyEvent.KEYCODE_MEDIA_NEXT
@@ -336,6 +349,19 @@ class AndroidBridge(
             audioManager?.dispatchMediaKeyEvent(up)
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Media key event error: ${e.message}")
+        }
+    }
+
+    /**
+     * Seeks playback position (seconds) on the active MediaSession controller if supported.
+     */
+    @JavascriptInterface
+    fun seekActiveMedia(positionSec: Int): Boolean {
+        return try {
+            val posMs = positionSec.coerceAtLeast(0).toLong() * 1000L
+            onSeekMediaPosition?.invoke(posMs) ?: false
+        } catch (_: Throwable) {
+            false
         }
     }
 
@@ -1273,11 +1299,15 @@ class AndroidBridge(
             }
 
             val mmr = MediaMetadataRetriever()
-            for (file in foundAudio) {
+            for ((idx, file) in foundAudio.withIndex()) {
                 var title = file.nameWithoutExtension
                 var artist = "Desconocido"
                 var album = if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "Memoria USB" else "Almacenamiento Local"
                 var durationSec = 210
+                var coverDataUri = ""
+                var color1 = ""
+                var color2 = ""
+                var hasEmbeddedArt = false
 
                 try {
                     mmr.setDataSource(file.absolutePath)
@@ -1291,6 +1321,20 @@ class AndroidBridge(
                     if (!metaAlbum.isNullOrBlank()) album = metaAlbum.trim()
                     val durMs = metaDur?.toLongOrNull() ?: 0L
                     if (durMs > 0) durationSec = (durMs / 1000).toInt()
+
+                    val pic = try { mmr.embeddedPicture } catch (_: Throwable) { null }
+                    if (pic != null && pic.isNotEmpty()) {
+                        hasEmbeddedArt = true
+                        // Inline data URI for the first 20 tracks; larger libraries lazy-load via getTrackArtwork()
+                        if (idx < 20) {
+                            val artRes = JoyMediaArtworkHelper.processBytesToArtwork(pic, maxDim = 220, quality = 76)
+                            if (artRes != null) {
+                                coverDataUri = artRes.dataUri
+                                color1 = artRes.color1
+                                color2 = artRes.color2
+                            }
+                        }
+                    }
                 } catch (_: Throwable) {
                     if (title.contains(" - ")) {
                         val parts = title.split(" - ", limit = 2)
@@ -1309,6 +1353,10 @@ class AndroidBridge(
                     put("uri", "file://" + file.absolutePath)
                     put("source", if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "usb" else "internal")
                     put("size", formatFileSize(file.length()))
+                    put("hasEmbeddedArt", hasEmbeddedArt)
+                    if (coverDataUri.isNotEmpty()) put("coverDataUri", coverDataUri)
+                    if (color1.isNotEmpty()) put("color1", color1)
+                    if (color2.isNotEmpty()) put("color2", color2)
                 }
                 musicList.put(item)
             }
@@ -1321,14 +1369,67 @@ class AndroidBridge(
         }
     }
 
+    /**
+     * Lazy artwork extraction for local/USB audio tracks (keeps initial getMusicFiles() JSON compact).
+     */
+    @JavascriptInterface
+    fun getTrackArtwork(filePath: String): String {
+        if (filePath.isBlank()) return "{\"ok\":false}"
+        val mmr = MediaMetadataRetriever()
+        return try {
+            val f = File(filePath)
+            if (!f.exists() || !f.canRead()) return "{\"ok\":false}"
+            mmr.setDataSource(f.absolutePath)
+            val pic = mmr.embeddedPicture ?: return "{\"ok\":false}"
+            val res = JoyMediaArtworkHelper.processBytesToArtwork(pic, maxDim = 260, quality = 78)
+                ?: return "{\"ok\":false}"
+            JSONObject().apply {
+                put("ok", true)
+                put("coverDataUri", res.dataUri)
+                put("color1", res.color1)
+                put("color2", res.color2)
+            }.toString()
+        } catch (_: Throwable) {
+            "{\"ok\":false}"
+        } finally {
+            try { mmr.release() } catch (_: Throwable) {}
+        }
+    }
+
     // --- LIVE BLUETOOTH AVRCP / MEDIA SESSION TRACKING ---
+
+    private val btMetaLock = Any()
+    private val mediaBridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var artworkLookupJob: Job? = null
 
     @Volatile private var lastBtTitle: String = ""
     @Volatile private var lastBtArtist: String = ""
     @Volatile private var lastBtAlbum: String = ""
     @Volatile private var lastBtDurationSec: Int = 210
+    @Volatile private var lastBtPositionSec: Int = -1
     @Volatile private var lastBtPlaying: Boolean = false
     @Volatile private var lastBtActionSource: String = ""
+    @Volatile private var lastBtSourceApp: String = ""
+    @Volatile private var lastBtCoverDataUri: String = ""
+    @Volatile private var lastBtColor1: String = ""
+    @Volatile private var lastBtColor2: String = ""
+
+    private fun buildBtMetadataJson(): JSONObject {
+        return JSONObject().apply {
+            put("title", lastBtTitle)
+            put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
+            put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
+            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
+            put("positionSec", lastBtPositionSec)
+            put("playing", lastBtPlaying)
+            put("source", lastBtActionSource)
+            put("sourceApp", lastBtSourceApp)
+            put("hasNotificationAccess", JoyMediaNotificationListener.isEnabled(context))
+            if (lastBtCoverDataUri.isNotEmpty()) put("coverDataUri", lastBtCoverDataUri)
+            if (lastBtColor1.isNotEmpty()) put("color1", lastBtColor1)
+            if (lastBtColor2.isNotEmpty()) put("color2", lastBtColor2)
+        }
+    }
 
     fun updateLiveBtMetadata(
         title: String?,
@@ -1336,38 +1437,86 @@ class AndroidBridge(
         album: String?,
         durationSec: Int,
         isPlaying: Boolean?,
-        sourceAction: String
+        sourceAction: String,
+        positionSec: Int = -1,
+        coverDataUri: String? = null,
+        color1: String? = null,
+        color2: String? = null,
+        sourceApp: String? = null,
+        artUrlHint: String? = null
     ) {
-        if (!title.isNullOrBlank()) lastBtTitle = title
-        if (!artist.isNullOrBlank()) lastBtArtist = artist
-        if (!album.isNullOrBlank()) lastBtAlbum = album
-        if (durationSec > 0) lastBtDurationSec = durationSec
-        if (isPlaying != null) lastBtPlaying = isPlaying
-        lastBtActionSource = sourceAction
+        var needOnlineLookup = false
+        var queryTitle = ""
+        var queryArtist = ""
+        val json: JSONObject
 
-        val json = JSONObject().apply {
-            put("title", lastBtTitle)
-            put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
-            put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
-            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
-            put("playing", lastBtPlaying)
-            put("source", lastBtActionSource)
+        synchronized(btMetaLock) {
+            val nextTitle = title?.trim().orEmpty()
+            val nextArtist = artist?.trim().orEmpty()
+            val trackChanged = nextTitle.isNotEmpty() && (
+                !nextTitle.equals(lastBtTitle, ignoreCase = true) ||
+                    (nextArtist.isNotEmpty() && !nextArtist.equals(lastBtArtist, ignoreCase = true))
+                )
+
+            if (trackChanged) {
+                lastBtCoverDataUri = ""
+                lastBtColor1 = ""
+                lastBtColor2 = ""
+                if (positionSec < 0) lastBtPositionSec = 0
+            }
+
+            if (nextTitle.isNotEmpty()) lastBtTitle = nextTitle
+            if (nextArtist.isNotEmpty()) lastBtArtist = nextArtist
+            if (!album.isNullOrBlank()) lastBtAlbum = album.trim()
+            if (durationSec > 0) lastBtDurationSec = durationSec
+            if (positionSec >= 0) lastBtPositionSec = positionSec
+            if (isPlaying != null) lastBtPlaying = isPlaying
+            if (sourceAction.isNotBlank()) lastBtActionSource = sourceAction
+            if (!sourceApp.isNullOrBlank()) lastBtSourceApp = sourceApp
+
+            if (!coverDataUri.isNullOrBlank()) {
+                lastBtCoverDataUri = coverDataUri
+                if (!color1.isNullOrBlank()) lastBtColor1 = color1
+                if (!color2.isNullOrBlank()) lastBtColor2 = color2
+            } else if (lastBtCoverDataUri.isEmpty() && lastBtTitle.isNotBlank()) {
+                needOnlineLookup = true
+                queryTitle = lastBtTitle
+                queryArtist = lastBtArtist
+            }
+
+            json = buildBtMetadataJson()
         }
+
         onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($json);")
+
+        if (needOnlineLookup) {
+            artworkLookupJob?.cancel()
+            artworkLookupJob = mediaBridgeScope.launch {
+                val artRes = JoyMediaArtworkHelper.fetchArtworkForTrack(queryTitle, queryArtist, artUrlHint)
+                if (artRes != null) {
+                    var updatedJson: JSONObject? = null
+                    synchronized(btMetaLock) {
+                        if (lastBtTitle.equals(queryTitle, ignoreCase = true) && lastBtCoverDataUri.isEmpty()) {
+                            lastBtCoverDataUri = artRes.dataUri
+                            lastBtColor1 = artRes.color1
+                            lastBtColor2 = artRes.color2
+                            updatedJson = buildBtMetadataJson()
+                        }
+                    }
+                    updatedJson?.let { payload ->
+                        onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($payload);")
+                    }
+                }
+            }
+        }
     }
 
     @JavascriptInterface
     fun getBtMusicMetadata(): String {
         return try {
-            val json = JSONObject().apply {
-                put("title", lastBtTitle)
-                put("artist", lastBtArtist)
-                put("album", lastBtAlbum)
-                put("durationSec", lastBtDurationSec)
-                put("playing", lastBtPlaying)
-                put("source", lastBtActionSource)
+            synchronized(btMetaLock) {
+                buildBtMetadataJson().toString()
             }
-            json.toString()
         } catch (_: Throwable) {
             "{}"
         }
@@ -1818,6 +1967,16 @@ class AndroidBridge(
     }
 
     @JavascriptInterface
+    fun openNotificationListenerSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) { openAppSettings() }
+    }
+
+    @JavascriptInterface
     fun isZlinkInstalled(): Boolean {
         val candidates = listOf("com.zjinnova.zlink", "com.zlink.app", "com.carplay.zlink", "com.tlink.app", "gb.xxy.hr")
         for (pkg in candidates) {
@@ -1850,6 +2009,7 @@ class AndroidBridge(
             }
             val writeSettings = try { Settings.System.canWrite(context) } catch (_: Throwable) { false }
             val installUnknown = try { packageManager.canRequestPackageInstalls() } catch (_: Throwable) { false }
+            val notifListener = JoyMediaNotificationListener.isEnabled(context)
             val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
             val defaultHomePkg = try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -1867,13 +2027,14 @@ class AndroidBridge(
                 put("storage", storageGranted)
                 put("writeSettings", writeSettings)
                 put("installPackages", installUnknown)
+                put("notificationListener", notifListener)
                 put("isDefaultLauncher", isDefaultLauncher)
-                val count = listOf(locGranted, btGranted, storageGranted, writeSettings, installUnknown).count { it }
+                val count = listOf(locGranted, btGranted, storageGranted, writeSettings, installUnknown, notifListener).count { it }
                 put("grantedCount", count)
-                put("totalCount", 5)
+                put("totalCount", 6)
             }.toString()
         } catch (_: Throwable) {
-            "{\"location\":false,\"bluetooth\":false,\"storage\":false,\"writeSettings\":false,\"installPackages\":false,\"isDefaultLauncher\":false,\"grantedCount\":0,\"totalCount\":5}"
+            "{\"location\":false,\"bluetooth\":false,\"storage\":false,\"writeSettings\":false,\"installPackages\":false,\"notificationListener\":false,\"isDefaultLauncher\":false,\"grantedCount\":0,\"totalCount\":6}"
         }
     }
 
