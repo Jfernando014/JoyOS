@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- JOYOS_PROD_VER=1.1.1 -->
-  <title>JoyOS Production v1.1.1 — Chevrolet Joy</title>
+  <!-- JOYOS_PROD_VER=1.1.2 -->
+  <title>JoyOS Production v1.1.2 — Chevrolet Joy</title>
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/leaflet.css">
   <script src="js/leaflet.js"></script>
@@ -7081,7 +7081,7 @@
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
                   Actualización JoyOS
                   <span id="ota-modal-tag"
-                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.1</span>
+                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.2</span>
                 </h3>
                 <p class="text-xs text-slate-400" id="ota-modal-subtitle">Nueva versión disponible desde GitHub</p>
               </div>
@@ -10328,7 +10328,7 @@
   </div>
 
   <script>
-    const JOYOS_VERSION = '1.1.1';
+    const JOYOS_VERSION = '1.1.2';
     if (!Array.prototype.flatMap) {
       Array.prototype.flatMap = function (callback, thisArg) {
         return Array.prototype.concat.apply([], this.map(callback, thisArg));
@@ -11384,7 +11384,7 @@
       });
       return {
         app: 'JoyOS',
-        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.1',
+        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.2',
         exportedAt: new Date().toISOString(),
         keys: data
       };
@@ -17873,33 +17873,21 @@
       if (joyMapTileLayer) { try { joyMap.removeLayer(joyMapTileLayer); } catch (e) { } joyMapTileLayer = null; }
       if (joyMapRefLayer) { try { joyMap.removeLayer(joyMapRefLayer); } catch (e) { } joyMapRefLayer = null; }
 
-      const isDarkMap = state.theme !== 'light';
+      const tileProto = window.AndroidBridge ? 'http' : 'https';
       const primaryUrl = tileGroup === 'satellite'
+        ? (tileProto + '://mt{s}.google.com/vt/lyrs=y&hl=es&x={x}&y={y}&z={z}')
+        : (tileProto + '://mt{s}.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}');
+      const fallbackUrl = tileGroup === 'satellite'
         ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-        : (isDarkMap
-          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-          : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png');
-      const fallbackUrl = isDarkMap
-        ? 'http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'
-        : 'http://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
 
       joyMapTileLayer = L.tileLayer(primaryUrl, {
-        subdomains: 'abcd',
-        maxNativeZoom: tileGroup === 'satellite' ? 18 : 19,
-        maxZoom: tileGroup === 'satellite' ? 18 : 19,
+        subdomains: '0123',
+        maxNativeZoom: 19,
+        maxZoom: 19,
         className: 'joy-map-tiles',
         zIndex: 2
       });
-
-      if (tileGroup === 'satellite') {
-        joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
-          maxNativeZoom: 18,
-          maxZoom: 18,
-          className: 'joy-map-tiles',
-          opacity: 0.92,
-          zIndex: 3
-        });
-      }
 
       joyMapTileLayer.on('tileerror', () => {
         joyMapTileErrors++;
@@ -17908,17 +17896,24 @@
           try { joyMap.removeLayer(joyMapTileLayer); } catch (e) { }
           if (joyMapRefLayer) { try { joyMap.removeLayer(joyMapRefLayer); } catch (e) { } joyMapRefLayer = null; }
           joyMapTileLayer = L.tileLayer(fallbackUrl, {
-            subdomains: 'abcd',
-            maxNativeZoom: 19,
+            maxNativeZoom: 18,
             maxZoom: 19,
             className: 'joy-map-tiles',
             zIndex: 2
           }).addTo(joyMap);
+          if (tileGroup === 'satellite') {
+            joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+              maxNativeZoom: 18,
+              maxZoom: 19,
+              className: 'joy-map-tiles',
+              opacity: 0.92,
+              zIndex: 3
+            }).addTo(joyMap);
+          }
         }
       });
 
       joyMapTileLayer.addTo(joyMap);
-      if (joyMapRefLayer) joyMapRefLayer.addTo(joyMap);
     }
 
     function applyJoyMapStyle(showNotice) {

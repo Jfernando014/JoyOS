@@ -1266,15 +1266,15 @@ class AndroidBridge(
     }
 
     /**
-     * Returns the currently installed JoyOS version name (e.g. "1.1.1").
+     * Returns the currently installed JoyOS version name (e.g. "1.1.2").
      */
     @JavascriptInterface
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.1.1"
+            pInfo.versionName ?: "1.1.2"
         } catch (_: Throwable) {
-            "1.1.1"
+            "1.1.2"
         }
     }
 

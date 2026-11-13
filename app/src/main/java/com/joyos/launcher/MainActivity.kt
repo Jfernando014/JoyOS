@@ -1212,7 +1212,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.1"
+                        userAgentString = "$baseUa JoyOS/1.1.2"
                     }
                 } catch (_: Throwable) {}
             }
@@ -1248,10 +1248,19 @@ class MainActivity : AppCompatActivity() {
     private fun isMapTileRequest(url: String): Boolean {
         val lower = url.lowercase(Locale.ROOT)
         return (lower.startsWith("http://") || lower.startsWith("https://")) && (
-            lower.contains("basemaps.cartocdn.com/") ||
+            lower.contains("google.com/vt") ||
+                lower.contains("tile.openstreetmap.fr/") ||
                 lower.contains("tile.openstreetmap.org/") ||
                 lower.contains("arcgisonline.com/arcgis/rest/services/")
             )
+    }
+
+    private fun detectImageMime(bytes: ByteArray): String {
+        return if (bytes.size >= 3 && bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte()) {
+            "image/jpeg"
+        } else {
+            "image/png"
+        }
     }
 
     private fun sha256Hex(text: String): String {
@@ -1273,7 +1282,7 @@ class MainActivity : AppCompatActivity() {
             if (code !in 200..299) return null
             val bytes = conn.inputStream.use { it.readBytes() }
             if (bytes.size < 64) return null
-            val mime = conn.contentType?.substringBefore(';')?.trim()?.ifEmpty { "image/png" } ?: "image/png"
+            val mime = conn.contentType?.substringBefore(';')?.trim()?.ifEmpty { detectImageMime(bytes) } ?: detectImageMime(bytes)
             bytes to mime
         } catch (_: Throwable) {
             null
@@ -1284,16 +1293,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun buildTileFallbacks(originalUrl: String): List<String> {
         val urls = mutableListOf(originalUrl)
-        // Legacy Android 8.1 WebView can reject newer HTTPS CDN root certs; public Carto raster mirrors work over HTTP
-        if (originalUrl.startsWith("https://", ignoreCase = true) && originalUrl.contains("basemaps.cartocdn.com", ignoreCase = true)) {
+        if (originalUrl.startsWith("https://", ignoreCase = true) && originalUrl.contains("google.com/vt", ignoreCase = true)) {
             urls.add("http://" + originalUrl.substring(8))
         }
-        val zxyMatch = Regex("/(\\d+)/(\\d+)/(\\d+)\\.png").find(originalUrl)
-        if (zxyMatch != null && originalUrl.contains("tile.openstreetmap.org", ignoreCase = true)) {
-            val (z, x, y) = zxyMatch.destructured
-            urls.add("http://a.basemaps.cartocdn.com/rastertiles/voyager/$z/$x/$y.png")
+        val gMatch = Regex("[?&]x=(\\d+)&y=(\\d+)&z=(\\d+)").find(originalUrl)
+        if (gMatch != null) {
+            val (x, y, z) = gMatch.destructured
+            val isSat = originalUrl.contains("lyrs=y", ignoreCase = true) || originalUrl.contains("lyrs=s", ignoreCase = true)
+            if (isSat) {
+                urls.add("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/$z/$y/$x")
+            } else {
+                urls.add("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/$z/$y/$x")
+                urls.add("https://a.tile.openstreetmap.fr/hot/$z/$x/$y.png")
+            }
         }
-        return urls
+        val zxyMatch = Regex("/(\\d+)/(\\d+)/(\\d+)\\.png").find(originalUrl)
+        if (zxyMatch != null && (originalUrl.contains("tile.openstreetmap.org", ignoreCase = true) || originalUrl.contains("tile.openstreetmap.fr", ignoreCase = true))) {
+            val (z, x, y) = zxyMatch.destructured
+            urls.add("http://mt1.google.com/vt/lyrs=m&hl=es&x=$x&y=$y&z=$z")
+        }
+        return urls.distinct()
     }
 
     private fun serveCachedMapTile(originalUrl: String): WebResourceResponse? {
@@ -1305,7 +1324,7 @@ class MainActivity : AppCompatActivity() {
             return try {
                 val data = cacheFile.readBytes()
                 val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
-                WebResourceResponse("image/png", null, 200, "OK", headers, ByteArrayInputStream(data))
+                WebResourceResponse(detectImageMime(data), null, 200, "OK", headers, ByteArrayInputStream(data))
             } catch (_: Throwable) {
                 null
             }
@@ -1331,7 +1350,7 @@ class MainActivity : AppCompatActivity() {
             return try {
                 val data = cacheFile.readBytes()
                 val headers = mapOf("Access-Control-Allow-Origin" to "*")
-                WebResourceResponse("image/png", null, 200, "OK", headers, ByteArrayInputStream(data))
+                WebResourceResponse(detectImageMime(data), null, 200, "OK", headers, ByteArrayInputStream(data))
             } catch (_: Throwable) {
                 null
             }

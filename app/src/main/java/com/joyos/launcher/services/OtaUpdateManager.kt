@@ -37,7 +37,7 @@ class OtaUpdateManager(private val context: Context) {
     companion object {
         private const val TAG = "OtaUpdateManager"
         private const val GITHUB_API_URL = "https://api.github.com/repos/Jfernando014/JoyOS/releases/latest"
-        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.1"
+        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.2"
         private const val TIMEOUT_MS = 15000
     }
 
