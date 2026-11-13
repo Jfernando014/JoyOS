@@ -3,11 +3,14 @@ package com.joyos.launcher.bridge
 import android.app.Activity
 import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.hardware.usb.UsbManager
 import android.media.AudioManager
 import android.net.Uri
 import android.net.wifi.WifiManager
@@ -25,7 +28,9 @@ import androidx.core.content.FileProvider
 import com.joyos.launcher.services.GpsData
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.ObdState
 import com.joyos.launcher.services.OtaUpdateManager
+import com.joyos.launcher.services.TpmsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,6 +50,10 @@ class AndroidBridge(
     private val otaManager: OtaUpdateManager? = null,
     private val hardwareOptimizer: JoyHardwareOptimizer? = null,
     private val getGpsData: (() -> GpsData)? = null,
+    private val getObdState: (() -> ObdState)? = null,
+    private val getTpmsState: (() -> TpmsState)? = null,
+    private val onSetAlertThresholds: ((Int, Int) -> Unit)? = null,
+    private val onReconnectHardware: (() -> Unit)? = null,
     private val onReloadUi: (() -> Unit)? = null,
     private val onEvaluateJs: ((String) -> Unit)? = null
 ) {
@@ -85,26 +94,67 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real Bluetooth state and first paired device.
+     * Checks if a BluetoothDevice currently has an active ACL/profile connection without relying
+     * on async ProfileProxy setup (supported across Android 8.1+ AC8227L and API 34).
      */
-    @JavascriptInterface
-    fun getBluetoothStatus(): String {
+    private fun isBtDeviceActivelyConnected(dev: BluetoothDevice): Boolean {
         return try {
-            val enabled = bluetoothAdapter?.isEnabled ?: false
-            val bonded = try { bluetoothAdapter?.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
-            val connectedName = bonded.firstOrNull()?.name ?: "Sin dispositivo vinculado"
-            val json = JSONObject()
-            json.put("enabled", enabled)
-            json.put("connected", enabled && bonded.isNotEmpty())
-            json.put("device", connectedName)
-            json.toString()
+            val m = dev.javaClass.getMethod("isConnected")
+            (m.invoke(dev) as? Boolean) == true
         } catch (_: Throwable) {
-            "{\"enabled\":false,\"connected\":false,\"device\":\"Sin dispositivo\"}"
+            false
         }
     }
 
     /**
-     * Returns all paired Bluetooth devices as a JSON array.
+     * Returns real active Bluetooth connection state and connected device name.
+     */
+    @JavascriptInterface
+    fun getBluetoothStatus(): String {
+        return try {
+            val adapter = bluetoothAdapter
+            val enabled = adapter?.isEnabled ?: false
+            if (!enabled || adapter == null) {
+                return "{\"enabled\":false,\"connected\":false,\"device\":\"Bluetooth apagado\",\"pairedCount\":0}"
+            }
+
+            val bonded = try { adapter.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
+            val activeBonded = bonded.firstOrNull { isBtDeviceActivelyConnected(it) }
+
+            val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+            val gattConnected = try {
+                @Suppress("DEPRECATION")
+                bm?.getConnectedDevices(BluetoothProfile.GATT)?.firstOrNull()
+            } catch (_: Throwable) {
+                null
+            }
+
+            val a2dpState = try { adapter.getProfileConnectionState(BluetoothProfile.A2DP) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val hfpState = try { adapter.getProfileConnectionState(BluetoothProfile.HEADSET) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val profileConnected = a2dpState == BluetoothProfile.STATE_CONNECTED || hfpState == BluetoothProfile.STATE_CONNECTED
+            val obdConnected = getObdState?.invoke()?.connected == true
+
+            val isConnected = activeBonded != null || gattConnected != null || profileConnected || lastBtPlaying
+            val deviceName = activeBonded?.name
+                ?: gattConnected?.name
+                ?: (if (profileConnected) bonded.firstOrNull()?.name else null)
+                ?: (if (obdConnected) (getObdState?.invoke()?.deviceName?.ifBlank { "OBD2" } ?: "OBD2") else null)
+                ?: (if (bonded.isNotEmpty()) "${bonded.size} vinculado(s)" else "Sin dispositivo")
+
+            val json = JSONObject()
+            json.put("enabled", true)
+            json.put("connected", isConnected)
+            json.put("obdConnected", obdConnected)
+            json.put("device", deviceName)
+            json.put("pairedCount", bonded.size)
+            json.toString()
+        } catch (_: Throwable) {
+            "{\"enabled\":false,\"connected\":false,\"device\":\"Sin dispositivo\",\"pairedCount\":0}"
+        }
+    }
+
+    /**
+     * Returns all paired Bluetooth devices as a JSON array with live connection indicator.
      */
     @JavascriptInterface
     fun getBluetoothBondedDevices(): String {
@@ -116,7 +166,8 @@ class AndroidBridge(
                 val name = dev.name ?: "Dispositivo Bluetooth"
                 obj.put("name", name)
                 obj.put("address", dev.address ?: "")
-                obj.put("type", if (name.contains("OBD", true) || name.contains("ELM", true) || name.contains("VGATE", true)) "obd" else "phone")
+                obj.put("connected", isBtDeviceActivelyConnected(dev))
+                obj.put("type", if (name.contains("OBD", true) || name.contains("ELM", true) || name.contains("VGATE", true) || name.contains("VLINK", true) || name.contains("V-LINK", true) || name.contains("ICAR", true)) "obd" else "phone")
                 arr.put(obj)
             }
             arr.toString()
@@ -126,50 +177,66 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real system battery percentage and electrical voltage.
+     * Returns real car battery/alternator voltage from OBD2 ATRV first, falling back to real 12V ADC
+     * only if exposed by hardware; never emits fake static "12.4" when unavailable.
      */
     @JavascriptInterface
     fun getBatteryStatus(): String {
         return try {
+            val obdV = getObdState?.invoke()?.batteryVoltage ?: -1.0
+            if (obdV > 5.0) {
+                val json = JSONObject()
+                json.put("level", 100)
+                json.put("voltage", String.format(Locale.US, "%.1f", obdV))
+                json.put("source", "obd2")
+                return json.toString()
+            }
+
             val iFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             val bIntent = context.registerReceiver(null, iFilter)
             val level = bIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
             val scale = bIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
-            val pct = if (level >= 0 && scale > 0) (level * 100 / scale) else 100
+            val pct = if (level >= 0 && scale > 0) (level * 100 / scale) else -1
             val voltMv = bIntent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) ?: -1
-            val voltV = if (voltMv > 0) {
-                if (voltMv > 10000) voltMv / 1000.0 else (voltMv / 1000.0) * 3.0 // car 12v ratio or battery
-            } else 12.4
+            val voltStr = if (voltMv in 5000..18000) {
+                String.format(Locale.US, "%.1f", voltMv / 1000.0)
+            } else {
+                ""
+            }
             val json = JSONObject()
             json.put("level", pct)
-            json.put("voltage", String.format(Locale.US, "%.1f", voltV))
+            json.put("voltage", voltStr)
+            json.put("source", if (voltStr.isNotEmpty()) "adc" else "none")
             json.toString()
         } catch (_: Throwable) {
-            "{\"level\":100,\"voltage\":\"12.4\"}"
+            "{\"level\":-1,\"voltage\":\"\",\"source\":\"none\"}"
         }
     }
 
     /**
-     * Reads real CPU thermal temperature from kernel sensor.
+     * Reads real CPU thermal temperature from kernel thermal zones; returns -1 when unreadable.
      */
     @JavascriptInterface
     fun getCpuTemperature(): Int {
         return try {
             val paths = listOf(
                 "/sys/class/thermal/thermal_zone0/temp",
+                "/sys/class/thermal/thermal_zone1/temp",
+                "/sys/class/thermal/thermal_zone2/temp",
                 "/sys/devices/virtual/thermal/thermal_zone0/temp",
-                "/sys/class/thermal/thermal_zone1/temp"
+                "/proc/mtktz/mtktscpu"
             )
             for (p in paths) {
                 val f = File(p)
                 if (f.exists() && f.canRead()) {
                     val raw = f.readText().trim().toIntOrNull() ?: continue
-                    return if (raw > 1000) raw / 1000 else raw
+                    val deg = if (raw > 1000) raw / 1000 else raw
+                    if (deg in 1..125) return deg
                 }
             }
-            42
+            -1
         } catch (_: Throwable) {
-            42
+            -1
         }
     }
 
@@ -382,10 +449,10 @@ class AndroidBridge(
             activityManager?.getMemoryInfo(memInfo)
             val usedBytes = memInfo.totalMem - memInfo.availMem
             val usedGb = usedBytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
-            "%.2f GB".format(usedGb).replace('.', ',')
+            String.format(Locale.US, "%.2f GB", usedGb).replace('.', ',')
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "RAM optimization handled: ${e.message}")
-            "1,45 GB"
+            "-- GB"
         }
     }
 
@@ -552,6 +619,115 @@ class AndroidBridge(
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error tuning radio: ${e.message}")
             false
+        }
+    }
+
+    /**
+     * Triggers hardware FM radio station seek (up/down) on automotive MCU tuners.
+     */
+    @JavascriptInterface
+    fun seekRadio(direction: Int): Boolean {
+        return try {
+            val up = direction >= 0
+            val seekIntents = listOf(
+                Intent(if (up) "com.android.fmradio.ACTION_SEEK_UP" else "com.android.fmradio.ACTION_SEEK_DOWN"),
+                Intent("com.ts.fmradio.ACTION_SEEK").putExtra("direction", if (up) 1 else -1),
+                Intent("com.microntek.radio.seek").putExtra("direction", if (up) 1 else -1),
+                Intent("xyauto.radio.seek").putExtra("dir", if (up) 1 else -1),
+                Intent("com.autochips.fmradio.intent.action.SEEK").putExtra("seek_up", up)
+            )
+            for (intent in seekIntents) {
+                try {
+                    context.sendBroadcast(intent)
+                } catch (_: Throwable) {}
+            }
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error seeking radio: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Opens an external URL in the Android browser (e.g., RUNT, Grupo R5, SIMIT).
+     */
+    @JavascriptInterface
+    fun openExternalUrl(url: String): Boolean {
+        return try {
+            if (!url.startsWith("https://") && !url.startsWith("http://")) return false
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error opening external URL: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Launches turn-by-turn navigation to exact coordinates in Waze, Google Maps, or any geo handler.
+     */
+    @JavascriptInterface
+    fun navigateToLocation(lat: Double, lon: Double, label: String, preferredApp: String): Boolean {
+        return try {
+            val safeLabel = Uri.encode(label.ifBlank { "Destino" })
+            val targets = if (preferredApp == "waze") {
+                listOf(
+                    Pair(Uri.parse("waze://?ll=$lat,$lon&navigate=yes"), "com.waze"),
+                    Pair(Uri.parse("https://waze.com/ul?ll=$lat,$lon&navigate=yes"), null),
+                    Pair(Uri.parse("geo:$lat,$lon?q=$lat,$lon($safeLabel)"), null)
+                )
+            } else {
+                listOf(
+                    Pair(Uri.parse("google.navigation:q=$lat,$lon"), "com.google.android.apps.maps"),
+                    Pair(Uri.parse("geo:$lat,$lon?q=$lat,$lon($safeLabel)"), null),
+                    Pair(Uri.parse("https://www.google.com/maps/dir/?api=1&destination=$lat,$lon"), null)
+                )
+            }
+            for ((uri, pkg) in targets) {
+                try {
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        if (pkg != null) setPackage(pkg)
+                    }
+                    context.startActivity(intent)
+                    return true
+                } catch (_: Throwable) {}
+            }
+            false
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error navigating to location: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Saves arbitrary JSON state persistently in SharedPreferences so data survives WebView cache clears.
+     */
+    @JavascriptInterface
+    fun savePersistentJson(key: String, json: String): Boolean {
+        return try {
+            val prefs = context.getSharedPreferences("joyos_persistent_store", Context.MODE_PRIVATE)
+            prefs.edit().putString(key, json).apply()
+            true
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "Error saving persistent JSON: ${e.message}")
+            false
+        }
+    }
+
+    /**
+     * Loads previously persisted JSON string from SharedPreferences, or empty string if absent.
+     */
+    @JavascriptInterface
+    fun loadPersistentJson(key: String): String {
+        return try {
+            val prefs = context.getSharedPreferences("joyos_persistent_store", Context.MODE_PRIVATE)
+            prefs.getString(key, "") ?: ""
+        } catch (_: Throwable) {
+            ""
         }
     }
 
@@ -843,7 +1019,7 @@ class AndroidBridge(
                 targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC))
             }
 
-            val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma")
+            val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma", "mp4", "mkv", "avi", "pdf")
             val foundFiles = mutableListOf<File>()
 
             fun scanDir(dir: File, depth: Int) {
@@ -899,6 +1075,8 @@ class AndroidBridge(
         return try {
             val data = getGpsData?.invoke() ?: GpsData()
             val json = JSONObject().apply {
+                put("lat", data.latitude)
+                put("lon", data.longitude)
                 put("latitude", data.latitude)
                 put("longitude", data.longitude)
                 put("speed", data.speedKmh)
@@ -909,7 +1087,7 @@ class AndroidBridge(
             }
             json.toString()
         } catch (_: Throwable) {
-            "{\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0}"
+            "{\"lat\":4.6534,\"lon\":-74.0836,\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0}"
         }
     }
 
@@ -1170,7 +1348,7 @@ class AndroidBridge(
                 put("availMb", availMb)
             }.toString()
         } catch (_: Throwable) {
-            "{\"usedGb\":\"-- GB\",\"totalGb\":\"2,0 GB\",\"availMb\":512}"
+            "{\"usedGb\":\"-- GB\",\"totalGb\":\"-- GB\",\"availMb\":0}"
         }
     }
 
@@ -1256,6 +1434,57 @@ class AndroidBridge(
             result.put("hardwareNodes", serialNodes)
             result.put("btMetadata", JSONObject(getBtMusicMetadata()))
 
+            // 4. Connected USB Host devices (for diagnosing 433.92 MHz TPMS receiver VID:PID)
+            val usbArray = JSONArray()
+            try {
+                val usbMgr = context.applicationContext.getSystemService(Context.USB_SERVICE) as? UsbManager
+                usbMgr?.deviceList?.values?.forEach { dev ->
+                    usbArray.put(JSONObject().apply {
+                        put("vid", String.format(Locale.US, "0x%04X", dev.vendorId))
+                        put("pid", String.format(Locale.US, "0x%04X", dev.productId))
+                        put("product", dev.productName ?: "USB Device")
+                        put("manufacturer", dev.manufacturerName ?: "")
+                        put("deviceClass", dev.deviceClass)
+                        put("interfaces", dev.interfaceCount)
+                        put("hasPermission", usbMgr.hasPermission(dev))
+                    })
+                }
+            } catch (_: Throwable) {}
+            result.put("usbDevices", usbArray)
+
+            // 5. Live OBD2 & USB TPMS diagnostics
+            val obd = getObdState?.invoke()
+            result.put("obd", JSONObject().apply {
+                put("connected", obd?.connected ?: false)
+                put("transport", obd?.transport ?: "disconnected")
+                put("deviceName", obd?.deviceName ?: "")
+                put("rpm", obd?.rpm ?: 0)
+                put("coolantTempC", obd?.coolantTempC ?: -99)
+                put("batteryVoltage", obd?.batteryVoltage ?: -1.0)
+                put("lastError", obd?.lastError ?: "")
+            })
+
+            val tpms = getTpmsState?.invoke()
+            result.put("tpms", JSONObject().apply {
+                put("connected", tpms?.connected ?: false)
+                put("source", tpms?.source ?: "disconnected")
+                put("deviceLabel", tpms?.deviceLabel ?: "")
+                put("lastRawHex", tpms?.lastRawHex ?: "")
+                put("flPsi", tpms?.flPsi ?: -1)
+                put("frPsi", tpms?.frPsi ?: -1)
+                put("rlPsi", tpms?.rlPsi ?: -1)
+                put("rrPsi", tpms?.rrPsi ?: -1)
+            })
+
+            // 6. Display metrics
+            val dm = context.resources.displayMetrics
+            result.put("screen", JSONObject().apply {
+                put("widthPx", dm.widthPixels)
+                put("heightPx", dm.heightPixels)
+                put("densityDpi", dm.densityDpi)
+                put("density", dm.density.toDouble())
+            })
+
             result.toString()
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error in inspectOemHardware: ${e.message}")
@@ -1263,14 +1492,24 @@ class AndroidBridge(
         }
     }
 
+    @JavascriptInterface
+    fun setAlertThresholds(lowPsi: Int, hotTempC: Int) {
+        onSetAlertThresholds?.invoke(lowPsi, hotTempC)
+    }
+
+    @JavascriptInterface
+    fun reconnectHardware() {
+        onReconnectHardware?.invoke()
+    }
+
     private fun formatFileSize(bytes: Long): String {
         if (bytes < 1024) return "$bytes B"
         val kb = bytes / 1024.0
-        if (kb < 1024) return "%.1f KB".format(kb)
+        if (kb < 1024) return String.format(Locale.US, "%.1f KB", kb)
         val mb = kb / 1024.0
-        if (mb < 1024) return "%.1f MB".format(mb)
+        if (mb < 1024) return String.format(Locale.US, "%.1f MB", mb)
         val gb = mb / 1024.0
-        return "%.1f GB".format(gb)
+        return String.format(Locale.US, "%.1f GB", gb)
     }
 
     private fun categorizeApp(pkg: String): String {
