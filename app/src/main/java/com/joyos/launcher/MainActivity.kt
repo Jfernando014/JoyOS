@@ -2,17 +2,26 @@ package com.joyos.launcher
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -31,6 +40,8 @@ import com.joyos.launcher.bridge.AndroidBridge
 import com.joyos.launcher.services.GpsTelemetryManager
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.JoyMediaArtworkHelper
+import com.joyos.launcher.services.JoyMediaNotificationListener
 import com.joyos.launcher.services.ObdBleManager
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsUsbReceiver
@@ -57,6 +68,14 @@ class MainActivity : AppCompatActivity() {
 
     @Volatile
     private var screenTimeoutMode: String = "never"
+
+    private var mediaSessionManager: MediaSessionManager? = null
+    private val controllerCallbacks = mutableMapOf<MediaController, MediaController.Callback>()
+    private var activeControllers: List<MediaController> = emptyList()
+    private var sessionsChangedListener: MediaSessionManager.OnActiveSessionsChangedListener? = null
+    @Volatile private var lastSessionTrackKey: String = ""
+    @Volatile private var lastSessionArt: JoyMediaArtworkHelper.ArtworkResult? = null
+    @Volatile private var lastSessionArtHint: String? = null
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -135,7 +154,14 @@ class MainActivity : AppCompatActivity() {
             onRequestPermissions = { runOnUiThread { ensureAutomotivePermissions() } },
             onClearWebCache = { runOnUiThread { try { webView.clearCache(true) } catch (_: Throwable) {} } },
             onReloadUi = { runOnUiThread { loadJoyOS() } },
-            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } }
+            onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } },
+            onMediaTransportAction = { action -> handleSessionTransportAction(action) },
+            onSeekMediaPosition = { posMs -> seekSessionPosition(posMs) },
+            onConnectBluetoothDevice = { address -> connectBtDeviceProxy(address) },
+            onDisconnectBluetoothDevice = { address -> disconnectBtDeviceProxy(address) },
+            onAnswerCallAction = { answerBtOrTelecomCall() },
+            onEndCallAction = { endBtOrTelecomCall() },
+            onDialCallAction = { number -> dialBtHfpCall(number) }
         )
 
         obdManager = ObdBleManager(this) { obd ->
@@ -195,6 +221,25 @@ class MainActivity : AppCompatActivity() {
         loadJoyOS()
         ensureAutomotivePermissions()
         registerAutomotiveMediaReceivers()
+        registerConnectivityAndCallReceivers()
+        initBluetoothProfiles()
+        JoyMediaNotificationListener.setOnListenerReadyCallback {
+            runOnUiThread { attachMediaSessionsIfAllowed() }
+        }
+        JoyMediaNotificationListener.setOnCallNotificationCallback { callInfo ->
+            if (callInfo == null) {
+                bridge.updateCallState("idle", source = "notification")
+            } else {
+                bridge.updateCallState(
+                    state = callInfo.status,
+                    name = callInfo.callerName,
+                    number = callInfo.callerNumber,
+                    avatar = callInfo.photoDataUri,
+                    source = "notification"
+                )
+            }
+        }
+        attachMediaSessionsIfAllowed()
         scheduleBackgroundOtaCheck()
 
         // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
@@ -253,19 +298,66 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
+                    var artResult: JoyMediaArtworkHelper.ArtworkResult? = null
+                    var artUrlHint: String? = null
+
                     // Check if a MediaMetadata parcelable was sent (AVRCP Controller standard)
                     try {
                         @Suppress("DEPRECATION")
                         val meta = extras.getParcelable<MediaMetadata>("android.bluetooth.avrcp-controller.profile.extra.METADATA")
                             ?: extras.getParcelable<MediaMetadata>("metadata")
                         if (meta != null) {
-                            meta.getString(MediaMetadata.METADATA_KEY_TITLE)?.let { if (it.isNotBlank()) title = it }
-                            meta.getString(MediaMetadata.METADATA_KEY_ARTIST)?.let { if (it.isNotBlank()) artist = it }
-                            meta.getString(MediaMetadata.METADATA_KEY_ALBUM)?.let { if (it.isNotBlank()) album = it }
+                            (meta.getString(MediaMetadata.METADATA_KEY_TITLE)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE))
+                                ?.let { if (it.isNotBlank()) title = it.trim() }
+                            (meta.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE))
+                                ?.let { if (it.isNotBlank()) artist = it.trim() }
+                            (meta.getString(MediaMetadata.METADATA_KEY_ALBUM)
+                                ?: meta.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION))
+                                ?.let { if (it.isNotBlank()) album = it.trim() }
                             val d = meta.getLong(MediaMetadata.METADATA_KEY_DURATION)
                             if (d > 0) durationMs = d
+                            val pair = JoyMediaArtworkHelper.processMetadataArtwork(this@MainActivity, meta)
+                            artResult = pair.first
+                            artUrlHint = pair.second
                         }
                     } catch (_: Throwable) {}
+
+                    if (artResult == null) {
+                        val artKeys = listOf(
+                            "android.bluetooth.avrcp-controller.profile.extra.ARTWORK",
+                            "artwork",
+                            "cover",
+                            "album_art",
+                            "bitmap"
+                        )
+                        for (k in artKeys) {
+                            if (!extras.containsKey(k)) continue
+                            @Suppress("DEPRECATION")
+                            val raw = extras.get(k)
+                            when (raw) {
+                                is Bitmap -> {
+                                    artResult = JoyMediaArtworkHelper.processBitmapToArtwork(raw)
+                                    if (artResult != null) break
+                                }
+                                is Uri -> {
+                                    val bytes = try {
+                                        contentResolver.openInputStream(raw)?.use { it.readBytes() }
+                                    } catch (_: Throwable) { null }
+                                    artResult = JoyMediaArtworkHelper.processBytesToArtwork(bytes)
+                                    if (artResult != null) break
+                                }
+                                is String -> {
+                                    val trimmed = raw.trim()
+                                    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                                        artUrlHint = trimmed
+                                    }
+                                }
+                            }
+                        }
+                    }
 
                     try {
                         @Suppress("DEPRECATION")
@@ -275,6 +367,24 @@ class MainActivity : AppCompatActivity() {
                             isPlaying = (pb.state == PlaybackState.STATE_PLAYING)
                         }
                     } catch (_: Throwable) {}
+
+                    if (!title.isNullOrBlank() || isPlaying != null) {
+                        val durSec = if (durationMs > 1000) (durationMs / 1000).toInt() else durationMs.toInt()
+                        bridge.updateLiveBtMetadata(
+                            title = title,
+                            artist = artist,
+                            album = album,
+                            durationSec = durSec,
+                            isPlaying = isPlaying,
+                            sourceAction = action,
+                            coverDataUri = artResult?.dataUri,
+                            color1 = artResult?.color1,
+                            color2 = artResult?.color2,
+                            artUrlHint = artUrlHint
+                        )
+                    }
+                } else {
+                    // Nothing in extras
                 }
 
                 // Check radio frequency broadcasts from ZXDZ_01 / TS / XYAuto / AutoChips MCU
@@ -289,11 +399,6 @@ class MainActivity : AppCompatActivity() {
                             }
                         }
                     }
-                }
-
-                if (!title.isNullOrBlank() || isPlaying != null) {
-                    val durSec = if (durationMs > 1000) (durationMs / 1000).toInt() else durationMs.toInt()
-                    bridge.updateLiveBtMetadata(title, artist, album, durSec, isPlaying, action)
                 }
             } catch (e: Throwable) {
                 Log.w("JoyOS", "btMediaReceiver warning: ${e.message}")
@@ -339,6 +444,526 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ─── Bluetooth Profiles (A2DP, HFP Client, A2DP Sink), Phone Battery & Calls ──────────────
+
+    private var btAdapter: BluetoothAdapter? = null
+    private val btProfileProxies = java.util.concurrent.ConcurrentHashMap<Int, BluetoothProfile>()
+    private var lastKnownPhoneBattery: Int = -1
+    private var lastKnownPhoneSignal: Int = -1
+
+    private val btProfileListener = object : BluetoothProfile.ServiceListener {
+        override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
+            if (proxy != null) {
+                btProfileProxies[profile] = proxy
+                refreshBtTelemetryFromProfiles()
+            }
+        }
+
+        override fun onServiceDisconnected(profile: Int) {
+            btProfileProxies.remove(profile)
+            refreshBtTelemetryFromProfiles()
+        }
+    }
+
+    private fun initBluetoothProfiles() {
+        try {
+            val bm = getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+            val adapter = bm?.adapter ?: BluetoothAdapter.getDefaultAdapter() ?: return
+            btAdapter = adapter
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            val profiles = intArrayOf(
+                BluetoothProfile.A2DP,
+                BluetoothProfile.HEADSET,
+                11, // BluetoothProfile.A2DP_SINK (@hide on standard SDK, standard on automotive)
+                16  // BluetoothProfile.HEADSET_CLIENT (@hide on standard SDK, HFP Hands-Free Client)
+            )
+            for (profileId in profiles) {
+                try {
+                    adapter.getProfileProxy(this, btProfileListener, profileId)
+                } catch (_: Throwable) {}
+            }
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "initBluetoothProfiles handled: ${e.message}")
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun refreshBtTelemetryFromProfiles() {
+        try {
+            var a2dpOk = false
+            var hfpOk = false
+            var activeAddr = ""
+            var activeName = ""
+            for ((profileId, proxy) in btProfileProxies) {
+                val connected = try {
+                    proxy.connectedDevices
+                } catch (_: Throwable) {
+                    emptyList()
+                }
+                if (connected.isNotEmpty()) {
+                    val dev = connected.first()
+                    if (profileId == BluetoothProfile.A2DP || profileId == 11) a2dpOk = true
+                    if (profileId == BluetoothProfile.HEADSET || profileId == 16) hfpOk = true
+                    if (activeAddr.isEmpty()) {
+                        activeAddr = dev.address ?: ""
+                        activeName = try { dev.name ?: "" } catch (_: Throwable) { "" }
+                    }
+                }
+            }
+            bridge.updateBluetoothTelemetry(
+                battery = lastKnownPhoneBattery,
+                signal = lastKnownPhoneSignal,
+                deviceName = activeName.ifEmpty { null },
+                deviceAddress = activeAddr.ifEmpty { null },
+                a2dp = a2dpOk,
+                hfp = hfpOk
+            )
+        } catch (_: Throwable) {}
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun connectBtDeviceProxy(address: String): Boolean {
+        return try {
+            val adapter = btAdapter ?: return false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return false
+            }
+            val device = adapter.getRemoteDevice(address) ?: return false
+            var anyRequested = false
+            val order = intArrayOf(16, 11, BluetoothProfile.A2DP, BluetoothProfile.HEADSET)
+            for (profileId in order) {
+                val proxy = btProfileProxies[profileId] ?: continue
+                try {
+                    val m = proxy.javaClass.getMethod("connect", BluetoothDevice::class.java)
+                    val ok = m.invoke(proxy, device) as? Boolean ?: false
+                    if (ok) anyRequested = true
+                } catch (_: Throwable) {}
+            }
+            anyRequested
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun disconnectBtDeviceProxy(address: String): Boolean {
+        return try {
+            val adapter = btAdapter ?: return false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return false
+            }
+            val device = adapter.getRemoteDevice(address) ?: return false
+            var anyRequested = false
+            for ((_, proxy) in btProfileProxies) {
+                try {
+                    val m = proxy.javaClass.getMethod("disconnect", BluetoothDevice::class.java)
+                    val ok = m.invoke(proxy, device) as? Boolean ?: false
+                    if (ok) anyRequested = true
+                } catch (_: Throwable) {}
+            }
+            anyRequested
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun answerBtOrTelecomCall(): Boolean {
+        return try {
+            val hfpClient = btProfileProxies[16] ?: return false
+            val devices = try { hfpClient.connectedDevices } catch (_: Throwable) { emptyList() }
+            val dev = devices.firstOrNull() ?: return false
+            val acceptMethod = hfpClient.javaClass.getMethod("acceptCall", BluetoothDevice::class.java, Int::class.javaPrimitiveType)
+            (acceptMethod.invoke(hfpClient, dev, 0) as? Boolean) == true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun endBtOrTelecomCall(): Boolean {
+        return try {
+            val hfpClient = btProfileProxies[16] ?: return false
+            val devices = try { hfpClient.connectedDevices } catch (_: Throwable) { emptyList() }
+            val dev = devices.firstOrNull() ?: return false
+            val currentCalls = try {
+                @Suppress("UNCHECKED_CAST")
+                hfpClient.javaClass.getMethod("getCurrentCalls", BluetoothDevice::class.java).invoke(hfpClient, dev) as? List<Any?>
+            } catch (_: Throwable) { null }
+            val firstCall = currentCalls?.firstOrNull()
+            val terminateMethod = hfpClient.javaClass.methods.firstOrNull {
+                it.name == "terminateCall" && it.parameterTypes.size == 2
+            } ?: return false
+            (terminateMethod.invoke(hfpClient, dev, firstCall) as? Boolean) == true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun dialBtHfpCall(number: String): Boolean {
+        return try {
+            val hfpClient = btProfileProxies[16] ?: return false
+            val devices = try { hfpClient.connectedDevices } catch (_: Throwable) { emptyList() }
+            val dev = devices.firstOrNull() ?: return false
+            val dialMethod = hfpClient.javaClass.getMethod("dial", BluetoothDevice::class.java, String::class.java)
+            val result = dialMethod.invoke(hfpClient, dev, number)
+            val ok = (result is Boolean && result) || (result != null && result !is Boolean)
+            if (ok) {
+                bridge.updateCallState(state = "dialing", number = number, source = "hfp")
+            }
+            ok
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private val connectivityCallReceiver = object : BroadcastReceiver() {
+        @SuppressLint("MissingPermission")
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent == null) return
+            try {
+                when (intent.action) {
+                    BluetoothDevice.ACTION_ACL_CONNECTED -> {
+                        @Suppress("DEPRECATION")
+                        val dev = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                        val addr = dev?.address ?: ""
+                        val name = try { dev?.name ?: "" } catch (_: Throwable) { "" }
+                        val low = name.lowercase(Locale.ROOT)
+                        val isObd = low.contains("obd") || low.contains("elm327") || low.contains("vgate") || low.contains("vlinker") || low.contains("veepeak") || low.contains("konnwei") || low.contains("carista")
+                        if (!isObd) {
+                            bridge.updateBluetoothTelemetry(
+                                battery = lastKnownPhoneBattery,
+                                signal = lastKnownPhoneSignal,
+                                deviceName = name.ifEmpty { null },
+                                deviceAddress = addr.ifEmpty { null }
+                            )
+                        }
+                        refreshBtTelemetryFromProfiles()
+                    }
+                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
+                        @Suppress("DEPRECATION")
+                        val dev = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+                        val name = try { dev?.name ?: "" } catch (_: Throwable) { "" }
+                        val low = name.lowercase(Locale.ROOT)
+                        val isObd = low.contains("obd") || low.contains("elm327") || low.contains("vgate") || low.contains("vlinker") || low.contains("veepeak") || low.contains("konnwei") || low.contains("carista")
+                        if (!isObd) {
+                            lastKnownPhoneBattery = -1
+                            lastKnownPhoneSignal = -1
+                            bridge.updateBluetoothTelemetry(battery = -1, signal = -1, a2dp = false, hfp = false)
+                        }
+                        refreshBtTelemetryFromProfiles()
+                    }
+                    "android.bluetooth.device.action.BATTERY_LEVEL_CHANGED" -> {
+                        val level = intent.getIntExtra("android.bluetooth.device.extra.BATTERY_LEVEL", -1)
+                        if (level in 0..100) {
+                            lastKnownPhoneBattery = level
+                            bridge.updateBluetoothTelemetry(battery = level)
+                        }
+                    }
+                    "android.bluetooth.headsetclient.profile.action.AG_EVENT" -> {
+                        var bat = -1
+                        var sig = -1
+                        val rawBat = intent.getIntExtra("android.bluetooth.headsetclient.extra.BATTERY_LEVEL", -1)
+                        if (rawBat >= 0) {
+                            // HFP AG_EVENT reports 0..5 by spec, some ROMs emit 0..100
+                            bat = if (rawBat <= 5) (rawBat * 20).coerceIn(0, 100) else rawBat.coerceIn(0, 100)
+                            lastKnownPhoneBattery = bat
+                        }
+                        val netStatus = intent.getIntExtra("android.bluetooth.headsetclient.extra.NETWORK_STATUS", -1)
+                        val rawSig = intent.getIntExtra("android.bluetooth.headsetclient.extra.NETWORK_SIGNAL_STRENGTH", -1)
+                        if (rawSig >= 0) {
+                            sig = if (rawSig == 0) 0 else ((rawSig * 4 + 4) / 5).coerceIn(0, 4)
+                            lastKnownPhoneSignal = sig
+                        } else if (netStatus == 0) {
+                            sig = 0
+                            lastKnownPhoneSignal = 0
+                        }
+                        bridge.updateBluetoothTelemetry(
+                            battery = if (bat >= 0) bat else null,
+                            signal = if (sig >= 0) sig else null,
+                            hfp = true
+                        )
+                    }
+                    "android.bluetooth.headsetclient.profile.action.AG_CALL_CHANGED" -> {
+                        @Suppress("DEPRECATION")
+                        val callObj = intent.getParcelableExtra<android.os.Parcelable>("android.bluetooth.headsetclient.extra.CALL")
+                        if (callObj != null) {
+                            val callStateInt = try { callObj.javaClass.getMethod("getState").invoke(callObj) as? Int ?: 7 } catch (_: Throwable) { 7 }
+                            val callNumber = try { callObj.javaClass.getMethod("getNumber").invoke(callObj) as? String ?: "" } catch (_: Throwable) { "" }
+                            val mapped = when (callStateInt) {
+                                4, 5 -> "ringing"
+                                2, 3 -> "dialing"
+                                0, 1, 6 -> "active"
+                                else -> "idle"
+                            }
+                            bridge.updateCallState(state = mapped, number = callNumber, source = "hfp")
+                        }
+                    }
+                    "android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED",
+                    "android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED" -> {
+                        refreshBtTelemetryFromProfiles()
+                    }
+                    TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
+                        val telState = intent.getStringExtra(TelephonyManager.EXTRA_STATE) ?: ""
+                        @Suppress("DEPRECATION")
+                        val num = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER) ?: ""
+                        val mapped = when (telState) {
+                            TelephonyManager.EXTRA_STATE_RINGING -> "ringing"
+                            TelephonyManager.EXTRA_STATE_OFFHOOK -> "active"
+                            TelephonyManager.EXTRA_STATE_IDLE -> "idle"
+                            else -> ""
+                        }
+                        if (mapped.isNotEmpty()) {
+                            bridge.updateCallState(state = mapped, number = num, source = "telephony")
+                        }
+                    }
+                    "com.autochips.bluetooth.hf.BluetoothHfUtility.action.CALL_STATE",
+                    "com.autochips.bluetooth.BtCallState",
+                    "com.ts.bt.call.state",
+                    "com.xyauto.broadcast.bt.call.state",
+                    "com.fyt.bt.call" -> {
+                        val extras = intent.extras
+                        val rawNum = extras?.getString("number")
+                            ?: extras?.getString("phone")
+                            ?: extras?.getString("num")
+                            ?: ""
+                        val rawName = extras?.getString("name")
+                            ?: extras?.getString("contact")
+                            ?: ""
+                        val intState = listOf("state", "call_state", "status", "callstate").firstNotNullOfOrNull { k ->
+                            @Suppress("DEPRECATION")
+                            val v = extras?.get(k)
+                            when (v) {
+                                is Int -> v
+                                is String -> v.toIntOrNull()
+                                else -> null
+                            }
+                        }
+                        val strState = extras?.getString("state")?.lowercase(Locale.ROOT)
+                            ?: extras?.getString("call_state")?.lowercase(Locale.ROOT)
+                            ?: ""
+                        val mapped = when {
+                            strState.contains("ring") || strState.contains("incom") || intState == 1 || intState == 4 -> "ringing"
+                            strState.contains("dial") || strState.contains("out") || intState == 2 || intState == 3 -> "dialing"
+                            strState.contains("act") || strState.contains("talk") || strState.contains("offhook") || intState == 0 -> "active"
+                            strState.contains("idle") || strState.contains("hang") || strState.contains("end") || intState == 7 -> "idle"
+                            else -> ""
+                        }
+                        if (mapped.isNotEmpty()) {
+                            bridge.updateCallState(state = mapped, name = rawName, number = rawNum, source = "oem")
+                        }
+                    }
+                    BluetoothAdapter.ACTION_STATE_CHANGED,
+                    WifiManager.WIFI_STATE_CHANGED_ACTION,
+                    "android.net.wifi.WIFI_AP_STATE_CHANGED" -> {
+                        runOnUiThread {
+                            try {
+                                webView.evaluateJavascript("if (typeof updateHardwareStatus === 'function') updateHardwareStatus();", null)
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                }
+            } catch (e: Throwable) {
+                Log.w("JoyOS", "Connectivity/call broadcast error: ${e.message}")
+            }
+        }
+    }
+
+    private fun registerConnectivityAndCallReceivers() {
+        try {
+            val filter = IntentFilter().apply {
+                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+                addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
+                addAction("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED")
+                addAction("android.bluetooth.headsetclient.profile.action.AG_EVENT")
+                addAction("android.bluetooth.headsetclient.profile.action.AG_CALL_CHANGED")
+                addAction("android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED")
+                addAction("android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED")
+                addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
+                addAction("com.autochips.bluetooth.hf.BluetoothHfUtility.action.CALL_STATE")
+                addAction("com.autochips.bluetooth.BtCallState")
+                addAction("com.ts.bt.call.state")
+                addAction("com.xyauto.broadcast.bt.call.state")
+                addAction("com.fyt.bt.call")
+                addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
+                addAction("android.net.wifi.WIFI_AP_STATE_CHANGED")
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(connectivityCallReceiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                registerReceiver(connectivityCallReceiver, filter)
+            }
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "Could not register connectivity/call receiver: ${e.message}")
+        }
+    }
+
+    private fun attachMediaSessionsIfAllowed() {
+        if (!JoyMediaNotificationListener.isEnabled(this)) return
+        try {
+            val mgr = mediaSessionManager ?: (getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager)
+                ?.also { mediaSessionManager = it } ?: return
+            val listenerComp = ComponentName(this, JoyMediaNotificationListener::class.java)
+
+            if (sessionsChangedListener == null) {
+                sessionsChangedListener = MediaSessionManager.OnActiveSessionsChangedListener { controllers ->
+                    runOnUiThread {
+                        bindMediaControllers(controllers ?: emptyList())
+                    }
+                }
+                mgr.addOnActiveSessionsChangedListener(sessionsChangedListener!!, listenerComp)
+            }
+
+            val current = mgr.getActiveSessions(listenerComp)
+            bindMediaControllers(current)
+        } catch (se: SecurityException) {
+            Log.d("JoyOS", "MediaSession access pending user notification permission: ${se.message}")
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "attachMediaSessions warning: ${e.message}")
+        }
+    }
+
+    private fun unregisterMediaControllerCallbacks() {
+        controllerCallbacks.forEach { (ctrl, cb) ->
+            try { ctrl.unregisterCallback(cb) } catch (_: Throwable) {}
+        }
+        controllerCallbacks.clear()
+    }
+
+    private fun bindMediaControllers(controllers: List<MediaController>) {
+        unregisterMediaControllerCallbacks()
+        activeControllers = controllers.filter { it.packageName != packageName }
+
+        activeControllers.forEach { ctrl ->
+            val cb = object : MediaController.Callback() {
+                override fun onMetadataChanged(metadata: MediaMetadata?) {
+                    val primary = selectPrimaryMediaController()
+                    if (primary == null || primary.sessionToken == ctrl.sessionToken) {
+                        syncFromMediaController(ctrl)
+                    }
+                }
+
+                override fun onPlaybackStateChanged(state: PlaybackState?) {
+                    val primary = selectPrimaryMediaController()
+                    if (primary == null || primary.sessionToken == ctrl.sessionToken || state?.state == PlaybackState.STATE_PLAYING) {
+                        syncFromMediaController(ctrl)
+                    }
+                }
+            }
+            try {
+                ctrl.registerCallback(cb)
+                controllerCallbacks[ctrl] = cb
+            } catch (_: Throwable) {}
+        }
+
+        selectPrimaryMediaController()?.let { syncFromMediaController(it) }
+    }
+
+    private fun selectPrimaryMediaController(): MediaController? {
+        if (activeControllers.isEmpty()) return null
+        return activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+            ?: activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_BUFFERING }
+            ?: activeControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PAUSED && it.metadata != null }
+            ?: activeControllers.firstOrNull { it.metadata != null }
+            ?: activeControllers.firstOrNull()
+    }
+
+    private fun syncFromMediaController(ctrl: MediaController) {
+        try {
+            val meta = ctrl.metadata
+            val pb = ctrl.playbackState
+
+            val title = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_TITLE)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE)
+            }?.trim()
+            val artist = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE)
+            }?.trim()
+            val album = meta?.let {
+                it.getString(MediaMetadata.METADATA_KEY_ALBUM)
+                    ?: it.getString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION)
+            }?.trim()
+
+            val rawDur = meta?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
+            val durSec = if (rawDur > 1000) (rawDur / 1000).toInt() else rawDur.toInt()
+            val posSec = pb?.position?.let { if (it >= 0) (it / 1000).toInt() else -1 } ?: -1
+            val isPlaying: Boolean? = pb?.let {
+                it.state == PlaybackState.STATE_PLAYING || it.state == PlaybackState.STATE_BUFFERING
+            }
+
+            if (title.isNullOrBlank() && isPlaying == null) return
+
+            val trackKey = "${ctrl.packageName}|${title ?: ""}|${artist ?: ""}|${album ?: ""}"
+            if (trackKey != lastSessionTrackKey || lastSessionArt == null) {
+                val (artRes, artHint) = JoyMediaArtworkHelper.processMetadataArtwork(this, meta)
+                lastSessionTrackKey = trackKey
+                lastSessionArt = artRes
+                lastSessionArtHint = artHint
+            }
+
+            bridge.updateLiveBtMetadata(
+                title = title,
+                artist = artist,
+                album = album,
+                durationSec = durSec,
+                isPlaying = isPlaying,
+                sourceAction = "MediaSession",
+                positionSec = posSec,
+                coverDataUri = lastSessionArt?.dataUri,
+                color1 = lastSessionArt?.color1,
+                color2 = lastSessionArt?.color2,
+                sourceApp = ctrl.packageName,
+                artUrlHint = lastSessionArtHint
+            )
+        } catch (e: Throwable) {
+            Log.w("JoyOS", "syncFromMediaController warning: ${e.message}")
+        }
+    }
+
+    private fun handleSessionTransportAction(action: String): Boolean {
+        val ctrl = selectPrimaryMediaController() ?: return false
+        return try {
+            val controls = ctrl.transportControls
+            when (action) {
+                "play" -> controls.play()
+                "pause" -> controls.pause()
+                "toggle" -> {
+                    if (ctrl.playbackState?.state == PlaybackState.STATE_PLAYING) controls.pause()
+                    else controls.play()
+                }
+                "next" -> controls.skipToNext()
+                "prev" -> controls.skipToPrevious()
+                else -> return false
+            }
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun seekSessionPosition(posMs: Long): Boolean {
+        val ctrl = selectPrimaryMediaController() ?: return false
+        return try {
+            ctrl.transportControls.seekTo(posMs.coerceAtLeast(0L))
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -358,6 +983,7 @@ class MainActivity : AppCompatActivity() {
         try { gpsManager.startTracking() } catch (_: Throwable) {}
         try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
         try { tpmsReceiver.register() } catch (_: Throwable) {}
+        try { attachMediaSessionsIfAllowed() } catch (_: Throwable) {}
     }
 
     override fun onPause() {
@@ -369,7 +995,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        try { JoyMediaNotificationListener.setOnListenerReadyCallback(null) } catch (_: Throwable) {}
+        try { JoyMediaNotificationListener.setOnCallNotificationCallback(null) } catch (_: Throwable) {}
+        try { unregisterMediaControllerCallbacks() } catch (_: Throwable) {}
+        try {
+            sessionsChangedListener?.let { mediaSessionManager?.removeOnActiveSessionsChangedListener(it) }
+        } catch (_: Throwable) {}
         try { unregisterReceiver(btMediaReceiver) } catch (_: Throwable) {}
+        try { unregisterReceiver(connectivityCallReceiver) } catch (_: Throwable) {}
+        try {
+            for ((profileId, proxy) in btProfileProxies) {
+                try { btAdapter?.closeProfileProxy(profileId, proxy) } catch (_: Throwable) {}
+            }
+            btProfileProxies.clear()
+        } catch (_: Throwable) {}
         try { dspEngine.release() } catch (_: Throwable) {}
     }
 
@@ -394,6 +1033,23 @@ class MainActivity : AppCompatActivity() {
             ) {
                 permissionsNeeded.add(Manifest.permission.BLUETOOTH_SCAN)
             }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsNeeded.add(Manifest.permission.READ_PHONE_STATE)
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsNeeded.add(Manifest.permission.CALL_PHONE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissionsNeeded.add(Manifest.permission.ANSWER_PHONE_CALLS)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -432,6 +1088,7 @@ class MainActivity : AppCompatActivity() {
             try { gpsManager.startTracking() } catch (_: Throwable) {}
             try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
             try { tpmsReceiver.register() } catch (_: Throwable) {}
+            try { initBluetoothProfiles() } catch (_: Throwable) {}
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(

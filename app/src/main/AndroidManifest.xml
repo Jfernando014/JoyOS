@@ -12,6 +12,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
 
+    <!-- Hands-Free Calls (HFP / Dialer / Telecom) -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
+
     <!-- USB Host Support for 433.92 MHz USB TPMS Receiver -->
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
 
@@ -83,6 +88,17 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
+
+        <!-- Notification Listener for Live MediaSession Metadata & Album Artwork (Spotify, YT Music, BT) -->
+        <service
+            android:name=".services.JoyMediaNotificationListener"
+            android:label="JoyOS Media Art &amp; Player Sync"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
 
         <!-- Secure FileProvider for OTA APK Installation -->
         <provider

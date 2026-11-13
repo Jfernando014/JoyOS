@@ -1,6 +1,7 @@
 package com.joyos.launcher.bridge
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
@@ -24,6 +25,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
+import android.telecom.TelecomManager
 import android.util.Log
 import android.view.KeyEvent
 import android.webkit.JavascriptInterface
@@ -33,11 +35,15 @@ import androidx.core.content.FileProvider
 import com.joyos.launcher.services.GpsData
 import com.joyos.launcher.services.JoyAudioDspEngine
 import com.joyos.launcher.services.JoyHardwareOptimizer
+import com.joyos.launcher.services.JoyMediaArtworkHelper
+import com.joyos.launcher.services.JoyMediaNotificationListener
 import com.joyos.launcher.services.ObdState
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -65,7 +71,14 @@ class AndroidBridge(
     private val onRequestPermissions: (() -> Unit)? = null,
     private val onClearWebCache: (() -> Unit)? = null,
     private val onReloadUi: (() -> Unit)? = null,
-    private val onEvaluateJs: ((String) -> Unit)? = null
+    private val onEvaluateJs: ((String) -> Unit)? = null,
+    private val onMediaTransportAction: ((String) -> Boolean)? = null,
+    private val onSeekMediaPosition: ((Long) -> Boolean)? = null,
+    private val onConnectBluetoothDevice: ((String) -> Boolean)? = null,
+    private val onDisconnectBluetoothDevice: ((String) -> Boolean)? = null,
+    private val onAnswerCallAction: (() -> Boolean)? = null,
+    private val onEndCallAction: (() -> Boolean)? = null,
+    private val onDialCallAction: ((String) -> Boolean)? = null
 ) {
 
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -92,15 +105,98 @@ class AndroidBridge(
         }
     }
 
+    @Volatile private var hfpBatteryPct: Int = -1
+    @Volatile private var hfpSignalBars: Int = -1
+    @Volatile private var hfpActiveName: String = ""
+    @Volatile private var hfpActiveAddress: String = ""
+    @Volatile private var hfpA2dpConnected: Boolean = false
+    @Volatile private var hfpClientConnected: Boolean = false
+
+    fun updateBluetoothTelemetry(
+        battery: Int? = null,
+        signal: Int? = null,
+        deviceName: String? = null,
+        deviceAddress: String? = null,
+        a2dp: Boolean? = null,
+        hfp: Boolean? = null
+    ) {
+        if (battery != null) hfpBatteryPct = battery.coerceIn(-1, 100)
+        if (signal != null) hfpSignalBars = signal.coerceIn(-1, 4)
+        if (deviceName != null) hfpActiveName = deviceName
+        if (deviceAddress != null) hfpActiveAddress = deviceAddress
+        if (a2dp != null) hfpA2dpConnected = a2dp
+        if (hfp != null) hfpClientConnected = hfp
+    }
+
     private fun isHotspotActive(): Boolean {
         return try {
             val wm = wifiManager ?: return false
-            val m = wm.javaClass.getDeclaredMethod("isWifiApEnabled")
-            m.isAccessible = true
-            (m.invoke(wm) as? Boolean) == true
+            val enabledByBool = try {
+                val m = wm.javaClass.getDeclaredMethod("isWifiApEnabled")
+                m.isAccessible = true
+                (m.invoke(wm) as? Boolean) == true
+            } catch (_: Throwable) {
+                false
+            }
+            if (enabledByBool) return true
+            try {
+                val mState = wm.javaClass.getDeclaredMethod("getWifiApState")
+                mState.isAccessible = true
+                val apState = mState.invoke(wm) as? Int ?: -1
+                apState == 13 || apState == 3 // WIFI_AP_STATE_ENABLED (13 on modern, 3 on legacy)
+            } catch (_: Throwable) {
+                false
+            }
         } catch (_: Throwable) {
             false
         }
+    }
+
+    /**
+     * Attempts direct SoftAP Hotspot toggle via reflection (works on Android 8.1/head units when allowed),
+     * falling back cleanly to Android's native Tethering/Hotspot settings if the OS restricts background toggles.
+     */
+    @JavascriptInterface
+    fun setHotspotEnabled(enabled: Boolean): String {
+        val result = JSONObject()
+        var directOk = false
+        try {
+            val wm = wifiManager
+            if (wm != null) {
+                if (enabled && Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    try {
+                        @Suppress("DEPRECATION")
+                        if (wm.isWifiEnabled) wm.isWifiEnabled = false
+                    } catch (_: Throwable) {}
+                }
+                val apMethod = wm.javaClass.methods.firstOrNull {
+                    it.name == "setWifiApEnabled" && it.parameterTypes.size == 2
+                }
+                if (apMethod != null) {
+                    apMethod.isAccessible = true
+                    directOk = (apMethod.invoke(wm, null, enabled) as? Boolean) == true
+                }
+            }
+        } catch (e: Throwable) {
+            Log.d("AndroidBridge", "Direct setWifiApEnabled blocked by OS policy: ${e.message}")
+            directOk = false
+        }
+
+        val currentActive = isHotspotActive()
+        if (directOk) {
+            result.put("ok", true)
+            result.put("active", enabled)
+            result.put("openedSettings", false)
+            result.put("message", if (enabled) "Zona Wi-Fi activada" else "Zona Wi-Fi desactivada")
+            return result.toString()
+        }
+
+        val opened = openHotspotSettings()
+        result.put("ok", false)
+        result.put("active", currentActive)
+        result.put("openedSettings", opened)
+        result.put("message", "Confirma el interruptor en Ajustes de Zona Wi-Fi de Android")
+        return result.toString()
     }
 
     private fun formatIpv4(ipInt: Int): String {
@@ -171,6 +267,13 @@ class AndroidBridge(
         }
     }
 
+    private fun isObdName(name: String?): Boolean {
+        if (name.isNullOrBlank()) return false
+        return name.contains("OBD", true) || name.contains("ELM", true) ||
+            name.contains("VGATE", true) || name.contains("VLINK", true) ||
+            name.contains("V-LINK", true) || name.contains("ICAR", true)
+    }
+
     /**
      * Checks if a BluetoothDevice currently has an active ACL/profile connection without relying
      * on async ProfileProxy setup (supported across Android 8.1+ AC8227L and API 34).
@@ -185,19 +288,38 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real active Bluetooth connection state and connected device name.
+     * Reads genuine Bluetooth HFP/AT battery level (`getBatteryLevel()` on API 27+/reflection);
+     * returns -1 when unavailable instead of inventing a fake 100%.
+     */
+    private fun getBtDeviceBatteryLevel(dev: BluetoothDevice): Int {
+        return try {
+            val m = dev.javaClass.getMethod("getBatteryLevel")
+            val v = (m.invoke(dev) as? Int) ?: -1
+            if (v in 0..100) v else -1
+        } catch (_: Throwable) {
+            -1
+        }
+    }
+
+    /**
+     * Returns real active Bluetooth connection state, connected phone vs OBD2 distinction,
+     * and genuine HFP battery / cellular signal telemetry (-1 when unavailable).
      */
     @JavascriptInterface
+    @SuppressLint("MissingPermission")
     fun getBluetoothStatus(): String {
         return try {
             val adapter = bluetoothAdapter
             val enabled = adapter?.isEnabled ?: false
             if (!enabled || adapter == null) {
-                return "{\"enabled\":false,\"connected\":false,\"device\":\"Bluetooth apagado\",\"pairedCount\":0}"
+                hfpBatteryPct = -1
+                hfpSignalBars = -1
+                return "{\"enabled\":false,\"connected\":false,\"phoneConnected\":false,\"obdConnected\":false,\"device\":\"Bluetooth apagado\",\"deviceAddress\":\"\",\"phoneBattery\":-1,\"phoneSignal\":-1,\"pairedCount\":0}"
             }
 
             val bonded = try { adapter.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
-            val activeBonded = bonded.firstOrNull { isBtDeviceActivelyConnected(it) }
+            val activeBondedPhone = bonded.firstOrNull { isBtDeviceActivelyConnected(it) && !isObdName(it.name) }
+            val activeBondedAny = activeBondedPhone ?: bonded.firstOrNull { isBtDeviceActivelyConnected(it) }
 
             val bm = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
             val gattConnected = try {
@@ -209,49 +331,147 @@ class AndroidBridge(
 
             val a2dpState = try { adapter.getProfileConnectionState(BluetoothProfile.A2DP) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
             val hfpState = try { adapter.getProfileConnectionState(BluetoothProfile.HEADSET) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
-            val profileConnected = a2dpState == BluetoothProfile.STATE_CONNECTED || hfpState == BluetoothProfile.STATE_CONNECTED
-            val obdConnected = getObdState?.invoke()?.connected == true
+            val a2dpSinkState = try { adapter.getProfileConnectionState(11) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val hfpClientState = try { adapter.getProfileConnectionState(16) } catch (_: Throwable) { BluetoothProfile.STATE_DISCONNECTED }
+            val audioHfpConnected = a2dpState == BluetoothProfile.STATE_CONNECTED ||
+                hfpState == BluetoothProfile.STATE_CONNECTED ||
+                a2dpSinkState == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientState == BluetoothProfile.STATE_CONNECTED
 
-            val isConnected = activeBonded != null || gattConnected != null || profileConnected || lastBtPlaying
-            val deviceName = activeBonded?.name
+            val obdConnected = getObdState?.invoke()?.connected == true
+            val a2dpOn = a2dpState == BluetoothProfile.STATE_CONNECTED ||
+                a2dpSinkState == BluetoothProfile.STATE_CONNECTED ||
+                hfpA2dpConnected
+            val hfpOn = hfpState == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientState == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientConnected
+            val phoneConnected = activeBondedPhone != null || audioHfpConnected || a2dpOn || hfpOn || lastBtPlaying || hfpBatteryPct >= 0
+            val isConnected = phoneConnected || obdConnected || gattConnected != null
+
+            if (!phoneConnected) {
+                hfpBatteryPct = -1
+                hfpSignalBars = -1
+                hfpActiveName = ""
+                hfpActiveAddress = ""
+                hfpA2dpConnected = false
+                hfpClientConnected = false
+            }
+
+            val fallbackPhone = bonded.firstOrNull { !isObdName(it.name) } ?: bonded.firstOrNull()
+            val targetPhone = activeBondedPhone ?: (if (audioHfpConnected || a2dpOn || hfpOn) fallbackPhone else null)
+            val realPhoneBatt = (targetPhone?.let { getBtDeviceBatteryLevel(it) } ?: -1).let {
+                if (it >= 0) it else hfpBatteryPct
+            }
+
+            val deviceName = activeBondedPhone?.name
+                ?: hfpActiveName.ifBlank { null }
+                ?: (if (audioHfpConnected || a2dpOn || hfpOn) fallbackPhone?.name else null)
+                ?: (if (lastBtPlaying) (fallbackPhone?.name ?: "Audio Bluetooth") else null)
+                ?: activeBondedAny?.name
                 ?: gattConnected?.name
-                ?: (if (profileConnected) bonded.firstOrNull()?.name else null)
                 ?: (if (obdConnected) (getObdState?.invoke()?.deviceName?.ifBlank { "OBD2" } ?: "OBD2") else null)
                 ?: (if (bonded.isNotEmpty()) "${bonded.size} vinculado(s)" else "Sin dispositivo")
 
             val json = JSONObject()
             json.put("enabled", true)
             json.put("connected", isConnected)
+            json.put("phoneConnected", phoneConnected)
             json.put("obdConnected", obdConnected)
+            json.put("a2dpConnected", a2dpOn)
+            json.put("hfpConnected", hfpOn)
             json.put("device", deviceName)
+            json.put("deviceAddress", targetPhone?.address ?: hfpActiveAddress)
+            json.put("phoneBattery", realPhoneBatt)
+            json.put("phoneSignal", hfpSignalBars)
             json.put("pairedCount", bonded.size)
             json.toString()
         } catch (_: Throwable) {
-            "{\"enabled\":false,\"connected\":false,\"device\":\"Sin dispositivo\",\"pairedCount\":0}"
+            "{\"enabled\":false,\"connected\":false,\"phoneConnected\":false,\"obdConnected\":false,\"device\":\"Sin dispositivo\",\"deviceAddress\":\"\",\"phoneBattery\":-1,\"phoneSignal\":-1,\"pairedCount\":0}"
         }
     }
 
     /**
-     * Returns all paired Bluetooth devices as a JSON array with live connection indicator.
+     * Returns all paired Bluetooth devices as a JSON array with live connection and battery indicator.
      */
     @JavascriptInterface
+    @SuppressLint("MissingPermission")
     fun getBluetoothBondedDevices(): String {
         return try {
             val bonded = try { bluetoothAdapter?.bondedDevices ?: emptySet() } catch (_: Throwable) { emptySet() }
+            val a2dpOnGlobal = (try { bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.A2DP) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                (try { bluetoothAdapter?.getProfileConnectionState(11) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                hfpA2dpConnected
+            val hfpOnGlobal = (try { bluetoothAdapter?.getProfileConnectionState(BluetoothProfile.HEADSET) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                (try { bluetoothAdapter?.getProfileConnectionState(16) } catch (_: Throwable) { 0 }) == BluetoothProfile.STATE_CONNECTED ||
+                hfpClientConnected
             val arr = JSONArray()
             for (dev in bonded) {
                 val obj = JSONObject()
                 val name = dev.name ?: "Dispositivo Bluetooth"
+                val addr = dev.address ?: ""
+                val isObd = isObdName(name)
+                val active = isBtDeviceActivelyConnected(dev) || (!isObd && addr.isNotEmpty() && addr.equals(hfpActiveAddress, ignoreCase = true) && (a2dpOnGlobal || hfpOnGlobal))
+                val batt = getBtDeviceBatteryLevel(dev)
                 obj.put("name", name)
-                obj.put("address", dev.address ?: "")
-                obj.put("connected", isBtDeviceActivelyConnected(dev))
-                obj.put("type", if (name.contains("OBD", true) || name.contains("ELM", true) || name.contains("VGATE", true) || name.contains("VLINK", true) || name.contains("V-LINK", true) || name.contains("ICAR", true)) "obd" else "phone")
+                obj.put("address", addr)
+                obj.put("connected", active)
+                obj.put("a2dpConnected", active && !isObd && a2dpOnGlobal)
+                obj.put("hfpConnected", active && !isObd && hfpOnGlobal)
+                obj.put("battery", if (batt >= 0) batt else if (active && !isObd) hfpBatteryPct else -1)
+                obj.put("signal", if (active && !isObd) hfpSignalBars else -1)
+                obj.put("type", if (isObd) "obd" else "phone")
                 arr.put(obj)
             }
             arr.toString()
         } catch (_: Throwable) {
             "[]"
         }
+    }
+
+    /**
+     * Initiates real Bluetooth A2DP/HFP profile connection to a paired device; falls back cleanly
+     * to native Bluetooth Settings if OEM stack/Android refuses direct proxy connection.
+     */
+    @JavascriptInterface
+    fun connectBluetoothDevice(address: String): String {
+        val result = JSONObject()
+        val cleanAddr = address.trim()
+        val ok = try {
+            if (cleanAddr.isNotEmpty()) onConnectBluetoothDevice?.invoke(cleanAddr) == true else false
+        } catch (_: Throwable) {
+            false
+        }
+        if (ok) {
+            result.put("ok", true)
+            result.put("requested", true)
+            result.put("address", cleanAddr)
+            result.put("openedSettings", false)
+            result.put("message", "Conectando perfil Bluetooth A2DP/HFP...")
+            return result.toString()
+        }
+        val opened = openBluetoothSettings()
+        result.put("ok", false)
+        result.put("requested", false)
+        result.put("address", cleanAddr)
+        result.put("openedSettings", opened)
+        result.put("message", "Abriendo Ajustes de Bluetooth del sistema...")
+        return result.toString()
+    }
+
+    @JavascriptInterface
+    fun disconnectBluetoothDevice(address: String): String {
+        val result = JSONObject()
+        val cleanAddr = address.trim()
+        val ok = try {
+            if (cleanAddr.isNotEmpty()) onDisconnectBluetoothDevice?.invoke(cleanAddr) == true else false
+        } catch (_: Throwable) {
+            false
+        }
+        result.put("ok", ok)
+        result.put("requested", ok)
+        result.put("address", cleanAddr)
+        result.put("message", if (ok) "Desconectando perfil Bluetooth..." else "Desconecta desde Ajustes Bluetooth de Android")
+        return result.toString()
     }
 
     /**
@@ -319,11 +539,18 @@ class AndroidBridge(
     }
 
     /**
-     * Dispatches real hardware media keys (Play/Pause, Next, Prev) to whichever music app is running.
+     * Dispatches real hardware media keys (Play/Pause, Next, Prev) to active MediaSession or system.
      */
     @JavascriptInterface
     fun sendMediaKeyEvent(action: String) {
         try {
+            val handledBySession = try {
+                onMediaTransportAction?.invoke(action.lowercase()) == true
+            } catch (_: Throwable) {
+                false
+            }
+            if (handledBySession) return
+
             val key = when (action.lowercase()) {
                 "play", "pause", "toggle" -> KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
                 "next" -> KeyEvent.KEYCODE_MEDIA_NEXT
@@ -336,6 +563,19 @@ class AndroidBridge(
             audioManager?.dispatchMediaKeyEvent(up)
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Media key event error: ${e.message}")
+        }
+    }
+
+    /**
+     * Seeks playback position (seconds) on the active MediaSession controller if supported.
+     */
+    @JavascriptInterface
+    fun seekActiveMedia(positionSec: Int): Boolean {
+        return try {
+            val posMs = positionSec.coerceAtLeast(0).toLong() * 1000L
+            onSeekMediaPosition?.invoke(posMs) ?: false
+        } catch (_: Throwable) {
+            false
         }
     }
 
@@ -595,16 +835,52 @@ class AndroidBridge(
 
     /**
      * Toggles hardware Bluetooth state.
+     * On Android 13+ (API 33+), direct enable()/disable() is blocked for non-system apps,
+     * so we gracefully prompt the system Bluetooth enable dialog or settings screen.
      */
     @JavascriptInterface
     fun setBluetoothPower(enabled: Boolean): Boolean {
         return try {
-            bluetoothAdapter?.let { adapter ->
-                @Suppress("DEPRECATION")
-                if (enabled) adapter.enable() else adapter.disable()
-            } ?: false
+            val adapter = bluetoothAdapter ?: run {
+                openBluetoothSettings()
+                return false
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+            ) {
+                openBluetoothSettings()
+                return false
+            }
+            val toggled = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                try {
+                    @Suppress("DEPRECATION")
+                    if (enabled) adapter.enable() else adapter.disable()
+                } catch (_: SecurityException) {
+                    false
+                }
+            } else {
+                false
+            }
+            if (toggled) {
+                true
+            } else {
+                if (enabled) {
+                    try {
+                        val reqIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        context.startActivity(reqIntent)
+                    } catch (_: Throwable) {
+                        openBluetoothSettings()
+                    }
+                } else {
+                    openBluetoothSettings()
+                }
+                false
+            }
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Bluetooth power toggle handled: ${e.message}")
+            openBluetoothSettings()
             false
         }
     }
@@ -1273,11 +1549,15 @@ class AndroidBridge(
             }
 
             val mmr = MediaMetadataRetriever()
-            for (file in foundAudio) {
+            for ((idx, file) in foundAudio.withIndex()) {
                 var title = file.nameWithoutExtension
                 var artist = "Desconocido"
                 var album = if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "Memoria USB" else "Almacenamiento Local"
                 var durationSec = 210
+                var coverDataUri = ""
+                var color1 = ""
+                var color2 = ""
+                var hasEmbeddedArt = false
 
                 try {
                     mmr.setDataSource(file.absolutePath)
@@ -1291,6 +1571,20 @@ class AndroidBridge(
                     if (!metaAlbum.isNullOrBlank()) album = metaAlbum.trim()
                     val durMs = metaDur?.toLongOrNull() ?: 0L
                     if (durMs > 0) durationSec = (durMs / 1000).toInt()
+
+                    val pic = try { mmr.embeddedPicture } catch (_: Throwable) { null }
+                    if (pic != null && pic.isNotEmpty()) {
+                        hasEmbeddedArt = true
+                        // Inline data URI for the first 20 tracks; larger libraries lazy-load via getTrackArtwork()
+                        if (idx < 20) {
+                            val artRes = JoyMediaArtworkHelper.processBytesToArtwork(pic, maxDim = 220, quality = 76)
+                            if (artRes != null) {
+                                coverDataUri = artRes.dataUri
+                                color1 = artRes.color1
+                                color2 = artRes.color2
+                            }
+                        }
+                    }
                 } catch (_: Throwable) {
                     if (title.contains(" - ")) {
                         val parts = title.split(" - ", limit = 2)
@@ -1309,6 +1603,10 @@ class AndroidBridge(
                     put("uri", "file://" + file.absolutePath)
                     put("source", if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "usb" else "internal")
                     put("size", formatFileSize(file.length()))
+                    put("hasEmbeddedArt", hasEmbeddedArt)
+                    if (coverDataUri.isNotEmpty()) put("coverDataUri", coverDataUri)
+                    if (color1.isNotEmpty()) put("color1", color1)
+                    if (color2.isNotEmpty()) put("color2", color2)
                 }
                 musicList.put(item)
             }
@@ -1321,14 +1619,67 @@ class AndroidBridge(
         }
     }
 
+    /**
+     * Lazy artwork extraction for local/USB audio tracks (keeps initial getMusicFiles() JSON compact).
+     */
+    @JavascriptInterface
+    fun getTrackArtwork(filePath: String): String {
+        if (filePath.isBlank()) return "{\"ok\":false}"
+        val mmr = MediaMetadataRetriever()
+        return try {
+            val f = File(filePath)
+            if (!f.exists() || !f.canRead()) return "{\"ok\":false}"
+            mmr.setDataSource(f.absolutePath)
+            val pic = mmr.embeddedPicture ?: return "{\"ok\":false}"
+            val res = JoyMediaArtworkHelper.processBytesToArtwork(pic, maxDim = 260, quality = 78)
+                ?: return "{\"ok\":false}"
+            JSONObject().apply {
+                put("ok", true)
+                put("coverDataUri", res.dataUri)
+                put("color1", res.color1)
+                put("color2", res.color2)
+            }.toString()
+        } catch (_: Throwable) {
+            "{\"ok\":false}"
+        } finally {
+            try { mmr.release() } catch (_: Throwable) {}
+        }
+    }
+
     // --- LIVE BLUETOOTH AVRCP / MEDIA SESSION TRACKING ---
+
+    private val btMetaLock = Any()
+    private val mediaBridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var artworkLookupJob: Job? = null
 
     @Volatile private var lastBtTitle: String = ""
     @Volatile private var lastBtArtist: String = ""
     @Volatile private var lastBtAlbum: String = ""
     @Volatile private var lastBtDurationSec: Int = 210
+    @Volatile private var lastBtPositionSec: Int = -1
     @Volatile private var lastBtPlaying: Boolean = false
     @Volatile private var lastBtActionSource: String = ""
+    @Volatile private var lastBtSourceApp: String = ""
+    @Volatile private var lastBtCoverDataUri: String = ""
+    @Volatile private var lastBtColor1: String = ""
+    @Volatile private var lastBtColor2: String = ""
+
+    private fun buildBtMetadataJson(): JSONObject {
+        return JSONObject().apply {
+            put("title", lastBtTitle)
+            put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
+            put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
+            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
+            put("positionSec", lastBtPositionSec)
+            put("playing", lastBtPlaying)
+            put("source", lastBtActionSource)
+            put("sourceApp", lastBtSourceApp)
+            put("hasNotificationAccess", JoyMediaNotificationListener.isEnabled(context))
+            if (lastBtCoverDataUri.isNotEmpty()) put("coverDataUri", lastBtCoverDataUri)
+            if (lastBtColor1.isNotEmpty()) put("color1", lastBtColor1)
+            if (lastBtColor2.isNotEmpty()) put("color2", lastBtColor2)
+        }
+    }
 
     fun updateLiveBtMetadata(
         title: String?,
@@ -1336,40 +1687,330 @@ class AndroidBridge(
         album: String?,
         durationSec: Int,
         isPlaying: Boolean?,
-        sourceAction: String
+        sourceAction: String,
+        positionSec: Int = -1,
+        coverDataUri: String? = null,
+        color1: String? = null,
+        color2: String? = null,
+        sourceApp: String? = null,
+        artUrlHint: String? = null
     ) {
-        if (!title.isNullOrBlank()) lastBtTitle = title
-        if (!artist.isNullOrBlank()) lastBtArtist = artist
-        if (!album.isNullOrBlank()) lastBtAlbum = album
-        if (durationSec > 0) lastBtDurationSec = durationSec
-        if (isPlaying != null) lastBtPlaying = isPlaying
-        lastBtActionSource = sourceAction
+        var needOnlineLookup = false
+        var queryTitle = ""
+        var queryArtist = ""
+        val json: JSONObject
 
-        val json = JSONObject().apply {
-            put("title", lastBtTitle)
-            put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
-            put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
-            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
-            put("playing", lastBtPlaying)
-            put("source", lastBtActionSource)
+        synchronized(btMetaLock) {
+            val nextTitle = title?.trim().orEmpty()
+            val nextArtist = artist?.trim().orEmpty()
+            val trackChanged = nextTitle.isNotEmpty() && (
+                !nextTitle.equals(lastBtTitle, ignoreCase = true) ||
+                    (nextArtist.isNotEmpty() && !nextArtist.equals(lastBtArtist, ignoreCase = true))
+                )
+
+            if (trackChanged) {
+                lastBtCoverDataUri = ""
+                lastBtColor1 = ""
+                lastBtColor2 = ""
+                if (positionSec < 0) lastBtPositionSec = 0
+            }
+
+            if (nextTitle.isNotEmpty()) lastBtTitle = nextTitle
+            if (nextArtist.isNotEmpty()) lastBtArtist = nextArtist
+            if (!album.isNullOrBlank()) lastBtAlbum = album.trim()
+            if (durationSec > 0) lastBtDurationSec = durationSec
+            if (positionSec >= 0) lastBtPositionSec = positionSec
+            if (isPlaying != null) lastBtPlaying = isPlaying
+            if (sourceAction.isNotBlank()) lastBtActionSource = sourceAction
+            if (!sourceApp.isNullOrBlank()) lastBtSourceApp = sourceApp
+
+            if (!coverDataUri.isNullOrBlank()) {
+                lastBtCoverDataUri = coverDataUri
+                if (!color1.isNullOrBlank()) lastBtColor1 = color1
+                if (!color2.isNullOrBlank()) lastBtColor2 = color2
+            } else if (lastBtCoverDataUri.isEmpty() && lastBtTitle.isNotBlank()) {
+                needOnlineLookup = true
+                queryTitle = lastBtTitle
+                queryArtist = lastBtArtist
+            }
+
+            json = buildBtMetadataJson()
         }
+
         onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($json);")
+
+        if (needOnlineLookup) {
+            artworkLookupJob?.cancel()
+            artworkLookupJob = mediaBridgeScope.launch {
+                val artRes = JoyMediaArtworkHelper.fetchArtworkForTrack(queryTitle, queryArtist, artUrlHint)
+                if (artRes != null) {
+                    var updatedJson: JSONObject? = null
+                    synchronized(btMetaLock) {
+                        if (lastBtTitle.equals(queryTitle, ignoreCase = true) && lastBtCoverDataUri.isEmpty()) {
+                            lastBtCoverDataUri = artRes.dataUri
+                            lastBtColor1 = artRes.color1
+                            lastBtColor2 = artRes.color2
+                            updatedJson = buildBtMetadataJson()
+                        }
+                    }
+                    updatedJson?.let { payload ->
+                        onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($payload);")
+                    }
+                }
+            }
+        }
     }
 
     @JavascriptInterface
     fun getBtMusicMetadata(): String {
         return try {
-            val json = JSONObject().apply {
-                put("title", lastBtTitle)
-                put("artist", lastBtArtist)
-                put("album", lastBtAlbum)
-                put("durationSec", lastBtDurationSec)
-                put("playing", lastBtPlaying)
-                put("source", lastBtActionSource)
+            synchronized(btMetaLock) {
+                buildBtMetadataJson().toString()
             }
-            json.toString()
         } catch (_: Throwable) {
             "{}"
+        }
+    }
+
+    // ─── Hands-Free Calls (HFP Client, Telephony & NotificationListener) ───────────────────────
+
+    private val callLock = Any()
+    private var callState: String = "idle"
+    private var callName: String = ""
+    private var callNumber: String = ""
+    private var callAvatar: String = ""
+    private var callSource: String = ""
+    private var callStartedAtMs: Long = 0L
+    private var callMuted: Boolean = false
+
+    fun updateCallState(
+        state: String,
+        name: String? = null,
+        number: String? = null,
+        avatar: String? = null,
+        source: String = "",
+        elapsedSecHint: Long = -1L
+    ) {
+        val normalized = when (state.lowercase(Locale.ROOT)) {
+            "ringing", "incoming", "waiting" -> "ringing"
+            "dialing", "alerting", "outgoing" -> "dialing"
+            "active", "offhook", "connected", "held" -> "active"
+            else -> "idle"
+        }
+
+        val payload = synchronized(callLock) {
+            if (normalized == "idle") {
+                // Only ignore a notification removal if an active HFP/Telephony call owns the state
+                if (source == "notification" && callSource.isNotEmpty() && callSource != "notification" && callState != "idle") {
+                    return@synchronized null
+                }
+                if (callState == "idle" && callName.isEmpty() && callNumber.isEmpty()) {
+                    return@synchronized null
+                }
+                callState = "idle"
+                callName = ""
+                callNumber = ""
+                callAvatar = ""
+                callSource = ""
+                callStartedAtMs = 0L
+                callMuted = false
+            } else {
+                val wasIdle = callState == "idle"
+                val cleanName = name?.trim().orEmpty()
+                val cleanNum = number?.trim().orEmpty()
+                val cleanAvatar = avatar?.trim().orEmpty()
+
+                if (wasIdle) {
+                    callName = cleanName
+                    callNumber = cleanNum
+                    callAvatar = cleanAvatar
+                    callStartedAtMs = if (normalized == "active") {
+                        if (elapsedSecHint >= 0L) System.currentTimeMillis() - (elapsedSecHint * 1000L) else System.currentTimeMillis()
+                    } else 0L
+                    callMuted = audioManager?.isMicrophoneMute ?: false
+                } else {
+                    if (cleanName.isNotEmpty()) callName = cleanName
+                    if (cleanNum.isNotEmpty()) callNumber = cleanNum
+                    if (cleanAvatar.isNotEmpty()) callAvatar = cleanAvatar
+                    if (normalized == "active" && callStartedAtMs == 0L) {
+                        callStartedAtMs = if (elapsedSecHint >= 0L) {
+                            System.currentTimeMillis() - (elapsedSecHint * 1000L)
+                        } else {
+                            System.currentTimeMillis()
+                        }
+                    }
+                }
+                callState = normalized
+                if (source.isNotEmpty() && (wasIdle || source == "hfp" || callSource.isEmpty())) {
+                    callSource = source
+                }
+            }
+            buildCallStatusJson().toString()
+        } ?: return
+
+        onEvaluateJs?.invoke("if (typeof window.onCallStateChanged === 'function') window.onCallStateChanged($payload);")
+    }
+
+    private fun buildCallStatusJson(): JSONObject {
+        val now = System.currentTimeMillis()
+        val durationSec = if (callState == "active" && callStartedAtMs > 0L) {
+            ((now - callStartedAtMs) / 1000L).coerceAtLeast(0L)
+        } else 0L
+        val realMuted = try {
+            audioManager?.isMicrophoneMute ?: callMuted
+        } catch (_: Throwable) {
+            callMuted
+        }
+        return JSONObject().apply {
+            put("state", callState)
+            put("active", callState != "idle")
+            put("name", callName)
+            put("number", callNumber)
+            put("avatar", callAvatar)
+            put("source", callSource)
+            put("startedAt", callStartedAtMs)
+            put("durationSec", durationSec)
+            put("muted", realMuted)
+        }
+    }
+
+    @JavascriptInterface
+    fun getCallStatus(): String {
+        return try {
+            synchronized(callLock) {
+                buildCallStatusJson().toString()
+            }
+        } catch (_: Throwable) {
+            "{\"state\":\"idle\",\"active\":false,\"name\":\"\",\"number\":\"\",\"avatar\":\"\",\"source\":\"\",\"startedAt\":0,\"durationSec\":0,\"muted\":false}"
+        }
+    }
+
+    @JavascriptInterface
+    @SuppressLint("MissingPermission")
+    fun answerActiveCall(): Boolean {
+        return try {
+            if (onAnswerCallAction?.invoke() == true) return true
+            if (JoyMediaNotificationListener.invokeAnswerAction()) return true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val tm = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
+                @Suppress("DEPRECATION")
+                tm?.acceptRingingCall()
+                return tm != null
+            }
+            false
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "answerActiveCall handled: ${e.message}")
+            false
+        }
+    }
+
+    @JavascriptInterface
+    @SuppressLint("MissingPermission")
+    fun endActiveCall(): Boolean {
+        return try {
+            if (onEndCallAction?.invoke() == true) return true
+            if (JoyMediaNotificationListener.invokeDeclineAction()) return true
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED
+            ) {
+                val tm = context.getSystemService(Context.TELECOM_SERVICE) as? TelecomManager
+                @Suppress("DEPRECATION")
+                if (tm?.endCall() == true) return true
+            }
+            false
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "endActiveCall handled: ${e.message}")
+            false
+        }
+    }
+
+    @JavascriptInterface
+    fun toggleCallMute(): Boolean {
+        return try {
+            val current = audioManager?.isMicrophoneMute ?: false
+            val target = !current
+            audioManager?.isMicrophoneMute = target
+            val actual = audioManager?.isMicrophoneMute ?: target
+            val payload = synchronized(callLock) {
+                callMuted = actual
+                buildCallStatusJson().toString()
+            }
+            onEvaluateJs?.invoke("if (typeof window.onCallStateChanged === 'function') window.onCallStateChanged($payload);")
+            actual
+        } catch (e: Throwable) {
+            Log.w("AndroidBridge", "toggleCallMute handled: ${e.message}")
+            false
+        }
+    }
+
+    @JavascriptInterface
+    fun dialPhoneNumber(rawNumber: String): String {
+        val clean = rawNumber.filter { it.isDigit() || it == '+' || it == '*' || it == '#' || it == ',' || it == ';' }
+        if (clean.isBlank()) {
+            return JSONObject().apply {
+                put("ok", false)
+                put("direct", false)
+                put("number", "")
+                put("message", "Ingresa un número válido para marcar")
+            }.toString()
+        }
+        if (onDialCallAction?.invoke(clean) == true) {
+            return JSONObject().apply {
+                put("ok", true)
+                put("direct", true)
+                put("number", clean)
+                put("message", "Marcando vía Bluetooth manos libres a $clean...")
+            }.toString()
+        }
+        val telUri = Uri.fromParts("tel", clean, null)
+        val hasCallPerm = ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED
+        if (hasCallPerm) {
+            try {
+                val callIntent = Intent(Intent.ACTION_CALL, telUri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                if (callIntent.resolveActivity(packageManager) != null) {
+                    context.startActivity(callIntent)
+                    return JSONObject().apply {
+                        put("ok", true)
+                        put("direct", true)
+                        put("number", clean)
+                        put("message", "Llamando a $clean...")
+                    }.toString()
+                }
+            } catch (_: Throwable) {
+                // Fallback to ACTION_DIAL below
+            }
+        }
+        return try {
+            val dialIntent = Intent(Intent.ACTION_DIAL, telUri).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            if (dialIntent.resolveActivity(packageManager) != null) {
+                context.startActivity(dialIntent)
+                JSONObject().apply {
+                    put("ok", true)
+                    put("direct", false)
+                    put("number", clean)
+                    put("message", "Abriendo marcador para $clean...")
+                }.toString()
+            } else {
+                JSONObject().apply {
+                    put("ok", false)
+                    put("direct", false)
+                    put("number", clean)
+                    put("message", "Esta unidad no expone marcador telefónico nativo")
+                }.toString()
+            }
+        } catch (e: Throwable) {
+            JSONObject().apply {
+                put("ok", false)
+                put("direct", false)
+                put("number", clean)
+                put("message", "No se pudo iniciar la llamada: ${e.message ?: "error"}")
+            }.toString()
         }
     }
 
@@ -1818,6 +2459,16 @@ class AndroidBridge(
     }
 
     @JavascriptInterface
+    fun openNotificationListenerSettings(): Boolean {
+        return try {
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            true
+        } catch (_: Throwable) { openAppSettings() }
+    }
+
+    @JavascriptInterface
     fun isZlinkInstalled(): Boolean {
         val candidates = listOf("com.zjinnova.zlink", "com.zlink.app", "com.carplay.zlink", "com.tlink.app", "gb.xxy.hr")
         for (pkg in candidates) {
@@ -1850,6 +2501,10 @@ class AndroidBridge(
             }
             val writeSettings = try { Settings.System.canWrite(context) } catch (_: Throwable) { false }
             val installUnknown = try { packageManager.canRequestPackageInstalls() } catch (_: Throwable) { false }
+            val notifListener = JoyMediaNotificationListener.isEnabled(context)
+            val phoneGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED &&
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                    ContextCompat.checkSelfPermission(context, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED)
             val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
             val defaultHomePkg = try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -1867,13 +2522,15 @@ class AndroidBridge(
                 put("storage", storageGranted)
                 put("writeSettings", writeSettings)
                 put("installPackages", installUnknown)
+                put("notificationListener", notifListener)
+                put("phone", phoneGranted)
                 put("isDefaultLauncher", isDefaultLauncher)
-                val count = listOf(locGranted, btGranted, storageGranted, writeSettings, installUnknown).count { it }
+                val count = listOf(locGranted, btGranted, storageGranted, writeSettings, installUnknown, notifListener, phoneGranted).count { it }
                 put("grantedCount", count)
-                put("totalCount", 5)
+                put("totalCount", 7)
             }.toString()
         } catch (_: Throwable) {
-            "{\"location\":false,\"bluetooth\":false,\"storage\":false,\"writeSettings\":false,\"installPackages\":false,\"isDefaultLauncher\":false,\"grantedCount\":0,\"totalCount\":5}"
+            "{\"location\":false,\"bluetooth\":false,\"storage\":false,\"writeSettings\":false,\"installPackages\":false,\"notificationListener\":false,\"phone\":false,\"isDefaultLauncher\":false,\"grantedCount\":0,\"totalCount\":7}"
         }
     }
 

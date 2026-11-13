@@ -52,7 +52,8 @@ adb shell pm grant "$JOY_PKG" android.permission.BLUETOOTH_CONNECT 2>/dev/null |
 adb shell pm grant "$JOY_PKG" android.permission.BLUETOOTH_SCAN 2>/dev/null || true
 adb shell appops set "$JOY_PKG" WRITE_SETTINGS allow 2>/dev/null || true
 adb shell appops set "$JOY_PKG" REQUEST_INSTALL_PACKAGES allow 2>/dev/null || true
-echo "  -> Permisos de GPS, almacenamiento, Bluetooth, brillo y OTA otorgados ($JOY_PKG)."
+adb shell cmd notification allow_listener "$JOY_PKG/com.joyos.launcher.services.JoyMediaNotificationListener" 2>/dev/null || true
+echo "  -> Permisos de GPS, almacenamiento, Bluetooth, brillo, MediaSession y OTA otorgados ($JOY_PKG)."
 echo ""
 
 echo "[4/6] Configurando JoyOS como el ÚNICO Launcher Principal (HOME)..."

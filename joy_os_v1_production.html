@@ -4553,6 +4553,289 @@
       color: #0f172a;
     }
 
+    /* Automotive Hands-Free Call Overlay & Dialpad */
+    .joy-call-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 82;
+      background: rgba(2, 6, 23, 0.56);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .joy-call-backdrop.hidden {
+      display: none !important;
+    }
+
+    .joy-call-card {
+      width: 100%;
+      max-width: 470px;
+      border-radius: 30px;
+      padding: 24px 26px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(160deg, rgba(16, 24, 42, 0.96), rgba(8, 13, 24, 0.98));
+      box-shadow: 0 30px 75px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(92, 225, 230, 0.12);
+      color: #f8fafc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+    }
+
+    .theme-light .joy-call-card {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.97), rgba(241, 245, 249, 0.99));
+      border-color: rgba(15, 23, 42, 0.12);
+      color: #0f172a;
+      box-shadow: 0 28px 65px rgba(15, 23, 42, 0.22);
+    }
+
+    .joy-call-avatar-ring {
+      width: 76px;
+      height: 76px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(92, 225, 230, 0.22), rgba(56, 189, 248, 0.12));
+      border: 2px solid rgba(92, 225, 230, 0.55);
+      overflow: hidden;
+      position: relative;
+      font-family: 'Sora', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #5ce1e6;
+    }
+
+    .theme-light .joy-call-avatar-ring {
+      color: #0284c7;
+      border-color: rgba(2, 132, 199, 0.45);
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.14), rgba(56, 189, 248, 0.08));
+    }
+
+    .joy-call-avatar-ring.ringing {
+      animation: joyCallPulse 1.3s ease-in-out infinite;
+    }
+
+    @keyframes joyCallPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45); }
+      50% { box-shadow: 0 0 0 14px rgba(16, 185, 129, 0); }
+    }
+
+    .joy-call-mini-pill {
+      position: absolute;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 78;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      color: #f8fafc;
+      cursor: pointer;
+    }
+
+    .theme-light .joy-call-mini-pill {
+      background: rgba(255, 255, 255, 0.96);
+      color: #0f172a;
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+    }
+
+    .joy-call-mini-pill.hidden {
+      display: none !important;
+    }
+
+    .joy-dialpad-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .joy-dial-key {
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--ink);
+      font-family: 'Sora', sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+
+    .joy-dial-key:active {
+      transform: scale(0.95);
+      background: rgba(92, 225, 230, 0.18);
+    }
+
+    .joy-dial-key small {
+      font-size: 8px;
+      font-weight: 500;
+      opacity: 0.55;
+      letter-spacing: 0.08em;
+      margin-top: 2px;
+    }
+
+    .theme-light .joy-dial-key {
+      background: rgba(15, 23, 42, 0.04);
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    .joy-dial-display-input {
+      background: transparent;
+      border: 0;
+      outline: none;
+      width: 100%;
+    }
+
+    .joy-call-badge {
+      padding: 4px 14px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(16, 185, 129, 0.38);
+      background: rgba(16, 185, 129, 0.18);
+      color: #6ee7b7;
+    }
+
+    .joy-call-badge.dialing {
+      border-color: rgba(56, 189, 248, 0.38);
+      background: rgba(56, 189, 248, 0.18);
+      color: #7dd3fc;
+    }
+
+    .theme-light .joy-call-badge {
+      color: #047857;
+      background: rgba(16, 185, 129, 0.14);
+    }
+
+    .theme-light .joy-call-badge.dialing {
+      color: #0369a1;
+      background: rgba(14, 165, 233, 0.14);
+    }
+
+    .joy-call-actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      padding-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .joy-call-btn-primary {
+      flex: 1 1 0%;
+      min-width: 130px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32);
+    }
+
+    .joy-call-btn-answer {
+      background: #10b981;
+      color: #020617;
+    }
+
+    .joy-call-btn-end {
+      background: #f43f5e;
+      color: #ffffff;
+    }
+
+    .joy-call-btn-sec {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-family: 'Sora', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .joy-call-btn-sec.mute-active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: rgba(251, 191, 36, 0.48);
+      color: #fcd34d;
+    }
+
+    .theme-light .joy-call-btn-sec.mute-active {
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.16);
+    }
+
+    .joy-call-mini-name {
+      max-width: 160px;
+    }
+
+    .joy-call-mini-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 9999px;
+      flex-shrink: 0;
+      background: #34d399;
+    }
+
+    .joy-call-mini-dot.ringing {
+      background: #fbbf24;
+      animation: joyCallPulse 1.3s ease-in-out infinite;
+    }
+
+    .joy-call-mini-dot.dialing {
+      background: #38bdf8;
+      animation: joyCallPulse 1.3s ease-in-out infinite;
+    }
+
+    .joy-call-mini-hangup {
+      margin-left: 4px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: #f43f5e;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .joy-bt-disconnect-btn {
+      padding: 4px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(251, 113, 133, 0.38);
+      background: rgba(244, 63, 94, 0.12);
+      color: #fda4af;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .theme-light .joy-bt-disconnect-btn {
+      color: #e11d48;
+      background: rgba(244, 63, 94, 0.1);
+    }
+
     .joy-sys-title {
       font-family: 'Sora', sans-serif;
       font-size: 17px;
@@ -6301,16 +6584,22 @@
     <div id="tablet-viewport"
       class="theme-dark relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500">
 
-      <!-- DYNAMIC AMBIENT COLOR BLOBS FOR MUSIC COVERFLOW VIEW (Screenshot 3!) -->
+      <!-- DYNAMIC AMBIENT COLOR BLOBS & BLURRED COVER ART BACKDROP FOR MUSIC VIEW -->
       <div id="music-ambient-bg"
         class="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 overflow-hidden z-0">
+        <img id="music-cover-blur-img" alt=""
+          class="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style="transform: scale(1.28); filter: blur(52px) saturate(1.55) brightness(0.86); opacity: 0; transition: opacity 0.65s ease, filter 0.65s ease;" />
+        <div id="music-ambient-grad" class="absolute inset-0 pointer-events-none"
+          style="opacity: 0.45; transition: background 0.7s ease;"></div>
         <div id="blob-primary"
           class="absolute left-[18%] top-[12%] w-96 h-96 rounded-full blur-[95px] opacity-65 transition-colors duration-700"
-          style="background: #e11d48;"></div>
+          style="background: #06b6d4;"></div>
         <div id="blob-secondary"
           class="absolute right-[16%] top-[20%] w-80 h-80 rounded-full blur-[90px] opacity-55 transition-colors duration-700"
-          style="background: #eab308;"></div>
-        <div class="absolute inset-0 bg-black/35"></div>
+          style="background: #3b82f6;"></div>
+        <div id="music-ambient-scrim" class="absolute inset-0 transition-colors duration-500"
+          style="background: rgba(6, 9, 17, 0.42);"></div>
       </div>
 
       <!-- ================================================================= -->
@@ -6728,7 +7017,7 @@
             </svg>
 
             <!-- Dynamic Phone + Battery % from Connected Phone -->
-            <div id="top-phone-wrap" onclick="openBluetoothDirect()"
+            <div id="top-phone-wrap" onclick="openBluetoothDirect('phone')"
               class="phone opacity-30 cursor-pointer transition-opacity duration-200" title="Teléfono no conectado">
               <svg class="ic" viewBox="0 0 24 24">
                 <rect x="6" y="3" width="12" height="18" rx="2.5" />
@@ -7513,30 +7802,32 @@
         <div id="view-music" class="hidden flex-col items-center justify-between h-full py-2">
 
           <!-- Top Segmented Mode Switcher: [ Bluetooth ] vs [ Radio FM ] vs [ USB ] -->
-          <div class="ethereal-pill rounded-full p-1 flex items-center gap-1 shadow-md select-none shrink-0">
-            <button onclick="setAudioMode('bt')" id="music-tab-bt"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5" />
-              </svg>
-              <span>Bluetooth</span>
-            </button>
-            <button onclick="setAudioMode('radio')" id="music-tab-radio"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="2" />
-                <path
-                  d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
-              </svg>
-              <span>Radio FM</span>
-            </button>
-            <button onclick="openAppsDirect('files')" id="music-tab-usb"
-              class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all opacity-70 hover:opacity-100">
-              <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
-                <path d="M4 20h16M12 4v12m0 0l-4-4m4 4l4-4" />
-              </svg>
-              <span>USB</span>
-            </button>
+          <div class="w-full flex items-center justify-center shrink-0">
+            <div class="ethereal-pill rounded-full p-1 flex items-center gap-1 shadow-md select-none shrink-0">
+              <button onclick="setAudioMode('bt')" id="music-tab-bt"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5" />
+                </svg>
+                <span>Bluetooth</span>
+              </button>
+              <button onclick="setAudioMode('radio')" id="music-tab-radio"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="2" />
+                  <path
+                    d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14" />
+                </svg>
+                <span>Radio FM</span>
+              </button>
+              <button onclick="openAppsDirect('files')" id="music-tab-usb"
+                class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all opacity-70 hover:opacity-100">
+                <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24">
+                  <path d="M4 20h16M12 4v12m0 0l-4-4m4 4l4-4" />
+                </svg>
+                <span>USB</span>
+              </button>
+            </div>
           </div>
 
           <!-- STAGE 1: BLUETOOTH HERO MUSIC STAGE (Coverflow + Title/Artist + Scrubber + 5 Round Controls) -->
@@ -8421,21 +8712,72 @@
                   </div>
                 </div>
 
-                <!-- Columna Derecha: Lista Dinámica Apilable de Dispositivos Vinculados -->
+                <!-- Columna Derecha: Dispositivos Vinculados / Marcador Telefónico HFP -->
                 <div class="col-span-7 bt-soft-card p-5 flex flex-col justify-between min-h-0">
-                  <div class="flex items-center justify-between shrink-0 mb-3">
-                    <span id="bt-linked-count-label"
-                      class="text-xs font-semibold uppercase tracking-wider text-[var(--mute)]">Dispositivos Vinculados
-                      (3)</span>
-                    <button onclick="scanBtDevices(this)" id="btn-bt-scan"
-                      class="pressable px-4 py-1.5 rounded-full bt-soft-item text-xs font-semibold text-[var(--accent)]">
-                      Buscar dispositivos
-                    </button>
+                  <div class="flex items-center justify-between gap-2 shrink-0 mb-3">
+                    <div class="inline-flex items-center gap-1 p-1 rounded-full bt-soft-item">
+                      <button type="button" id="bt-right-tab-devices" onclick="switchBtRightTab('devices')"
+                        class="pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950">
+                        Dispositivos
+                      </button>
+                      <button type="button" id="bt-right-tab-phone" onclick="switchBtRightTab('phone')"
+                        class="pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]">
+                        Teléfono
+                      </button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span id="bt-linked-count-label"
+                        class="text-[11px] font-semibold uppercase tracking-wider text-[var(--mute)]">Vinculados
+                        (0)</span>
+                      <button onclick="scanBtDevices(this)" id="btn-bt-scan"
+                        class="pressable px-3.5 py-1.5 rounded-full bt-soft-item text-xs font-semibold text-[var(--accent)]">
+                        Buscar dispositivos
+                      </button>
+                    </div>
                   </div>
 
                   <div id="bt-devices-list-container"
-                    class="flex flex-col gap-3.5 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]">
+                    class="flex flex-col gap-3 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]">
                     <!-- Populated dynamically by renderBluetoothDevicesList() so discovered devices stack smoothly! -->
+                  </div>
+
+                  <div id="bt-dialpad-pane" class="hidden flex-col justify-between gap-2.5 flex-1 min-h-0">
+                    <div class="bt-soft-item px-4 py-2 flex items-center justify-between gap-2">
+                      <input id="bt-dial-input" type="text" readonly placeholder="Ingresa un número..."
+                        class="joy-dial-display-input font-sora text-lg font-semibold tracking-wider text-[var(--ink)] tabular-nums" />
+                      <button type="button" onclick="backspaceDialKey()" title="Borrar dígito"
+                        class="pressable px-2.5 py-1 rounded-xl text-sm font-bold text-[var(--mute)] hover:text-[var(--ink)]">⌫</button>
+                      <button type="button" onclick="clearDialDigits()" title="Limpiar"
+                        class="pressable px-2 py-1 rounded-xl text-[11px] font-semibold text-[var(--mute)] hover:text-[var(--ink)]">Limpiar</button>
+                    </div>
+
+                    <div class="joy-dialpad-grid">
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('1')"><span>1</span><small>&nbsp;</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('2')"><span>2</span><small>ABC</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('3')"><span>3</span><small>DEF</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('4')"><span>4</span><small>GHI</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('5')"><span>5</span><small>JKL</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('6')"><span>6</span><small>MNO</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('7')"><span>7</span><small>PQRS</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('8')"><span>8</span><small>TUV</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('9')"><span>9</span><small>WXYZ</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('*')"><span>*</span><small>&nbsp;</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('0')"><span>0</span><small>+</small></button>
+                      <button type="button" class="joy-dial-key pressable" onclick="pressDialKey('#')"><span>#</span><small>&nbsp;</small></button>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-0.5">
+                      <div id="bt-recent-calls" class="flex items-center gap-1.5 overflow-x-auto flex-1 min-w-0"></div>
+                      <button type="button" onclick="pressDialKey('+')"
+                        class="pressable px-3 py-2 rounded-2xl bt-soft-item text-xs font-bold shrink-0">+</button>
+                      <button type="button" id="bt-dial-call-btn" onclick="placeDialCall()"
+                        class="pressable px-5 py-2 rounded-2xl bg-emerald-500 text-slate-950 font-sora font-bold text-xs flex items-center gap-2 shadow-md shrink-0">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <span>Llamar</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -9471,6 +9813,55 @@
         </div>
       </div>
 
+      <!-- ================================================================= -->
+      <!-- 2A-CALL. OVERLAY FLOTANTE DE LLAMADAS HFP / ANDROID               -->
+      <!-- ================================================================= -->
+      <div id="joy-call-overlay" class="joy-call-backdrop hidden">
+        <div class="joy-call-card" role="dialog" aria-modal="true" aria-labelledby="joy-call-name">
+          <div id="joy-call-badge" class="joy-call-badge">
+            Llamada entrante
+          </div>
+          <div id="joy-call-avatar-ring" class="joy-call-avatar-ring ringing">
+            <img id="joy-call-avatar-img" src="" alt="Contacto" class="hidden w-full h-full object-cover" />
+            <span id="joy-call-avatar-fallback">📞</span>
+          </div>
+          <div class="w-full min-w-0">
+            <div id="joy-call-name" class="font-sora text-2xl font-bold truncate">Llamada entrante</div>
+            <div id="joy-call-number" class="text-sm text-[var(--mute)] mt-1 tabular-nums truncate">Bluetooth Manos Libres</div>
+            <div id="joy-call-timer" class="hidden font-sora text-lg font-semibold text-emerald-400 mt-1.5 tabular-nums">00:00</div>
+          </div>
+          <div class="joy-call-actions-row">
+            <button type="button" id="joy-call-btn-answer" onclick="answerJoyCall()"
+              class="pressable joy-call-btn-primary joy-call-btn-answer">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <span>Contestar</span>
+            </button>
+            <button type="button" id="joy-call-btn-mute" onclick="toggleJoyCallMute()"
+              class="pressable hidden joy-call-btn-sec soft-surface">
+              <span id="joy-call-mute-label">Silenciar</span>
+            </button>
+            <button type="button" id="joy-call-btn-minimize" onclick="minimizeJoyCall()"
+              class="pressable joy-call-btn-sec soft-surface text-[var(--mute)]">
+              Minimizar
+            </button>
+            <button type="button" id="joy-call-btn-end" onclick="endJoyCall()"
+              class="pressable joy-call-btn-primary joy-call-btn-end">
+              <span id="joy-call-end-label">Rechazar</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="joy-call-mini-pill" class="joy-call-mini-pill hidden" onclick="expandJoyCall()">
+        <span id="joy-call-mini-dot" class="joy-call-mini-dot"></span>
+        <span id="joy-call-mini-name" class="joy-call-mini-name text-xs font-sora font-semibold truncate">En llamada</span>
+        <span id="joy-call-mini-timer" class="text-xs font-mono font-bold text-emerald-400 tabular-nums">00:00</span>
+        <button type="button" onclick="event.stopPropagation(); endJoyCall();" title="Colgar llamada"
+          class="pressable joy-call-mini-hangup">
+          Colgar
+        </button>
+      </div>
+
       <input type="file" id="joy-backup-file-input" accept=".json,application/json" class="hidden" onchange="handleBackupFileSelected(event)">
       <input type="file" id="ss-file-input" accept="image/*" class="hidden" onchange="handleScreensaverFileSelected(event)">
 
@@ -9715,6 +10106,119 @@
       return 0;
     }
 
+    const musicArtThemes = [
+      { id: 'cyan', bg1: '#082f49', bg2: '#020617', color1: '#06b6d4', color2: '#3b82f6' },
+      { id: 'amber', bg1: '#451a03', bg2: '#1c0a13', color1: '#f59e0b', color2: '#e11d48' },
+      { id: 'violet', bg1: '#2e1065', bg2: '#0f0720', color1: '#8b5cf6', color2: '#ec4899' },
+      { id: 'emerald', bg1: '#022c22', bg2: '#041418', color1: '#10b981', color2: '#06b6d4' },
+      { id: 'crimson', bg1: '#4c0519', bg2: '#110709', color1: '#f43f5e', color2: '#fb923c' },
+      { id: 'indigo', bg1: '#1e1b4b', bg2: '#060c24', color1: '#6366f1', color2: '#38bdf8' },
+      { id: 'aurora', bg1: '#0f2e2b', bg2: '#1a0b2e', color1: '#14b8a6', color2: '#a855f7' },
+      { id: 'gold', bg1: '#3a2705', bg2: '#140c02', color1: '#eab308', color2: '#f97316' }
+    ];
+
+    function getSavedIdleCoverThemeIdx() {
+      try {
+        const raw = window.localStorage ? window.localStorage.getItem('joyos_music_idle_theme') : null;
+        const n = parseInt(raw, 10);
+        if (!isNaN(n) && n >= 0 && n < musicArtThemes.length) return n;
+      } catch (e) { }
+      return 0;
+    }
+
+    function escapeXmlText(s) {
+      return String(s || '').replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c] || ''));
+    }
+
+    function hashTrackThemeIdx(title, artist) {
+      const str = (String(title || '') + '|' + String(artist || '')).toLowerCase();
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+      }
+      return Math.abs(h) % musicArtThemes.length;
+    }
+
+    function generateCarCoverSvg(title, idx, artist, forcedThemeIdx) {
+      const themeIdx = (typeof forcedThemeIdx === 'number' && forcedThemeIdx >= 0)
+        ? (forcedThemeIdx % musicArtThemes.length)
+        : (Math.abs(idx || 0) % musicArtThemes.length);
+      const t = musicArtThemes[themeIdx] || musicArtThemes[0];
+      const safeTitle = escapeXmlText((title || '').trim().slice(0, 22));
+      const safeArtist = escapeXmlText((artist || '').trim().slice(0, 24));
+      const gid = 'g' + themeIdx;
+      let pattern = '';
+
+      if (themeIdx === 0) {
+        pattern = '<circle cx="150" cy="142" r="96" fill="none" stroke="' + t.color1 + '" stroke-width="2" opacity="0.32"/>' +
+          '<circle cx="150" cy="142" r="72" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.52"/>' +
+          '<circle cx="150" cy="142" r="46" fill="none" stroke="' + t.color2 + '" stroke-width="3.5" opacity="0.78"/>' +
+          '<circle cx="150" cy="142" r="22" fill="url(#' + gid + 'a)"/>';
+      } else if (themeIdx === 1) {
+        pattern = '<circle cx="150" cy="128" r="68" fill="url(#' + gid + 'a)" opacity="0.9"/>' +
+          '<rect x="30" y="136" width="240" height="5" fill="' + t.bg2 + '" opacity="0.85"/>' +
+          '<rect x="45" y="150" width="210" height="6" fill="' + t.bg2 + '" opacity="0.85"/>' +
+          '<rect x="65" y="166" width="170" height="8" fill="' + t.bg2 + '" opacity="0.9"/>' +
+          '<path d="M20 212 Q90 185 150 205 T280 198" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.65"/>';
+      } else if (themeIdx === 2) {
+        pattern = '<polygon points="150,42 238,195 62,195" fill="none" stroke="url(#' + gid + 'a)" stroke-width="5" opacity="0.85"/>' +
+          '<polygon points="150,72 212,180 88,180" fill="url(#' + gid + 'a)" opacity="0.22"/>' +
+          '<line x1="25" y1="158" x2="122" y2="128" stroke="#f8fafc" stroke-width="2.5" opacity="0.55"/>' +
+          '<line x1="178" y1="128" x2="275" y2="152" stroke="' + t.color2 + '" stroke-width="3.5" opacity="0.8"/>';
+      } else if (themeIdx === 3) {
+        pattern = '<rect x="68" y="102" width="14" height="72" rx="7" fill="' + t.color1 + '" opacity="0.5"/>' +
+          '<rect x="94" y="76" width="14" height="124" rx="7" fill="' + t.color1 + '" opacity="0.78"/>' +
+          '<rect x="120" y="54" width="16" height="162" rx="8" fill="url(#' + gid + 'a)"/>' +
+          '<rect x="148" y="68" width="16" height="136" rx="8" fill="url(#' + gid + 'a)" opacity="0.9"/>' +
+          '<rect x="176" y="88" width="14" height="100" rx="7" fill="' + t.color2 + '" opacity="0.78"/>' +
+          '<rect x="202" y="110" width="14" height="58" rx="7" fill="' + t.color2 + '" opacity="0.55"/>';
+      } else if (themeIdx === 4) {
+        pattern = '<path d="M-20 220 L110 60 L152 60 L22 220 Z" fill="' + t.color1 + '" opacity="0.28"/>' +
+          '<path d="M90 220 L220 60 L262 60 L132 220 Z" fill="' + t.color2 + '" opacity="0.24"/>' +
+          '<circle cx="150" cy="138" r="64" fill="none" stroke="url(#' + gid + 'a)" stroke-width="6"/>' +
+          '<circle cx="150" cy="138" r="32" fill="url(#' + gid + 'a)" opacity="0.88"/>';
+      } else if (themeIdx === 5) {
+        pattern = '<ellipse cx="150" cy="138" rx="108" ry="40" transform="rotate(-26 150 138)" fill="none" stroke="' + t.color1 + '" stroke-width="3" opacity="0.72"/>' +
+          '<ellipse cx="150" cy="138" rx="108" ry="40" transform="rotate(26 150 138)" fill="none" stroke="' + t.color2 + '" stroke-width="3" opacity="0.72"/>' +
+          '<circle cx="150" cy="138" r="28" fill="url(#' + gid + 'a)"/>' +
+          '<circle cx="222" cy="96" r="8" fill="#f8fafc" opacity="0.88"/>';
+      } else if (themeIdx === 6) {
+        pattern = '<path d="M0 155 C70 95, 130 205, 200 130 C240 88, 275 110, 300 95 L300 300 L0 300 Z" fill="url(#' + gid + 'a)" opacity="0.34"/>' +
+          '<path d="M0 180 C80 128, 160 218, 300 142" fill="none" stroke="' + t.color1 + '" stroke-width="4" opacity="0.85"/>' +
+          '<path d="M0 135 C95 190, 185 88, 300 165" fill="none" stroke="' + t.color2 + '" stroke-width="3" opacity="0.65"/>';
+      } else {
+        pattern = '<circle cx="150" cy="136" r="92" fill="#090d16" stroke="' + t.color1 + '" stroke-width="3" opacity="0.9"/>' +
+          '<circle cx="150" cy="136" r="74" fill="none" stroke="#fef08a" stroke-width="1.2" opacity="0.25"/>' +
+          '<circle cx="150" cy="136" r="56" fill="none" stroke="' + t.color1 + '" stroke-width="1.5" opacity="0.4"/>' +
+          '<circle cx="150" cy="136" r="34" fill="url(#' + gid + 'a)"/>' +
+          '<circle cx="150" cy="136" r="10" fill="#090d16"/>';
+      }
+
+      const centeredPattern = (!safeTitle && themeIdx !== 6)
+        ? '<g transform="translate(0, 12)">' + pattern + '</g>'
+        : pattern;
+      const footerHtml = safeTitle
+        ? '<rect x="0" y="218" width="300" height="82" fill="' + t.bg2 + '" opacity="0.48"/>' +
+          '<text x="150" y="252" font-family="sans-serif" font-size="15" font-weight="700" fill="#f8fafc" text-anchor="middle">' + safeTitle + '</text>' +
+          (safeArtist ? '<text x="150" y="274" font-family="sans-serif" font-size="12" font-weight="500" fill="#cbd5e1" opacity="0.82" text-anchor="middle">' + safeArtist + '</text>' : '')
+        : '';
+
+      const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">' +
+        '<defs>' +
+        '<radialGradient id="' + gid + 'bg" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="' + t.bg1 + '"/><stop offset="100%" stop-color="' + t.bg2 + '"/></radialGradient>' +
+        '<linearGradient id="' + gid + 'a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="' + t.color1 + '"/><stop offset="100%" stop-color="' + t.color2 + '"/></linearGradient>' +
+        '<radialGradient id="' + gid + 'glow" cx="50%" cy="48%" r="48%"><stop offset="0%" stop-color="' + t.color1 + '" stop-opacity="0.42"/><stop offset="100%" stop-color="' + t.color2 + '" stop-opacity="0"/></radialGradient>' +
+        '</defs>' +
+        '<rect width="300" height="300" fill="url(#' + gid + 'bg)"/>' +
+        '<rect width="300" height="300" fill="url(#' + gid + 'glow)"/>' +
+        centeredPattern +
+        footerHtml +
+        '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    const _initialMusicThemeIdx = getSavedIdleCoverThemeIdx();
+    const _initialMusicTheme = musicArtThemes[_initialMusicThemeIdx] || musicArtThemes[0];
     let songs = [
       {
         artist: "Bluetooth Audio",
@@ -9722,9 +10226,12 @@
         album: "A2DP / AVRCP en Vivo",
         durationSec: 210,
         isBtStream: true,
-        cover: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgNDAwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIj4KICA8ZGVmcz4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iYmdTb2RhIiBjeD0iNTAlIiBjeT0iNTAlIiByPSI3NSUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDgyZjQ5Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzAyMDYxNyIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ2xvd1NvZGEiIGN4PSI1MCUiIGN5PSI1MCUiIHI9IjUwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiMzOGJkZjgiIHN0b3Atb3BhY2l0eT0iMC44Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNjAlIiBzdG9wLWNvbG9yPSIjMDI4NGM3IiBzdG9wLW9wYWNpdHk9IjAuMyIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMwMzY5YTEiIHN0b3Atb3BhY2l0eT0iMCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9InVybCgjYmdTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTUwIiBmaWxsPSJ1cmwoI2dsb3dTb2RhKSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTQwIiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2Utb3BhY2l0eT0iMC4yNSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTE1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuNCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzM4YmRmOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1vcGFjaXR5PSIwLjYiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzOGJkZjgiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLW9wYWNpdHk9IjAuODUiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIyMDAiIHI9IjQwIiBmaWxsPSIjMDI4NGM3IiBzdHJva2U9IiM3ZGQzZmMiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLW9wYWNpdHk9IjAuOSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iMTYiIGZpbGw9IiNmMGY5ZmYiLz4KPC9zdmc+",
-        color1: "#06b6d4",
-        color2: "#3b82f6"
+        isWaitingPlaceholder: true,
+        hasRealCover: false,
+        themeIdx: _initialMusicThemeIdx,
+        cover: generateCarCoverSvg("", _initialMusicThemeIdx, "", _initialMusicThemeIdx),
+        color1: _initialMusicTheme.color1,
+        color2: _initialMusicTheme.color2
       }
     ];
 
@@ -10042,7 +10549,26 @@
       tab: 'home',
       settingsSubView: 'cards', // 'cards' | 'bt' | 'eq' | 'more' | 'r5'
       btEnabled: true,
+      btConnected: false,
+      btDeviceName: '',
       btDeviceIdx: 0,
+      btRightTab: 'devices', // 'devices' | 'phone'
+      phoneConnected: false,
+      obdConnected: false,
+      phoneBattery: -1,
+      phoneSignal: -1,
+      callState: 'idle', // 'idle' | 'ringing' | 'dialing' | 'active'
+      callName: '',
+      callNumber: '',
+      callAvatar: '',
+      callSource: '',
+      callStartedAt: 0,
+      callDurationSec: 0,
+      callMuted: false,
+      callMinimized: false,
+      dialDigits: '',
+      recentCalls: [],
+      _callPausedMusic: false,
       btAutoPlay: false,
       weatherTemp: 22,
       speedVolActive: false,
@@ -10067,6 +10593,7 @@
       audioMode: 'bt',
       songIdx: 0,
       songProgressPct: 0,
+      idleCoverThemeIdx: _initialMusicThemeIdx,
       stationIdx: 1,
       customFreq: null,
       sourceIdx: 0,
@@ -12659,6 +13186,10 @@
           target.closest('#sound-stage-box') ||
           target.closest('#notification-stack-container') ||
           target.closest('#screensaver-overlay') ||
+          target.closest('#joy-call-overlay') ||
+          target.closest('#joy-call-mini-pill') ||
+          target.closest('#joy-sys-dialog') ||
+          target.closest('#joy-pin-dialog') ||
           target.closest('input') ||
           target.closest('select') ||
           target.closest('#profile-selector-overlay') ||
@@ -12720,9 +13251,13 @@
       }
     }
 
-    function openBluetoothDirect() {
+    function openBluetoothDirect(rightTab) {
       state.tab = 'settings';
       state.settingsSubView = 'bt';
+      if (rightTab === 'phone' || rightTab === 'devices') {
+        state.btRightTab = rightTab;
+      }
+      renderBtDialer();
       renderAll();
     }
 
@@ -12749,35 +13284,72 @@
     }
 
     function toggleBtPower() {
-      state.btEnabled = !state.btEnabled;
-      const btCat = ajData.find(c => c.id === 'con');
-      const btItem = btCat && btCat.it ? btCat.it.find(x => x.l === 'Bluetooth') : null;
-      if (btItem) btItem.v = state.btEnabled;
+      const target = !state.btEnabled;
+      let toggledSync = !window.AndroidBridge;
       if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
-        try { window.AndroidBridge.setBluetoothPower(state.btEnabled); } catch (e) { }
+        try {
+          toggledSync = !!window.AndroidBridge.setBluetoothPower(target);
+        } catch (e) {
+          toggledSync = false;
+        }
       }
-      renderAll();
-      const activeBtDev = btDevices[state.btDeviceIdx];
-      enqueueNotification({
-        type: 'info',
-        dotClass: state.btEnabled
-          ? 'w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)] shrink-0'
-          : 'w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0',
-        title: state.btEnabled ? 'Bluetooth activado' : 'Bluetooth apagado',
-        tag: state.btEnabled ? ((activeBtDev && activeBtDev.name) || 'Dispositivo conectado') : 'Sin conexión inalámbrica',
-        tagClass: state.btEnabled ? 'text-[11px] font-semibold text-[var(--accent)] pl-1' : 'text-[11px] font-semibold text-slate-400 pl-1',
-        duration: 2200
-      });
+      if (toggledSync) {
+        state.btEnabled = target;
+        const btCat = ajData.find(c => c.id === 'con');
+        const btItem = btCat && btCat.it ? btCat.it.find(x => x.l === 'Bluetooth') : null;
+        if (btItem) btItem.v = state.btEnabled;
+        renderAll();
+        const activeBtDev = btDevices[state.btDeviceIdx];
+        enqueueNotification({
+          type: 'info',
+          dotClass: state.btEnabled
+            ? 'w-2.5 h-2.5 rounded-full bg-[var(--accent)] shadow-[0_0_12px_var(--accent)] shrink-0'
+            : 'w-2.5 h-2.5 rounded-full bg-slate-500 shrink-0',
+          title: state.btEnabled ? 'Bluetooth activado' : 'Bluetooth apagado',
+          tag: state.btEnabled ? ((activeBtDev && activeBtDev.name) || 'Listo para conectar') : 'Sin conexión inalámbrica',
+          tagClass: state.btEnabled ? 'text-[11px] font-semibold text-[var(--accent)] pl-1' : 'text-[11px] font-semibold text-slate-400 pl-1',
+          duration: 2200
+        });
+      } else {
+        showJoyToast('Bluetooth Android', target ? 'Confirma encender Bluetooth en el diálogo del sistema' : 'Cambia Bluetooth desde el ajuste del sistema', 'info');
+      }
+      if (window.AndroidBridge) {
+        setTimeout(updateHardwareStatus, 1000);
+        setTimeout(updateHardwareStatus, 2500);
+      }
     }
 
     function selectBtDevice(idx) {
-      if (!btDevices[idx]) return;
-      if (btDevices[idx].isTelemetry) return;
+      const dev = btDevices[idx];
+      if (!dev || dev.isTelemetry || dev.type === 'obd') return;
       state.btDeviceIdx = idx;
-      state.btEnabled = true;
-      state.phoneSignal = btDevices[idx].signal || 4;
-      state.phoneBattery = btDevices[idx].battery || 85;
+      if (window.AndroidBridge && typeof window.AndroidBridge.connectBluetoothDevice === 'function' && dev.address) {
+        try {
+          const res = JSON.parse(window.AndroidBridge.connectBluetoothDevice(dev.address) || '{}');
+          showJoyToast('Bluetooth', res.message || ('Conectando a ' + dev.name + '...'), res.ok ? 'info' : 'warn');
+        } catch (e) { }
+        setTimeout(updateHardwareStatus, 1200);
+        setTimeout(updateHardwareStatus, 3000);
+      } else {
+        state.btEnabled = true;
+        if (typeof dev.signal === 'number' && dev.signal >= 0) state.phoneSignal = dev.signal;
+        if (typeof dev.battery === 'number' && dev.battery >= 0) state.phoneBattery = dev.battery;
+      }
       renderAll();
+    }
+
+    function disconnectBtDevice(idx, ev) {
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      const dev = btDevices[idx];
+      if (!dev || !dev.address) return;
+      if (window.AndroidBridge && typeof window.AndroidBridge.disconnectBluetoothDevice === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.disconnectBluetoothDevice(dev.address) || '{}');
+          showJoyToast('Bluetooth', res.message || ('Desconectando ' + dev.name + '...'), 'info');
+        } catch (e) { }
+        setTimeout(updateHardwareStatus, 1000);
+        setTimeout(updateHardwareStatus, 2500);
+      }
     }
 
     function toggleBtAutoPlay() {
@@ -12789,10 +13361,305 @@
       renderAll();
     }
 
+    function switchBtRightTab(tab) {
+      state.btRightTab = tab === 'phone' ? 'phone' : 'devices';
+      renderBtDialer();
+      renderAll();
+    }
+
+    function pressDialKey(ch) {
+      if (!ch) return;
+      if (state.dialDigits.length >= 24) return;
+      state.dialDigits += String(ch);
+      renderBtDialer();
+    }
+
+    function backspaceDialKey() {
+      if (!state.dialDigits) return;
+      state.dialDigits = state.dialDigits.slice(0, -1);
+      renderBtDialer();
+    }
+
+    function clearDialDigits() {
+      state.dialDigits = '';
+      renderBtDialer();
+    }
+
+    function loadRecentCalls() {
+      if (Array.isArray(state.recentCalls) && state.recentCalls.length > 0) return;
+      const saved = safeGetStorage('joyos_v8_recent_calls');
+      if (Array.isArray(saved)) {
+        state.recentCalls = saved.filter(n => typeof n === 'string' && n.trim().length > 0).slice(0, 4);
+      }
+    }
+
+    function recordRecentCall(num) {
+      if (!num) return;
+      loadRecentCalls();
+      const filtered = state.recentCalls.filter(n => n !== num);
+      filtered.unshift(num);
+      state.recentCalls = filtered.slice(0, 4);
+      safeSetStorage('joyos_v8_recent_calls', state.recentCalls);
+      renderBtDialer();
+    }
+
+    function selectRecentCall(num) {
+      state.dialDigits = String(num || '');
+      renderBtDialer();
+    }
+
+    function placeDialCall() {
+      const num = String(state.dialDigits || '').trim();
+      if (!num) {
+        showJoyToast('Marcador HFP', 'Ingresa un número para realizar la llamada', 'warn');
+        return;
+      }
+      if (window.AndroidBridge && typeof window.AndroidBridge.dialPhoneNumber === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.dialPhoneNumber(num) || '{}');
+          if (res.ok) {
+            recordRecentCall(res.number || num);
+            showJoyToast('Llamada saliente', res.message || ('Llamando a ' + num), 'ok');
+            setTimeout(updateHardwareStatus, 800);
+          } else {
+            showJoyToast('Marcador Android', res.message || 'No se pudo iniciar la llamada en esta unidad', 'warn');
+          }
+        } catch (e) {
+          showJoyToast('Marcador Android', 'Error invocando marcador telefónico', 'warn');
+        }
+      } else {
+        showJoyToast('Marcador HFP', 'La marcación telefónica real requiere la tablet Android con HFP / Dialer', 'info');
+      }
+    }
+
+    function renderBtDialer() {
+      loadRecentCalls();
+      const inp = document.getElementById('bt-dial-input');
+      if (inp) inp.value = state.dialDigits || '';
+      const rec = document.getElementById('bt-recent-calls');
+      if (rec) {
+        if (!state.recentCalls || state.recentCalls.length === 0) {
+          rec.innerHTML = '<span class="text-[11px] text-[var(--mute)] opacity-75">Sin recientes</span>';
+        } else {
+          rec.innerHTML = state.recentCalls.map(num => {
+            const esc = String(num).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+            return `<button type="button" onclick="selectRecentCall('${esc}')" class="pressable px-2.5 py-1 rounded-full bt-soft-item text-[11px] font-mono text-[var(--ink)] shrink-0">${esc}</button>`;
+          }).join('');
+        }
+      }
+    }
+
+    function formatCallTimer(sec) {
+      const total = Math.max(0, Math.floor(Number(sec) || 0));
+      const m = Math.floor(total / 60);
+      const s = total % 60;
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    function refreshCallTimers() {
+      let elapsed = state.callDurationSec || 0;
+      if (state.callState === 'active' && state.callStartedAt > 0) {
+        elapsed = Math.max(0, Math.floor((Date.now() - state.callStartedAt) / 1000));
+        state.callDurationSec = elapsed;
+      }
+      const txt = formatCallTimer(elapsed);
+      const timerEl = document.getElementById('joy-call-timer');
+      if (timerEl) timerEl.textContent = txt;
+      const miniTimerEl = document.getElementById('joy-call-mini-timer');
+      if (miniTimerEl) miniTimerEl.textContent = state.callState === 'active' ? txt : (state.callState === 'ringing' ? 'Entrante' : 'Marcando');
+    }
+
+    function renderCallOverlay() {
+      const overlay = document.getElementById('joy-call-overlay');
+      const mini = document.getElementById('joy-call-mini-pill');
+      const active = state.callState && state.callState !== 'idle';
+      if (!active) {
+        if (overlay) overlay.classList.add('hidden');
+        if (mini) mini.classList.add('hidden');
+        return;
+      }
+
+      if (overlay) overlay.classList.toggle('hidden', !!state.callMinimized);
+      if (mini) mini.classList.toggle('hidden', !state.callMinimized);
+
+      const badge = document.getElementById('joy-call-badge');
+      const ring = document.getElementById('joy-call-avatar-ring');
+      const img = document.getElementById('joy-call-avatar-img');
+      const fb = document.getElementById('joy-call-avatar-fallback');
+      const nameEl = document.getElementById('joy-call-name');
+      const numEl = document.getElementById('joy-call-number');
+      const timerEl = document.getElementById('joy-call-timer');
+      const ansBtn = document.getElementById('joy-call-btn-answer');
+      const muteBtn = document.getElementById('joy-call-btn-mute');
+      const muteLbl = document.getElementById('joy-call-mute-label');
+      const endLbl = document.getElementById('joy-call-end-label');
+      const miniName = document.getElementById('joy-call-mini-name');
+      const miniDot = document.getElementById('joy-call-mini-dot');
+
+      const displayName = (state.callName && state.callName.trim())
+        ? state.callName.trim()
+        : ((state.callNumber && state.callNumber.trim()) ? state.callNumber.trim() : 'Llamada Bluetooth');
+      const subParts = [];
+      if (state.callName && state.callNumber && state.callNumber !== displayName) subParts.push(state.callNumber);
+      if (state.callSource === 'hfp') subParts.push('Manos libres HFP');
+      else if (state.callSource === 'notification') subParts.push('Audio / Llamada Android');
+      else subParts.push('Telefonía');
+
+      if (nameEl) nameEl.textContent = displayName;
+      if (numEl) numEl.textContent = subParts.join(' · ');
+      if (miniName) miniName.textContent = displayName;
+
+      if (img && fb) {
+        if (state.callAvatar) {
+          img.src = state.callAvatar;
+          img.classList.remove('hidden');
+          fb.classList.add('hidden');
+        } else {
+          img.classList.add('hidden');
+          fb.classList.remove('hidden');
+          const firstCh = displayName.charAt(0).toUpperCase();
+          fb.textContent = /[A-ZÁÉÍÓÚÑ0-9]/i.test(firstCh) ? firstCh : '📞';
+        }
+      }
+
+      if (state.callState === 'ringing') {
+        if (badge) {
+          badge.textContent = 'Llamada entrante';
+          badge.className = 'joy-call-badge';
+        }
+        if (ring) ring.classList.add('ringing');
+        if (ansBtn) ansBtn.classList.remove('hidden');
+        if (muteBtn) muteBtn.classList.add('hidden');
+        if (timerEl) timerEl.classList.add('hidden');
+        if (endLbl) endLbl.textContent = 'Rechazar';
+        if (miniDot) miniDot.className = 'joy-call-mini-dot ringing';
+      } else if (state.callState === 'dialing') {
+        if (badge) {
+          badge.textContent = 'Marcando...';
+          badge.className = 'joy-call-badge dialing';
+        }
+        if (ring) ring.classList.add('ringing');
+        if (ansBtn) ansBtn.classList.add('hidden');
+        if (muteBtn) muteBtn.classList.remove('hidden');
+        if (timerEl) timerEl.classList.add('hidden');
+        if (endLbl) endLbl.textContent = 'Colgar';
+        if (miniDot) miniDot.className = 'joy-call-mini-dot dialing';
+      } else {
+        if (badge) {
+          badge.textContent = 'Llamada en curso';
+          badge.className = 'joy-call-badge';
+        }
+        if (ring) ring.classList.remove('ringing');
+        if (ansBtn) ansBtn.classList.add('hidden');
+        if (muteBtn) muteBtn.classList.remove('hidden');
+        if (timerEl) timerEl.classList.remove('hidden');
+        if (endLbl) endLbl.textContent = 'Colgar';
+        if (miniDot) miniDot.className = 'joy-call-mini-dot';
+      }
+
+      if (muteLbl) muteLbl.textContent = state.callMuted ? 'Micrófono silenciado' : 'Silenciar';
+      if (muteBtn) {
+        muteBtn.className = state.callMuted
+          ? 'pressable joy-call-btn-sec soft-surface mute-active'
+          : 'pressable joy-call-btn-sec soft-surface';
+      }
+      refreshCallTimers();
+    }
+
+    window.onCallStateChanged = function (data) {
+      if (!data || typeof data !== 'object') return;
+      const prev = state.callState || 'idle';
+      const next = (data.state && typeof data.state === 'string') ? data.state : (data.active ? 'active' : 'idle');
+
+      state.callState = next;
+      state.callName = data.name || '';
+      state.callNumber = data.number || '';
+      state.callAvatar = data.avatar || '';
+      state.callSource = data.source || '';
+      state.callStartedAt = typeof data.startedAt === 'number' ? data.startedAt : 0;
+      state.callDurationSec = typeof data.durationSec === 'number' ? data.durationSec : 0;
+      state.callMuted = !!data.muted;
+
+      if (prev === 'idle' && next !== 'idle') {
+        state.callMinimized = false;
+        const localAudioPlaying = typeof joyAudio !== 'undefined' && joyAudio && joyAudio.src && !joyAudio.paused;
+        if (localAudioPlaying) {
+          try { joyAudio.pause(); } catch (e) { }
+          state.playing = false;
+          state._callPausedMusic = true;
+          renderAll();
+        }
+      } else if (prev !== 'idle' && next === 'idle') {
+        state.callMinimized = false;
+        if (state._callPausedMusic && typeof joyAudio !== 'undefined' && joyAudio && joyAudio.src) {
+          try {
+            joyAudio.play().then(() => {
+              state.playing = true;
+              renderAll();
+            }).catch(() => { });
+          } catch (e) { }
+        }
+        state._callPausedMusic = false;
+      }
+      renderCallOverlay();
+    };
+
+    function answerJoyCall() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.answerActiveCall === 'function') {
+        const ok = !!window.AndroidBridge.answerActiveCall();
+        if (!ok) {
+          showJoyToast('Llamada entrante', 'Contesta directamente desde tu teléfono si el Bluetooth HFP lo bloqueó', 'info');
+        }
+        setTimeout(updateHardwareStatus, 500);
+      } else {
+        window.onCallStateChanged({
+          state: 'active',
+          name: state.callName,
+          number: state.callNumber,
+          avatar: state.callAvatar,
+          source: state.callSource || 'hfp',
+          startedAt: Date.now(),
+          durationSec: 0,
+          muted: state.callMuted
+        });
+      }
+    }
+
+    function endJoyCall() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.endActiveCall === 'function') {
+        const ok = !!window.AndroidBridge.endActiveCall();
+        if (!ok) {
+          showJoyToast('Llamada activa', 'Si la unidad no permite colgar remotamente, finaliza en el teléfono', 'info');
+        }
+        setTimeout(updateHardwareStatus, 500);
+      } else {
+        window.onCallStateChanged({ state: 'idle', active: false });
+      }
+    }
+
+    function toggleJoyCallMute() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.toggleCallMute === 'function') {
+        state.callMuted = !!window.AndroidBridge.toggleCallMute();
+      } else {
+        state.callMuted = !state.callMuted;
+      }
+      renderCallOverlay();
+    }
+
+    function minimizeJoyCall() {
+      state.callMinimized = true;
+      renderCallOverlay();
+    }
+
+    function expandJoyCall() {
+      state.callMinimized = false;
+      renderCallOverlay();
+    }
+
     function renderBluetoothDevicesList() {
       const container = document.getElementById('bt-devices-list-container');
       const countEl = document.getElementById('bt-linked-count-label');
-      if (countEl) countEl.textContent = `Dispositivos Vinculados (${btDevices.length})`;
+      if (countEl) countEl.textContent = `Vinculados (${btDevices.length})`;
       if (!container) return;
 
       if (btDevices.length === 0) {
@@ -12819,14 +13686,26 @@
             </div>
           `;
         }
-        const isActive = state.btEnabled && state.btDeviceIdx === idx;
+        const isActive = state.btEnabled && (!!dev.connected || (state.phoneConnected && state.btDeviceIdx === idx));
+        const profileTags = [];
+        if (dev.a2dpConnected) profileTags.push('A2DP');
+        if (dev.hfpConnected) profileTags.push('HFP');
+        const battTag = (typeof dev.battery === 'number' && dev.battery >= 0) ? ` · Bat ${dev.battery}%` : '';
+        const subText = isActive && profileTags.length > 0
+          ? `${profileTags.join(' / ')} activo${battTag}`
+          : `${dev.sub}${battTag}`;
         return `
           <div onclick="selectBtDevice(${idx})" class="bt-soft-item pressable px-5 py-3.5 flex items-center justify-between gap-4 cursor-pointer">
             <div class="min-w-0 flex-1">
               <div class="font-sora font-semibold text-sm text-[var(--ink)] truncate">${dev.name}</div>
-              <div class="text-xs text-[var(--mute)] mt-1 truncate">${dev.sub}</div>
+              <div class="text-xs text-[var(--mute)] mt-1 truncate">${subText}</div>
             </div>
-            <span class="text-xs font-bold shrink-0 ${isActive ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--mute)]'}">${isActive ? 'Conectado ✓' : 'Conectar'}</span>
+            <div class="flex items-center gap-2 shrink-0">
+              ${isActive && dev.address
+                ? `<button type="button" onclick="disconnectBtDevice(${idx}, event)" class="pressable joy-bt-disconnect-btn">Desconectar</button>`
+                : ''}
+              <span class="text-xs font-bold ${isActive ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--mute)]'}">${isActive ? 'Conectado ✓' : 'Conectar'}</span>
+            </div>
           </div>
         `;
       }).join('');
@@ -13247,7 +14126,10 @@
           { t: 'info', l: 'Almacenamiento de Archivos / Copias', v: 'Vista previa web' },
           { t: 'info', l: 'Brillo del Sistema (WRITE_SETTINGS)', v: 'Vista previa web' },
           { t: 'info', l: 'Instalar Actualizaciones APK', v: 'Vista previa web' },
+          { t: 'info', l: 'Lectura de Música y Portadas (Notif.)', v: 'Vista previa web' },
+          { t: 'info', l: 'Telefonía y Llamadas (HFP)', v: 'Vista previa web' },
           { t: 'act', l: 'Conceder permisos faltantes', b: 'Conceder', cls: 'accent', d: 'Solicita permisos de ejecución o abre el ajuste faltante' },
+          { t: 'act', l: 'Activar lector de portadas (Spotify / YT)', b: 'Configurar', d: 'Habilita Acceso a Notificaciones para leer canción, progreso y carátula real' },
           { t: 'act', l: 'Ajustes de la App JoyOS en Android', b: 'Abrir', d: 'Revisa permisos, almacenamiento e instalación de origen desconocido' },
           { h: 'Ingeniería Inversa (REA · ZXDZ_01 / AC8227L)' },
           { t: 'act', l: '🔬 Ejecutar Inspector REA de Hardware', b: 'Escanear', d: 'Inspecciona paquetes OEM (Radio/BT/MCU cm69), puertos USB/serie y propiedades del kernel' },
@@ -13419,6 +14301,8 @@
             setAjCatInfo('info_hw', 'Almacenamiento de Archivos / Copias', p.storage ? 'Concedido' : 'Pendiente');
             setAjCatInfo('info_hw', 'Brillo del Sistema (WRITE_SETTINGS)', p.writeSettings ? 'Concedido' : 'Requiere activar');
             setAjCatInfo('info_hw', 'Instalar Actualizaciones APK', p.installPackages ? 'Concedido' : 'Requiere activar');
+            setAjCatInfo('info_hw', 'Lectura de Música y Portadas (Notif.)', p.notificationListener ? 'Concedido' : 'Requiere activar');
+            setAjCatInfo('info_hw', 'Telefonía y Llamadas (HFP)', p.phone ? 'Concedido' : 'Pendiente');
           }
         } catch (e) { }
       } else {
@@ -13745,25 +14629,54 @@
           } else if (x.l === 'Animación de arranque') {
             state.bootAnimEnabled = x.v;
           } else if (x.l === 'Bluetooth') {
-            state.btEnabled = x.v;
+            let btDoneSync = !window.AndroidBridge;
             if (window.AndroidBridge && typeof window.AndroidBridge.setBluetoothPower === 'function') {
-              try { window.AndroidBridge.setBluetoothPower(x.v); } catch (e) { }
+              try { btDoneSync = !!window.AndroidBridge.setBluetoothPower(x.v); } catch (e) { btDoneSync = false; }
             }
+            if (btDoneSync) {
+              state.btEnabled = x.v;
+            } else {
+              x.v = state.btEnabled;
+              showJoyToast('Bluetooth Android', 'Confirma el cambio en el ajuste de Bluetooth', 'info');
+            }
+            if (window.AndroidBridge) setTimeout(updateHardwareStatus, 1000);
           } else if (x.l === 'Wi-Fi') {
-            state.wifiEnabled = x.v;
-            let handled = false;
+            let handled = !window.AndroidBridge;
             if (window.AndroidBridge && typeof window.AndroidBridge.setWifiEnabled === 'function') {
-              try { handled = !!window.AndroidBridge.setWifiEnabled(x.v); } catch (e) { }
+              try { handled = !!window.AndroidBridge.setWifiEnabled(x.v); } catch (e) { handled = false; }
             }
-            if (!handled && window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
-              window.AndroidBridge.openWifiSettings();
+            if (handled) {
+              state.wifiEnabled = x.v;
+            } else {
+              x.v = state.wifiEnabled;
+              if (window.AndroidBridge && typeof window.AndroidBridge.openWifiSettings === 'function') {
+                window.AndroidBridge.openWifiSettings();
+              }
+              showJoyToast('Wi-Fi Android', 'Android bloqueó el cambio directo; abierto panel Wi-Fi', 'info');
             }
+            if (window.AndroidBridge) setTimeout(updateHardwareStatus, 1000);
           } else if (x.l === 'Punto de acceso Wi-Fi (Hotspot)') {
-            state.wifiHotspot = x.v;
-            if (window.AndroidBridge && typeof window.AndroidBridge.openHotspotSettings === 'function') {
+            if (window.AndroidBridge && typeof window.AndroidBridge.setHotspotEnabled === 'function') {
+              try {
+                const hsRes = JSON.parse(window.AndroidBridge.setHotspotEnabled(x.v) || '{}');
+                state.wifiHotspot = !!hsRes.active;
+                x.v = !!hsRes.active;
+                if (hsRes.openedSettings) {
+                  showJoyToast('Hotspot Wi-Fi', hsRes.message || 'Ajuste de Hotspot abierto en Android', 'info');
+                }
+              } catch (e) {
+                x.v = state.wifiHotspot;
+              }
+              setTimeout(updateHardwareStatus, 1200);
+              setTimeout(updateHardwareStatus, 2600);
+            } else if (window.AndroidBridge && typeof window.AndroidBridge.openHotspotSettings === 'function') {
+              x.v = state.wifiHotspot;
               window.AndroidBridge.openHotspotSettings();
             } else if (window.AndroidBridge && typeof window.AndroidBridge.openAndroidSettings === 'function') {
+              x.v = state.wifiHotspot;
               window.AndroidBridge.openAndroidSettings();
+            } else {
+              state.wifiHotspot = x.v;
             }
           } else if (x.l === 'Enfriamiento continuo con pantalla encendida') {
             state.fanContinuous = x.v;
@@ -13845,6 +14758,8 @@
                   window.AndroidBridge.openWriteSettingsPermission();
                 } else if (!p.installPackages && typeof window.AndroidBridge.openInstallUnknownAppsPermission === 'function') {
                   window.AndroidBridge.openInstallUnknownAppsPermission();
+                } else if (!p.notificationListener && typeof window.AndroidBridge.openNotificationListenerSettings === 'function') {
+                  window.AndroidBridge.openNotificationListenerSettings();
                 }
               } catch (e) { }
               setTimeout(() => {
@@ -13853,6 +14768,14 @@
               }, 800);
             } else {
               showJoyToast('Permisos Android', 'En la tablet concede Ubicación, BT y Modificar ajustes', 'info');
+            }
+            return;
+          }
+          if (x.l.includes('lector de portadas')) {
+            if (window.AndroidBridge && typeof window.AndroidBridge.openNotificationListenerSettings === 'function') {
+              window.AndroidBridge.openNotificationListenerSettings();
+            } else {
+              showJoyToast('Lector MediaSession', 'Disponible instalado en tablet Android', 'info');
             }
             return;
           }
@@ -14853,57 +15776,254 @@
       }
     }
 
-    function generateCarCoverSvg(title, idx) {
-      const colors = ['#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
-      const c = colors[idx % colors.length];
-      return "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%"><rect width="300" height="300" fill="#090d16"/><circle cx="150" cy="150" r="100" fill="none" stroke="' + c + '" stroke-width="4" opacity="0.6"/><circle cx="150" cy="150" r="70" fill="none" stroke="' + c + '" stroke-width="2" opacity="0.4"/><circle cx="150" cy="150" r="30" fill="' + c + '" opacity="0.8"/><text x="150" y="270" font-family="sans-serif" font-size="16" font-weight="bold" fill="#f8fafc" text-anchor="middle">' + ((title || '').slice(0, 20)) + '</text></svg>');
+    const _coverColorCache = {};
+
+    function rgbToHsvJs(r, g, b) {
+      const rr = r / 255, gg = g / 255, bb = b / 255;
+      const mx = Math.max(rr, gg, bb), mn = Math.min(rr, gg, bb), d = mx - mn;
+      let h = 0;
+      if (d !== 0) {
+        if (mx === rr) h = ((gg - bb) / d) % 6;
+        else if (mx === gg) h = (bb - rr) / d + 2;
+        else h = (rr - gg) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+      }
+      const s = mx === 0 ? 0 : d / mx;
+      return [h, s, mx];
+    }
+
+    function hsvToHexJs(h, s, v) {
+      const hh = ((h % 360) + 360) % 360;
+      const c = v * s;
+      const x = c * (1 - Math.abs(((hh / 60) % 2) - 1));
+      const m = v - c;
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (hh < 60) { r1 = c; g1 = x; }
+      else if (hh < 120) { r1 = x; g1 = c; }
+      else if (hh < 180) { g1 = c; b1 = x; }
+      else if (hh < 240) { g1 = x; b1 = c; }
+      else if (hh < 300) { r1 = x; b1 = c; }
+      else { r1 = c; b1 = x; }
+      const toH = n => Math.max(0, Math.min(255, Math.round((n + m) * 255))).toString(16).padStart(2, '0');
+      return '#' + toH(r1) + toH(g1) + toH(b1);
+    }
+
+    function extractColorsFromCoverSrc(src, onReady) {
+      if (!src || src.indexOf('data:image/svg') === 0) return;
+      if (_coverColorCache[src]) {
+        if (typeof onReady === 'function') onReady(_coverColorCache[src]);
+        return;
+      }
+      try {
+        const img = new Image();
+        img.onload = function () {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = 16;
+            canvas.height = 16;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.drawImage(img, 0, 0, 16, 16);
+            const data = ctx.getImageData(0, 0, 16, 16).data;
+            const buckets = new Array(12).fill(0);
+            const sumR = new Array(12).fill(0), sumG = new Array(12).fill(0), sumB = new Array(12).fill(0);
+            const sumW = new Array(12).fill(0);
+            for (let i = 0; i < data.length; i += 4) {
+              if (data[i + 3] < 128) continue;
+              const r = data[i], g = data[i + 1], b = data[i + 2];
+              const hsv = rgbToHsvJs(r, g, b);
+              if (hsv[2] < 0.12 || (hsv[2] > 0.94 && hsv[1] < 0.14)) continue;
+              const w = (0.25 + hsv[1] * 1.8) * (hsv[2] >= 0.22 && hsv[2] <= 0.88 ? 1.25 : 0.7);
+              const bIdx = Math.max(0, Math.min(11, Math.floor(hsv[0] / 30)));
+              buckets[bIdx] += w;
+              sumR[bIdx] += r * w;
+              sumG[bIdx] += g * w;
+              sumB[bIdx] += b * w;
+              sumW[bIdx] += w;
+            }
+            let best = -1, bestScore = 0;
+            for (let k = 0; k < 12; k++) {
+              if (buckets[k] > bestScore) { bestScore = buckets[k]; best = k; }
+            }
+            if (best === -1 || sumW[best] <= 0) return;
+            const avgHex = idx => {
+              const hsv = rgbToHsvJs(sumR[idx] / sumW[idx], sumG[idx] / sumW[idx], sumB[idx] / sumW[idx]);
+              return hsvToHexJs(hsv[0], Math.max(0.44, Math.min(0.95, hsv[1] * 1.15)), Math.max(0.56, Math.min(0.92, hsv[2])));
+            };
+            const c1 = avgHex(best);
+            let second = -1, secondScore = 0;
+            for (let k = 0; k < 12; k++) {
+              if (k === best) continue;
+              const dist = Math.min(Math.abs(k - best), 12 - Math.abs(k - best));
+              if (dist >= 2 && buckets[k] > secondScore) { secondScore = buckets[k]; second = k; }
+            }
+            let c2;
+            if (second !== -1 && secondScore > bestScore * 0.22) {
+              c2 = avgHex(second);
+            } else {
+              const hsv1 = rgbToHsvJs(sumR[best] / sumW[best], sumG[best] / sumW[best], sumB[best] / sumW[best]);
+              c2 = hsvToHexJs((hsv1[0] + 38) % 360, Math.max(0.55, hsv1[1]), Math.max(0.62, Math.min(0.92, hsv1[2])));
+            }
+            const res = { color1: c1, color2: c2 };
+            _coverColorCache[src] = res;
+            if (typeof onReady === 'function') onReady(res);
+          } catch (e) { }
+        };
+        img.src = src;
+      } catch (e) { }
+    }
+
+    function applyMusicThemeToSong(songObj, themeIdx) {
+      if (!songObj) return;
+      const cleanIdx = ((themeIdx % musicArtThemes.length) + musicArtThemes.length) % musicArtThemes.length;
+      const t = musicArtThemes[cleanIdx] || musicArtThemes[0];
+      songObj.themeIdx = cleanIdx;
+      songObj.color1 = t.color1;
+      songObj.color2 = t.color2;
+      if (!songObj.hasRealCover) {
+        const displayTitle = songObj.isWaitingPlaceholder ? '' : songObj.title;
+        const displayArtist = songObj.isWaitingPlaceholder ? '' : songObj.artist;
+        songObj.cover = generateCarCoverSvg(displayTitle, cleanIdx, displayArtist, cleanIdx);
+      }
+    }
+
+    function selectMusicVisualTheme(themeIdx) {
+      const cleanIdx = ((themeIdx % musicArtThemes.length) + musicArtThemes.length) % musicArtThemes.length;
+      state.idleCoverThemeIdx = cleanIdx;
+      try {
+        if (window.localStorage) window.localStorage.setItem('joyos_music_idle_theme', String(cleanIdx));
+      } catch (e) { }
+      const curSong = songs[state.songIdx];
+      if (curSong && !curSong.hasRealCover) {
+        applyMusicThemeToSong(curSong, cleanIdx);
+      } else if (curSong && curSong.hasRealCover) {
+        showJoyToast('Estilo visual guardado para pistas sin portada');
+      }
+      renderAll();
+    }
+
+    function cycleMusicVisualTheme(ev) {
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      const curSong = songs[state.songIdx];
+      if (curSong && curSong.hasRealCover) {
+        showJoyToast('Usando portada real y colores de la canción');
+        return;
+      }
+      const curIdx = (curSong && typeof curSong.themeIdx === 'number') ? curSong.themeIdx : (state.idleCoverThemeIdx || 0);
+      selectMusicVisualTheme((curIdx + 1) % musicArtThemes.length);
+    }
+
+    function ensureTrackArtwork(idx) {
+      const s = songs[idx];
+      if (!s || !s.needsLazyArtwork || !s.path || s._artworkFetched) return;
+      s._artworkFetched = true;
+      if (!window.AndroidBridge || typeof window.AndroidBridge.getTrackArtwork !== 'function') return;
+      try {
+        const raw = window.AndroidBridge.getTrackArtwork(s.path);
+        const parsed = JSON.parse(raw || '{}');
+        if (parsed && parsed.ok && parsed.coverDataUri) {
+          s.cover = parsed.coverDataUri;
+          s.hasRealCover = true;
+          s.needsLazyArtwork = false;
+          if (parsed.color1) s.color1 = parsed.color1;
+          if (parsed.color2) s.color2 = parsed.color2;
+          if (!parsed.color1 || !parsed.color2) {
+            extractColorsFromCoverSrc(s.cover, cols => {
+              s.color1 = cols.color1;
+              s.color2 = cols.color2;
+              renderAll();
+            });
+          } else {
+            renderAll();
+          }
+        }
+      } catch (e) { }
     }
 
     function refreshMusicFromDevice() {
+      let songsUpdated = false;
       if (window.AndroidBridge && typeof window.AndroidBridge.getMusicFiles === 'function') {
         try {
           const raw = window.AndroidBridge.getMusicFiles();
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            const mappedSongs = parsed.map((t, idx) => ({
-              artist: t.artist || (t.source === 'usb' ? 'Memoria USB' : 'Almacenamiento'),
-              title: t.title || ('Pista ' + (idx + 1)),
-              album: t.album || 'Audio del Vehículo',
-              durationSec: t.durationSec || 210,
-              audioUri: t.uri,
-              path: t.path,
-              cover: generateCarCoverSvg(t.title, idx),
-              color1: '#06b6d4',
-              color2: '#3b82f6'
-            }));
-            songs = mappedSongs;
+            const mappedSongs = parsed.map((t, idx) => {
+              const title = t.title || ('Pista ' + (idx + 1));
+              const artist = t.artist || (t.source === 'usb' ? 'Memoria USB' : 'Almacenamiento');
+              const themeIdx = hashTrackThemeIdx(title, artist);
+              const themeObj = musicArtThemes[themeIdx] || musicArtThemes[0];
+              const hasReal = !!(t.coverDataUri && t.coverDataUri.length > 32);
+              return {
+                artist: artist,
+                title: title,
+                album: t.album || 'Audio del Vehículo',
+                durationSec: t.durationSec || 210,
+                audioUri: t.uri,
+                path: t.path,
+                hasRealCover: hasReal,
+                needsLazyArtwork: !hasReal && !!t.hasEmbeddedArt,
+                themeIdx: themeIdx,
+                cover: hasReal ? t.coverDataUri : generateCarCoverSvg(title, themeIdx, artist, themeIdx),
+                color1: (t.color1 && t.color1.length >= 4) ? t.color1 : themeObj.color1,
+                color2: (t.color2 && t.color2.length >= 4) ? t.color2 : themeObj.color2
+              };
+            });
+            const prevLive = Array.isArray(songs) ? songs.filter(x => x && x.isLiveBt).slice(0, 6) : [];
+            songs = prevLive.length > 0
+              ? prevLive.concat(mappedSongs.filter(m => !prevLive.some(l => l.title === m.title)))
+              : mappedSongs;
+            if (state.songIdx >= songs.length || state.songIdx < 0) state.songIdx = 0;
+            songsUpdated = true;
             console.log('Loaded ' + songs.length + ' tracks from device');
           }
         } catch (e) {
           console.warn("Error loading music files:", e);
         }
       }
+      let btRendered = false;
       if (window.AndroidBridge && typeof window.AndroidBridge.getBtMusicMetadata === 'function') {
         try {
           const btRaw = window.AndroidBridge.getBtMusicMetadata();
           const btMeta = JSON.parse(btRaw || '{}');
           if (btMeta && btMeta.title && btMeta.title !== 'Bluetooth Audio') {
             window.onBtMusicMetadata(btMeta);
+            btRendered = true;
           }
         } catch (e) { }
       }
+      if (songsUpdated && !btRendered && typeof renderAll === 'function') {
+        renderAll();
+      }
     }
 
-    // --- LIVE BLUETOOTH AVRCP / A2DP METADATA & MCU RADIO RECEIVER ---
+    // --- LIVE BLUETOOTH AVRCP / A2DP / MEDIASESSION METADATA RECEIVER ---
     window.onBtMusicMetadata = function (meta) {
       if (!meta) return;
       if (typeof meta === 'string') {
         try { meta = JSON.parse(meta); } catch (e) { return; }
       }
-      const title = meta.title && meta.title.trim() ? meta.title.trim() : 'Audio Bluetooth';
-      const artist = meta.artist && meta.artist.trim() ? meta.artist.trim() : (state.btDeviceName || 'Teléfono Bluetooth');
+      const rawTitle = meta.title && meta.title.trim() ? meta.title.trim() : '';
+      const rawArtist = meta.artist && meta.artist.trim() ? meta.artist.trim() : '';
       const album = meta.album && meta.album.trim() ? meta.album.trim() : 'Bluetooth A2DP / AVRCP';
       const dur = (typeof meta.durationSec === 'number' && meta.durationSec > 0) ? meta.durationSec : 210;
+
+      // Ignore empty metadata pings that only carry play/pause state when we're still in placeholder
+      if (!rawTitle && songs.length > 0 && songs[0].isWaitingPlaceholder) {
+        if (typeof meta.playing === 'boolean') {
+          state.playing = meta.playing;
+          renderAll();
+        }
+        return;
+      }
+
+      const title = rawTitle || (songs[state.songIdx] && !songs[state.songIdx].isWaitingPlaceholder ? songs[state.songIdx].title : 'Audio Bluetooth');
+      const artist = rawArtist || (state.btDeviceName || 'Bluetooth Audio');
+      const hasReal = !!(meta.coverDataUri && meta.coverDataUri.length > 32);
+      const fallbackThemeIdx = (rawTitle && !rawTitle.toLowerCase().includes('esperando'))
+        ? hashTrackThemeIdx(title, artist)
+        : (state.idleCoverThemeIdx || 0);
+      const themeObj = musicArtThemes[fallbackThemeIdx] || musicArtThemes[0];
 
       const btTrackObj = {
         artist: artist,
@@ -14911,19 +16031,54 @@
         album: album,
         durationSec: dur,
         isLiveBt: true,
-        cover: generateCarCoverSvg(title, 0),
-        color1: '#06b6d4',
-        color2: '#3b82f6'
+        isWaitingPlaceholder: false,
+        hasRealCover: hasReal,
+        sourceApp: meta.sourceApp || '',
+        themeIdx: fallbackThemeIdx,
+        cover: hasReal ? meta.coverDataUri : generateCarCoverSvg(title, fallbackThemeIdx, artist, fallbackThemeIdx),
+        color1: (meta.color1 && meta.color1.length >= 4) ? meta.color1 : themeObj.color1,
+        color2: (meta.color2 && meta.color2.length >= 4) ? meta.color2 : themeObj.color2
       };
 
-      if (songs.length > 0 && (songs[0].isLiveBt || !songs[0].audioUri)) {
+      const isSameAsTop = songs.length > 0 && songs[0] && !songs[0].isWaitingPlaceholder &&
+        songs[0].title === btTrackObj.title && songs[0].artist === btTrackObj.artist;
+
+      if (isSameAsTop) {
+        // Keep user's selected fallback theme if updating playstate without new real artwork
+        if (!hasReal && songs[0].hasRealCover) {
+          btTrackObj.cover = songs[0].cover;
+          btTrackObj.color1 = songs[0].color1;
+          btTrackObj.color2 = songs[0].color2;
+          btTrackObj.hasRealCover = true;
+        }
         songs[0] = btTrackObj;
       } else {
+        // Drop initial waiting placeholder once real music arrives, keep up to 8 recent live tracks
+        songs = songs.filter(s => !s.isWaitingPlaceholder && !(s.isLiveBt && s.title === btTrackObj.title && s.artist === btTrackObj.artist));
         songs.unshift(btTrackObj);
+        if (songs.length > 16) {
+          const liveTracks = songs.filter(s => s.isLiveBt).slice(0, 8);
+          const localTracks = songs.filter(s => !s.isLiveBt);
+          songs = liveTracks.concat(localTracks);
+        }
       }
+
       state.songIdx = 0;
+      if (typeof meta.positionSec === 'number' && meta.positionSec >= 0 && dur > 0) {
+        state.songProgressPct = Math.max(0, Math.min(100, (meta.positionSec / dur) * 100));
+      } else if (!isSameAsTop) {
+        state.songProgressPct = 0;
+      }
       if (typeof meta.playing === 'boolean') {
         state.playing = meta.playing;
+      }
+
+      if (hasReal && (!meta.color1 || !meta.color2)) {
+        extractColorsFromCoverSrc(btTrackObj.cover, cols => {
+          btTrackObj.color1 = cols.color1;
+          btTrackObj.color2 = cols.color2;
+          renderAll();
+        });
       }
       renderAll();
     };
@@ -15207,19 +16362,27 @@
 
       let existIdx = songs.findIndex(s => s.audioUri === uri || s.path === track.path);
       if (existIdx === -1) {
+        const directArtist = track.artist || (track.drive === 'usb' ? 'Memoria USB' : 'Almacenamiento Local');
+        const tIdx = hashTrackThemeIdx(cleanTitle, directArtist);
+        const tObj = musicArtThemes[tIdx] || musicArtThemes[0];
+        songs = songs.filter(s => !s.isWaitingPlaceholder);
         songs.unshift({
           title: cleanTitle,
-          artist: track.artist || (track.drive === 'usb' ? 'Memoria USB' : 'Almacenamiento Local'),
+          artist: directArtist,
           album: track.album || 'Música del Vehículo',
           durationSec: track.durationSec || 210,
-          cover: generateCarCoverSvg(cleanTitle, 0),
+          hasRealCover: false,
+          needsLazyArtwork: !!track.path,
+          themeIdx: tIdx,
+          cover: generateCarCoverSvg(cleanTitle, tIdx, directArtist, tIdx),
           audioUri: uri,
           path: track.path,
-          color1: '#06b6d4',
-          color2: '#3b82f6'
+          color1: tObj.color1,
+          color2: tObj.color2
         });
         existIdx = 0;
       }
+      ensureTrackArtwork(existIdx);
 
       state.audioMode = 'bt';
       state.songIdx = existIdx;
@@ -15285,10 +16448,20 @@
         state.customFreq = null;
         const nextIdx = (state.stationIdx + dir + radioStations.length) % radioStations.length;
         selectStation(nextIdx);
+      } else if (songs.length <= 1) {
+        const curSong = songs[0];
+        if (curSong && curSong.isWaitingPlaceholder) {
+          const nextTheme = ((state.idleCoverThemeIdx || 0) + dir + musicArtThemes.length) % musicArtThemes.length;
+          selectMusicVisualTheme(nextTheme);
+        }
+        if (window.AndroidBridge && typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
+          window.AndroidBridge.sendMediaKeyEvent(dir > 0 ? 'next' : 'prev');
+        }
       } else {
         state.songIdx = (state.songIdx + dir + songs.length) % songs.length;
         state.songProgressPct = 0;
         const nextSongObj = songs[state.songIdx];
+        ensureTrackArtwork(state.songIdx);
         if (nextSongObj && nextSongObj.audioUri) {
           joyAudio.src = nextSongObj.audioUri;
           if (state.playing) {
@@ -15310,6 +16483,7 @@
       state.songIdx = idx;
       state.songProgressPct = 0;
       const curSong = songs[state.songIdx];
+      ensureTrackArtwork(state.songIdx);
       if (curSong && curSong.audioUri) {
         joyAudio.src = curSong.audioUri;
         if (state.playing) {
@@ -16616,8 +17790,9 @@
       const dur = curSong.durationSec || 210;
       const pct = Math.max(0, Math.min(100, state.songProgressPct));
       const curSec = Math.round((pct / 100) * dur);
-      const curStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(curSec);
-      const totStr = (pct === 0 && !state.playing) ? '--:--' : formatTimeSec(dur);
+      const isWaiting = !!(curSong && curSong.isWaitingPlaceholder);
+      const curStr = (isWaiting && pct === 0 && !state.playing) ? '--:--' : formatTimeSec(curSec);
+      const totStr = (isWaiting && !state.playing) ? '--:--' : formatTimeSec(dur);
 
       ['home-progress-fill', 'cockpit-pill-bar', 'map-progress-fill', 'music-seek-fill'].forEach(id => {
         const el = document.getElementById(id);
@@ -16636,9 +17811,12 @@
     function startSeekAudio(e, barEl) {
       if (!barEl) return;
       e.stopPropagation();
+      let lastRel = 0;
       function seekFromEvent(ev) {
         const rect = barEl.getBoundingClientRect();
+        if (!rect.width) return;
         const rel = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+        lastRel = rel;
         state.songProgressPct = Math.round(rel * 100);
         updateAudioProgressUI();
       }
@@ -16647,6 +17825,13 @@
       function onUp() {
         window.removeEventListener('pointermove', onMove);
         window.removeEventListener('pointerup', onUp);
+        const curSong = songs[state.songIdx] || songs[0];
+        if (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused && joyAudio.duration) {
+          try { joyAudio.currentTime = lastRel * joyAudio.duration; } catch (err) { }
+        } else if (curSong && !curSong.isWaitingPlaceholder && window.AndroidBridge && typeof window.AndroidBridge.seekActiveMedia === 'function') {
+          const targetSec = Math.round(lastRel * (curSong.durationSec || 210));
+          try { window.AndroidBridge.seekActiveMedia(targetSec); } catch (err) { }
+        }
       }
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
@@ -16684,7 +17869,20 @@
       });
     }
 
-    // --- 5-CARD 3D FAN COVERFLOW RENDERER (Matches Image 3!) ---
+    // --- 5-CARD 3D FAN COVERFLOW RENDERER (Real Covers + Non-Flat Curated Ambient Variants) ---
+    function getMusicFallbackCardForOffset(baseThemeIdx, off) {
+      const tIdx = ((baseThemeIdx + off) % musicArtThemes.length + musicArtThemes.length) % musicArtThemes.length;
+      const t = musicArtThemes[tIdx] || musicArtThemes[0];
+      return {
+        isThemePreview: true,
+        themeIdx: tIdx,
+        title: '',
+        cover: generateCarCoverSvg('', tIdx, '', tIdx),
+        color1: t.color1,
+        color2: t.color2
+      };
+    }
+
     function renderCoverflow() {
       const stage = document.getElementById('coverflow-stage');
       if (!stage) return;
@@ -16694,10 +17892,43 @@
       const off1 = Math.max(76, Math.min(112, Math.round(w * 0.175)));
       const off2 = Math.max(138, Math.min(204, Math.round(w * 0.32)));
 
+      const activeSong = songs[state.songIdx] || songs[0];
+      const baseTheme = (activeSong && typeof activeSong.themeIdx === 'number')
+        ? activeSong.themeIdx
+        : (state.idleCoverThemeIdx || 0);
+      const usedRealIndices = {};
+      usedRealIndices[state.songIdx] = true;
+
       const offsets = [-2, -1, 0, 1, 2];
+      const sigParts = [isLight ? 'L' : 'D', state.songIdx, songs.length, baseTheme];
       offsets.forEach(off => {
-        const idx = (state.songIdx + off + songs.length) % songs.length;
-        const s = songs[idx];
+        let s = activeSong;
+        let clickAction = `selectSongIndex(${state.songIdx})`;
+
+        if (off === 0) {
+          s = activeSong;
+          clickAction = activeSong && activeSong.isWaitingPlaceholder
+            ? 'cycleMusicVisualTheme(event)'
+            : `selectSongIndex(${state.songIdx})`;
+        } else if (songs.length >= 5) {
+          const idx = (state.songIdx + off + songs.length) % songs.length;
+          s = songs[idx];
+          clickAction = `selectSongIndex(${idx})`;
+        } else {
+          // Avoid repeating identical center cover across all 5 slots when songs.length < 5
+          const candidateIdx = ((state.songIdx + off) % songs.length + songs.length) % songs.length;
+          const canShowReal = songs.length > 1 && Math.abs(off) <= Math.floor(songs.length / 2) && !usedRealIndices[candidateIdx];
+          if (canShowReal) {
+            usedRealIndices[candidateIdx] = true;
+            s = songs[candidateIdx];
+            clickAction = `selectSongIndex(${candidateIdx})`;
+          } else {
+            const previewCard = getMusicFallbackCardForOffset(baseTheme, off);
+            s = previewCard;
+            clickAction = `selectMusicVisualTheme(${previewCard.themeIdx})`;
+          }
+        }
+        sigParts.push((s.title || '') + ':' + (s.themeIdx !== undefined ? s.themeIdx : '') + ':' + (s.cover ? s.cover.length : 0) + ':' + (s.color1 || ''));
 
         let transform = '';
         let zIndex = 10;
@@ -16730,15 +17961,20 @@
         }
 
         html += `
-          <div onclick="selectSongIndex(${idx})"
+          <div onclick="${clickAction}"
+               title="${escapeXmlText(s.title || '')}"
                class="coverflow-item absolute w-44 h-44 rounded-[28px] overflow-hidden border ${isLight ? 'border-black/10 hover:border-black/25' : 'border-white/15 hover:border-white/40'} cursor-pointer bg-neutral-900 transition-all duration-300 select-none group/cover"
                style="transform: ${transform}; z-index: ${zIndex}; opacity: ${opacity}; ${extraShadow}">
-            <img src="${s.cover}" class="w-full h-full object-cover pointer-events-none select-none block" alt="${s.title}" />
+            <img src="${s.cover}" class="w-full h-full object-cover pointer-events-none select-none block" alt="${escapeXmlText(s.title || 'Portada')}" />
           </div>
         `;
       });
 
-      stage.innerHTML = html;
+      const coverSig = sigParts.join('|');
+      if (stage.dataset.sig !== coverSig) {
+        stage.dataset.sig = coverSig;
+        stage.innerHTML = html;
+      }
     }
 
     // --- ACCELERATOR & SPEED ARC PHYSICS ---
@@ -16871,7 +18107,11 @@
       applyJoyMapStyle(false);
 
       // --- TOP BAR: BLUETOOTH ACTIVO/APAGADO, SEÑAL Y BATERÍA DEL TELÉFONO, CLIMA ---
-      const curDev = (btDevices && btDevices.length > 0) ? (btDevices[state.btDeviceIdx] || btDevices[0]) : null;
+      const activePhoneDev = (btDevices || []).find((d, i) => d && d.type !== 'obd' && !d.isTelemetry && (d.connected || i === state.btDeviceIdx))
+        || (btDevices || []).find(d => d && d.type !== 'obd' && !d.isTelemetry)
+        || null;
+      const curDev = activePhoneDev;
+      const phoneOnline = !!state.phoneConnected || !!(curDev && curDev.connected);
       const topBt = document.getElementById('top-bt-icon');
       const topSig = document.getElementById('top-signal-icon');
       const topBatt = document.getElementById('top-phone-batt');
@@ -16884,27 +18124,37 @@
         topBt.style.setProperty('stroke', state.btEnabled ? 'var(--accent)' : '#71717a', 'important');
         topBt.style.setProperty('opacity', state.btEnabled ? '1' : '0.35', 'important');
         topBt.style.setProperty('filter', state.btEnabled ? 'none' : 'grayscale(100%)', 'important');
-        topBt.setAttribute('title', state.btEnabled ? (state.btConnected ? `Bluetooth: ${state.btDeviceName || 'Conectado'}` : 'Bluetooth activado') : 'Bluetooth desactivado (Apagado)');
+        topBt.setAttribute('title', state.btEnabled ? ((state.btConnected || phoneOnline) ? `Bluetooth: ${state.btDeviceName || (curDev && curDev.name) || 'Conectado'}` : 'Bluetooth activado') : 'Bluetooth desactivado (Apagado)');
       }
-      const sigBars = state.btConnected ? ((curDev && curDev.signal) || state.phoneSignal || 4) : 0;
+      const realSig = (curDev && typeof curDev.signal === 'number' && curDev.signal >= 0)
+        ? curDev.signal
+        : (typeof state.phoneSignal === 'number' ? state.phoneSignal : -1);
+      const sigBars = phoneOnline && realSig >= 0 ? Math.max(0, Math.min(4, realSig)) : 0;
       if (topSig) {
-        topSig.className = state.btConnected ? 'opacity-90 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300';
+        topSig.className = (phoneOnline && realSig >= 0)
+          ? 'opacity-90 transition-opacity duration-300'
+          : (phoneOnline ? 'opacity-40 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300');
       }
       [1, 2, 3, 4].forEach(b => {
         const barEl = document.getElementById('sig-bar-' + b);
-        if (barEl) barEl.setAttribute('opacity', b <= sigBars ? '1' : '0.22');
+        if (barEl) barEl.setAttribute('opacity', (phoneOnline && realSig >= 0 && b <= sigBars) ? '1' : '0.22');
       });
       const topPhoneWrap = document.getElementById('top-phone-wrap');
       if (topPhoneWrap) {
-        topPhoneWrap.className = state.btConnected
+        topPhoneWrap.className = phoneOnline
           ? 'phone cursor-pointer opacity-90 transition-opacity duration-300'
           : 'phone cursor-pointer opacity-25 transition-opacity duration-300';
       }
       if (topBatt) {
-        if (state.btConnected) {
-          const battVal = (curDev && curDev.battery) || state.phoneBattery || 100;
-          topBatt.textContent = `${battVal}%`;
+        const realBatt = (curDev && typeof curDev.battery === 'number' && curDev.battery >= 0)
+          ? curDev.battery
+          : (typeof state.phoneBattery === 'number' ? state.phoneBattery : -1);
+        if (phoneOnline && realBatt >= 0) {
+          topBatt.textContent = `${realBatt}%`;
           topBatt.className = 'text-[11px] font-semibold text-[var(--ink)] tabular-nums transition-opacity duration-300';
+        } else if (phoneOnline) {
+          topBatt.textContent = 'BT';
+          topBatt.className = 'text-[11px] font-semibold text-[var(--accent)] opacity-80 tabular-nums transition-opacity duration-300';
         } else {
           topBatt.textContent = '--%';
           topBatt.className = 'text-[11px] font-semibold text-[var(--mute)] opacity-35 tabular-nums transition-opacity duration-300';
@@ -16936,16 +18186,51 @@
       if (subAppFiles) subAppFiles.className = state.appsSubView === 'files' ? 'flex flex-col justify-between h-full w-full' : 'hidden';
       if (subAppR5) subAppR5.className = state.appsSubView === 'r5' ? 'flex flex-col justify-between h-full w-full' : 'hidden';
 
-      // Ambient Blurred Color Orbs in Music View
-      const curSong = songs[state.songIdx];
-      const prevSong = songs[(state.songIdx - 1 + songs.length) % songs.length];
-      const nextSong = songs[(state.songIdx + 1) % songs.length];
+      // Ambient Blurred Cover Art & Dominant Color Orbs in Music View
+      const curSong = songs[state.songIdx] || songs[0];
+      const baseThemeForNeighbors = (curSong && typeof curSong.themeIdx === 'number') ? curSong.themeIdx : (state.idleCoverThemeIdx || 0);
+      const prevSong = songs.length > 1
+        ? songs[(state.songIdx - 1 + songs.length) % songs.length]
+        : getMusicFallbackCardForOffset(baseThemeForNeighbors, -1);
+      const nextSong = songs.length > 1
+        ? songs[(state.songIdx + 1) % songs.length]
+        : getMusicFallbackCardForOffset(baseThemeForNeighbors, 1);
+
+      const activeC1 = (state.audioMode === 'radio' && radioStations[state.stationIdx])
+        ? radioStations[state.stationIdx].color1
+        : (curSong.color1 || '#06b6d4');
+      const activeC2 = (state.audioMode === 'radio' && radioStations[state.stationIdx])
+        ? radioStations[state.stationIdx].color2
+        : (curSong.color2 || '#3b82f6');
 
       const amb = document.getElementById('music-ambient-bg');
-      amb.style.opacity = state.tab === 'music' ? '1' : '0';
-      document.getElementById('blob-primary').style.background = curSong.color1;
-      document.getElementById('blob-secondary').style.background = curSong.color2;
-      document.getElementById('home-media-glow').style.background = curSong.color1;
+      const blurImgEl = document.getElementById('music-cover-blur-img');
+      const ambGradEl = document.getElementById('music-ambient-grad');
+      const ambScrimEl = document.getElementById('music-ambient-scrim');
+      const isLightUi = state.theme === 'light';
+
+      if (amb) amb.style.opacity = state.tab === 'music' ? '1' : '0';
+      if (blurImgEl) {
+        if (state.audioMode !== 'radio' && curSong && curSong.cover) {
+          if (blurImgEl.getAttribute('src') !== curSong.cover) {
+            blurImgEl.src = curSong.cover;
+          }
+          blurImgEl.style.opacity = curSong.hasRealCover ? (isLightUi ? '0.26' : '0.44') : (isLightUi ? '0.20' : '0.32');
+          blurImgEl.style.filter = isLightUi ? 'blur(52px) saturate(1.45) brightness(1.06)' : 'blur(52px) saturate(1.6) brightness(0.84)';
+        } else {
+          blurImgEl.style.opacity = '0';
+        }
+      }
+      if (ambGradEl) {
+        ambGradEl.style.background = `radial-gradient(circle at 26% 32%, ${activeC1}66 0%, transparent 58%), radial-gradient(circle at 76% 42%, ${activeC2}55 0%, transparent 60%)`;
+      }
+      if (ambScrimEl) {
+        ambScrimEl.style.background = isLightUi ? 'rgba(241, 245, 249, 0.62)' : 'rgba(6, 9, 17, 0.42)';
+      }
+
+      document.getElementById('blob-primary').style.background = activeC1;
+      document.getElementById('blob-secondary').style.background = activeC2;
+      document.getElementById('home-media-glow').style.background = activeC1;
 
       // Update Bottom Dock Tabs
       ['home', 'cockpit', 'music', 'map', 'settings', 'apps'].forEach(t => {
@@ -17043,12 +18328,6 @@
       const activeFreq = state.customFreq !== null ? state.customFreq.toFixed(1) : curSt.freq.toFixed(1);
       const pctFreq = freqToDialPct(parseFloat(activeFreq)).toFixed(1);
 
-      if (isRadio) {
-        document.getElementById('blob-primary').style.background = curSt.color1;
-        document.getElementById('blob-secondary').style.background = curSt.color2;
-        document.getElementById('home-media-glow').style.background = curSt.color1;
-      }
-
       const srcName = 'Bluetooth';
       const homeSrcBt = document.getElementById('home-src-bt');
       if (homeSrcBt) homeSrcBt.textContent = srcName;
@@ -17141,14 +18420,18 @@
       }
 
       // Active Title & Subtitle across Home, Cockpit, Vision Pill & Map
-      const isStopped = !state.playing && state.songProgressPct === 0;
-      const activeTitle = isRadio ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}` : (isStopped ? 'Audio del Sistema' : curSong.title);
-      const activeSub = isRadio ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`) : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : `${curSong.artist} · ${curSong.album}`);
+      const isIdlePlaceholder = !curSong || !!curSong.isWaitingPlaceholder;
+      const activeTitle = isRadio
+        ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}`
+        : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
+      const activeSub = isRadio
+        ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`)
+        : (isIdlePlaceholder ? 'En espera · Bluetooth / USB' : `${curSong.artist} · ${curSong.album}`);
 
       const heroTitle = document.getElementById('music-hero-title');
-      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isStopped ? 'Audio del Sistema' : curSong.title);
+      if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
       const heroArtist = document.getElementById('music-hero-artist');
-      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isStopped ? 'Toca Play para reproducir o abre tu reproductor' : curSong.artist);
+      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isIdlePlaceholder ? 'Toca Play para reproducir o abre tu reproductor' : curSong.artist);
 
       document.getElementById('home-cov-curr').src = curSong.cover;
       document.getElementById('home-cov-prev').src = prevSong.cover;
@@ -17285,17 +18568,52 @@
           : 'w-20 h-28 rounded-[38px] bg-slate-700/60 shadow-none flex items-center justify-center transition-all duration-300 opacity-60';
       }
       const btName = document.getElementById('bt-card-phone-name');
-      if (btName) btName.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin dispositivo vinculado') : 'Bluetooth desactivado');
+      if (btName) btName.textContent = (state.btEnabled && phoneOnline) ? ((curDev && curDev.name) || state.btDeviceName || 'Teléfono conectado') : (state.btEnabled ? (state.obdConnected ? 'Solo escáner OBD2 activo' : 'Sin dispositivo vinculado') : 'Bluetooth desactivado');
       const btSub = document.getElementById('bt-card-phone-sub');
-      if (btSub) btSub.textContent = (state.btEnabled && curDev) ? (curDev.sub || 'Conectado') : (state.btEnabled ? 'Toca para vincular teléfono' : 'Toca para activar');
+      if (btSub) {
+        if (state.btEnabled && phoneOnline) {
+          const battInfo = (typeof state.phoneBattery === 'number' && state.phoneBattery >= 0) ? ` · Batería ${state.phoneBattery}%` : '';
+          btSub.textContent = `Conectado${battInfo}`;
+        } else {
+          btSub.textContent = state.btEnabled ? (curDev ? `Vinculado: ${curDev.name} (toca para conectar)` : 'Toca para vincular teléfono') : 'Toca para activar';
+        }
+      }
       const btSw = document.getElementById('bt-card-power-sw');
       if (btSw) btSw.setAttribute('aria-checked', state.btEnabled);
       const btSubSw = document.getElementById('bt-sub-power-sw');
       if (btSubSw) btSubSw.setAttribute('aria-checked', state.btEnabled);
       const btSubTitle = document.getElementById('bt-sub-phone-title');
-      if (btSubTitle) btSubTitle.textContent = (state.btEnabled && curDev) ? curDev.name : (state.btEnabled ? (state.btConnected ? state.btDeviceName : 'Sin vincular') : 'Sin conexión');
+      if (btSubTitle) btSubTitle.textContent = (state.btEnabled && phoneOnline) ? ((curDev && curDev.name) || state.btDeviceName || 'Teléfono conectado') : (state.btEnabled ? (curDev ? curDev.name : 'Sin vincular') : 'Sin conexión');
       const btSubStatus = document.getElementById('bt-sub-phone-status');
-      if (btSubStatus) btSubStatus.textContent = (state.btEnabled && curDev) ? `Conectado · Batería ${curDev.battery || 100}% · Audio HD` : (state.btEnabled ? (state.btConnected ? 'Conectado' : 'Esperando conexión...') : 'Bluetooth apagado');
+      if (btSubStatus) {
+        if (!state.btEnabled) {
+          btSubStatus.textContent = 'Bluetooth apagado';
+        } else if (phoneOnline) {
+          const bStr = (typeof state.phoneBattery === 'number' && state.phoneBattery >= 0) ? ` · Batería ${state.phoneBattery}%` : '';
+          btSubStatus.textContent = `Conectado${bStr} · Audio / Llamadas`;
+        } else if (state.obdConnected) {
+          btSubStatus.textContent = 'OBD2 conectado · Esperando teléfono';
+        } else {
+          btSubStatus.textContent = 'Esperando conexión Bluetooth';
+        }
+      }
+      const isPhoneTab = state.btRightTab === 'phone';
+      const tabDevBtn = document.getElementById('bt-right-tab-devices');
+      const tabPhoneBtn = document.getElementById('bt-right-tab-phone');
+      const devListEl = document.getElementById('bt-devices-list-container');
+      const dialPaneEl = document.getElementById('bt-dialpad-pane');
+      const countLblEl = document.getElementById('bt-linked-count-label');
+      const scanBtBtnEl = document.getElementById('btn-bt-scan');
+      if (tabDevBtn) tabDevBtn.className = !isPhoneTab
+        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
+      if (tabPhoneBtn) tabPhoneBtn.className = isPhoneTab
+        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
+      if (devListEl) devListEl.className = isPhoneTab ? 'hidden' : 'flex flex-col gap-3 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]';
+      if (dialPaneEl) dialPaneEl.className = isPhoneTab ? 'flex flex-col justify-between gap-2.5 flex-1 min-h-0' : 'hidden';
+      if (countLblEl) countLblEl.style.display = isPhoneTab ? 'none' : '';
+      if (scanBtBtnEl) scanBtBtnEl.style.display = isPhoneTab ? 'none' : '';
 
       [0, 1].forEach(i => {
         const dBtn = document.getElementById('bt-dev-btn-' + i);
@@ -17860,13 +19178,17 @@
       try {
         if (typeof window.AndroidBridge.getBluetoothStatus === 'function') {
           const b = JSON.parse(window.AndroidBridge.getBluetoothStatus() || '{}');
-          const wasBtConnected = !!state._prevBtConnected;
+          const wasPhoneConnected = !!state._prevBtConnected;
           state.btEnabled = typeof b.enabled === 'boolean' ? b.enabled : state.btEnabled;
-          state.btConnected = !!b.connected;
-          state._prevBtConnected = state.btConnected;
+          state.phoneConnected = typeof b.phoneConnected === 'boolean' ? b.phoneConnected : !!b.connected;
+          state.btConnected = !!b.connected || state.phoneConnected;
+          state.obdConnected = typeof b.obdConnected === 'boolean' ? b.obdConnected : state.obdConnected;
+          state.phoneBattery = typeof b.phoneBattery === 'number' ? b.phoneBattery : -1;
+          state.phoneSignal = typeof b.phoneSignal === 'number' ? b.phoneSignal : -1;
+          state._prevBtConnected = state.phoneConnected;
           state.btDeviceName = b.device || 'Sin dispositivo';
           setAjItemVal('con', 'Bluetooth', !!state.btEnabled);
-          if (!wasBtConnected && state.btConnected && state.btAutoPlay) {
+          if (!wasPhoneConnected && state.phoneConnected && state.btAutoPlay) {
             try {
               if (typeof window.AndroidBridge.sendMediaKeyEvent === 'function') {
                 window.AndroidBridge.sendMediaKeyEvent('play');
@@ -17881,10 +19203,10 @@
           const phoneWrap = document.getElementById('top-phone-wrap');
           const sigIco = document.getElementById('top-signal-icon');
           if (btIco) {
-            if (b.connected) {
+            if (state.btConnected) {
               btIco.classList.remove('opacity-35');
               btIco.classList.add('on', 'text-[var(--accent)]');
-              btIco.setAttribute('title', `Bluetooth: ${b.device}`);
+              btIco.setAttribute('title', `Bluetooth: ${b.device || 'Conectado'}`);
             } else {
               btIco.classList.add('opacity-35');
               btIco.classList.remove('on', 'text-[var(--accent)]');
@@ -17892,7 +19214,7 @@
             }
           }
           if (phoneWrap) {
-            if (b.connected) {
+            if (state.phoneConnected) {
               phoneWrap.classList.remove('opacity-30');
               phoneWrap.setAttribute('title', `Teléfono: ${b.device}`);
             } else {
@@ -17901,7 +19223,7 @@
             }
           }
           if (sigIco) {
-            if (b.connected) sigIco.classList.remove('opacity-30');
+            if (state.phoneConnected && state.phoneSignal >= 0) sigIco.classList.remove('opacity-30');
             else sigIco.classList.add('opacity-30');
           }
         }
@@ -17913,18 +19235,32 @@
             bonded.forEach(d => {
               btDevices.push({
                 name: d.name,
+                address: d.address || '',
                 sub: d.type === 'obd' ? 'Telemetría ECU OBD2' : 'Audio y llamadas Bluetooth',
-                battery: 100,
-                signal: 4,
+                battery: typeof d.battery === 'number' ? d.battery : -1,
+                signal: typeof d.signal === 'number' ? d.signal : -1,
+                connected: !!d.connected,
+                a2dpConnected: !!d.a2dpConnected,
+                hfpConnected: !!d.hfpConnected,
                 type: d.type
               });
             });
+            const connIdx = btDevices.findIndex(d => d && d.connected && d.type !== 'obd');
+            if (connIdx >= 0) state.btDeviceIdx = connIdx;
             renderBluetoothDevicesList();
+          }
+        }
+        if (typeof window.AndroidBridge.getCallStatus === 'function') {
+          const cs = JSON.parse(window.AndroidBridge.getCallStatus() || '{}');
+          if (cs && typeof window.onCallStateChanged === 'function') {
+            if (cs.active || (state.callState && state.callState !== 'idle')) {
+              window.onCallStateChanged(cs);
+            }
           }
         }
       } catch (e) { }
 
-      // 3. Battery / Voltage
+      // 3. Battery / Voltage (Car / Tablet voltage only — phone battery comes strictly from BT HFP)
       try {
         if (typeof window.AndroidBridge.getBatteryStatus === 'function') {
           const bat = JSON.parse(window.AndroidBridge.getBatteryStatus() || '{}');
@@ -17934,10 +19270,6 @@
             if (battEl && !isNaN(state.voltage)) battEl.textContent = `${state.voltage.toFixed(1)} V`;
             const ckBattEl = document.getElementById('ck-fs-batt');
             if (ckBattEl && !isNaN(state.voltage)) ckBattEl.textContent = `${state.voltage.toFixed(1)} V`;
-          }
-          if (typeof bat.level === 'number') {
-            const pb = document.getElementById('top-phone-batt');
-            if (pb && state.btConnected) pb.textContent = `${bat.level}%`;
           }
         }
       } catch (e) { }
@@ -17966,7 +19298,7 @@
             const ramEl = document.getElementById('settings-ram-val');
             if (ramEl) ramEl.textContent = `${ramInfo.usedGb} / ${ramInfo.totalGb} GB`;
             const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l.includes('Memoria RAM')) : null;
+            const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Memoria RAM')) : null;
             if (hwRamItem) hwRamItem.v = `${ramInfo.usedGb} GB en uso de ${ramInfo.totalGb} GB (${ramInfo.availMb} MB libres)`;
           }
         }
@@ -17974,7 +19306,7 @@
           const stInfo = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}');
           if (stInfo && stInfo.mounted) {
             const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l.includes('Almacenamiento Interno')) : null;
+            const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Almacenamiento Interno')) : null;
             if (hwStItem) hwStItem.v = `${stInfo.freeGb} GB libres de ${stInfo.totalGb} GB (${stInfo.usedPercent}% usado)`;
           }
         }
@@ -18084,7 +19416,7 @@
       if (typeof data.vol === 'number') {
         state.vol = data.vol;
       }
-      if (typeof data.btConnected === 'boolean') state.btEnabled = data.btConnected;
+      if (typeof data.btConnected === 'boolean') state.btConnected = data.btConnected;
       if (typeof data.btEnabled === 'boolean') state.btEnabled = data.btEnabled;
       if (typeof data.phoneBattery === 'number') state.phoneBattery = data.phoneBattery;
       if (typeof data.phoneSignal === 'number') state.phoneSignal = data.phoneSignal;
@@ -18166,15 +19498,26 @@
 
     // 1-second audio progress tick during playback
     setInterval(() => {
-      if (state.playing && state.audioMode !== 'radio' && state.songProgressPct > 0) {
+      if (state.callState && state.callState !== 'idle' && typeof refreshCallTimers === 'function') {
+        refreshCallTimers();
+      }
+      if (state.playing && state.audioMode !== 'radio') {
         const curSong = songs[state.songIdx] || songs[0];
+        const joyAudioPlaying = (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused);
+        if (joyAudioPlaying) return;
+        if (!curSong || curSong.isWaitingPlaceholder) return;
         const dur = curSong.durationSec || 210;
         const incPct = (1 / dur) * 100;
-        state.songProgressPct = Math.min(100, state.songProgressPct + incPct);
-        if (state.songProgressPct >= 100) {
-          changeSong(1);
-        } else {
+        if (curSong.isLiveBt) {
+          state.songProgressPct = Math.min(99.5, state.songProgressPct + incPct);
           updateAudioProgressUI();
+        } else {
+          state.songProgressPct = Math.min(100, state.songProgressPct + incPct);
+          if (state.songProgressPct >= 100) {
+            changeSong(1);
+          } else {
+            updateAudioProgressUI();
+          }
         }
       }
     }, 1000);
