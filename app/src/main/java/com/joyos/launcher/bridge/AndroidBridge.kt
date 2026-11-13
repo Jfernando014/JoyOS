@@ -1914,11 +1914,12 @@ class AndroidBridge(
             freedBytes += deleteDirContents(context.externalCacheDir)
             val kb = freedBytes / 1024L
             JSONObject().apply {
+                put("freedKb", kb)
                 put("clearedKb", kb)
                 put("ok", true)
             }.toString()
         } catch (e: Throwable) {
-            "{\"clearedKb\":0,\"ok\":false,\"error\":\"${e.message}\"}"
+            "{\"freedKb\":0,\"clearedKb\":0,\"ok\":false,\"error\":\"${e.message}\"}"
         }
     }
 
@@ -1961,12 +1962,17 @@ class AndroidBridge(
             )
             for (f in candidates) {
                 if (f.exists() && f.canRead() && f.length() > 10) {
-                    return f.readText(Charsets.UTF_8)
+                    val raw = f.readText(Charsets.UTF_8)
+                    return JSONObject().apply {
+                        put("ok", true)
+                        put("path", f.absolutePath)
+                        put("json", raw)
+                    }.toString()
                 }
             }
-            ""
+            "{\"ok\":false,\"path\":\"\",\"json\":\"\"}"
         } catch (_: Throwable) {
-            ""
+            "{\"ok\":false,\"path\":\"\",\"json\":\"\"}"
         }
     }
 

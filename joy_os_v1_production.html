@@ -6558,7 +6558,7 @@
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
                   Actualización JoyOS
                   <span id="ota-modal-tag"
-                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v8.2.0</span>
+                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.0</span>
                 </h3>
                 <p class="text-xs text-slate-400" id="ota-modal-subtitle">Nueva versión disponible desde GitHub</p>
               </div>
@@ -6739,7 +6739,7 @@
 
             <!-- Quick Android Settings Safety Access (Never Trapped) -->
             <button
-              onclick="if(window.AndroidBridge&&window.AndroidBridge.openAndroidSettings){window.AndroidBridge.openAndroidSettings();}else{alert('Abriendo Ajustes de Android...');}"
+              onclick="if(window.AndroidBridge&&window.AndroidBridge.openAndroidSettings){window.AndroidBridge.openAndroidSettings();}else if(typeof showJoyToast==='function'){showJoyToast('Ajustes de Android','Disponible instalado en la tablet del vehículo','info');}"
               class="pressable w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 hover:text-white"
               title="Ajustes de Android de Fábrica">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -12799,7 +12799,7 @@
         container.innerHTML = `
           <div class="p-6 text-center text-xs text-[var(--mute)] flex flex-col items-center gap-3">
             <span>No hay dispositivos Bluetooth vinculados en la tablet</span>
-            <button onclick="if(window.AndroidBridge&&window.AndroidBridge.openBluetoothSettings){window.AndroidBridge.openBluetoothSettings();}else{alert('Abre Ajustes de Bluetooth');}" class="pressable px-4 py-2 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-md">
+            <button onclick="if(window.AndroidBridge&&window.AndroidBridge.openBluetoothSettings){window.AndroidBridge.openBluetoothSettings();}else if(typeof showJoyToast==='function'){showJoyToast('Bluetooth Android','Empareja desde Ajustes del sistema en la tablet','info');}" class="pressable px-4 py-2 rounded-xl bg-[var(--accent)] text-slate-950 font-bold text-xs shadow-md">
               Vincular en Ajustes de Android
             </button>
           </div>
@@ -14017,7 +14017,8 @@
             if (window.AndroidBridge && typeof window.AndroidBridge.clearAppCache === 'function') {
               try {
                 const res = JSON.parse(window.AndroidBridge.clearAppCache() || '{}');
-                showJoyToast('Caché liberado', res.ok ? `Se liberaron ${res.freedKb || 0} KB de caché temporal` : 'Limpieza completada', 'ok');
+                const kb = res.freedKb !== undefined ? res.freedKb : (res.clearedKb || 0);
+                showJoyToast('Caché liberado', res.ok ? `Se liberaron ${kb} KB de caché temporal` : 'Limpieza completada', 'ok');
               } catch (e) { }
             } else {
               showJoyToast('Caché limpiado', 'Archivos temporales liberados (ajustes intactos)', 'ok');
@@ -14191,7 +14192,7 @@
               type: 'info',
               dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399] shrink-0',
               title: 'JoyOS está al día',
-              tag: `Versión actual v${data.version || '8.1.0'}`,
+              tag: `Versión actual v${data.version || JOYOS_VERSION}`,
               tagClass: 'text-[11px] font-semibold text-emerald-400 pl-1',
               targetTab: 'settings'
             });
@@ -16544,7 +16545,7 @@
       if (!data) return;
       state.gpsSpeed = data.speed || 0;
       const speedEl = document.getElementById('map-speed-val');
-      if (speedEl) speedEl.textContent = String(state.gpsSpeed);
+      if (speedEl) speedEl.textContent = String(formatSpeedVal(state.gpsSpeed));
 
       const lat = typeof data.lat === 'number' ? data.lat : data.latitude;
       const lon = typeof data.lon === 'number' ? data.lon : data.longitude;
@@ -16876,7 +16877,7 @@
       const topBatt = document.getElementById('top-phone-batt');
       const topWea = document.getElementById('top-weather-temp');
 
-      if (topWea) topWea.textContent = `${state.weatherTemp}°`;
+      if (topWea) topWea.textContent = formatTemp(state.weatherTemp);
       if (topBt) {
         topBt.className = `ic ${state.btEnabled ? 'on' : 'off'} transition-all duration-200`;
         topBt.style.setProperty('color', state.btEnabled ? 'var(--accent)' : '#71717a', 'important');
