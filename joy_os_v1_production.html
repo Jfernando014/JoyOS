@@ -7518,8 +7518,8 @@
         <!-- =============================================================== -->
         <div id="view-music" class="hidden flex-col items-center justify-between h-full py-2">
 
-          <!-- Top Segmented Mode Switcher: [ Bluetooth ] vs [ Radio FM ] vs [ USB ] + Visual Theme Pill -->
-          <div class="relative w-full flex items-center justify-center shrink-0">
+          <!-- Top Segmented Mode Switcher: [ Bluetooth ] vs [ Radio FM ] vs [ USB ] -->
+          <div class="w-full flex items-center justify-center shrink-0">
             <div class="ethereal-pill rounded-full p-1 flex items-center gap-1 shadow-md select-none shrink-0">
               <button onclick="setAudioMode('bt')" id="music-tab-bt"
                 class="pressable px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-2 transition-all">
@@ -7545,12 +7545,6 @@
                 <span>USB</span>
               </button>
             </div>
-            <button type="button" id="music-art-theme-btn" onclick="cycleMusicVisualTheme(event)"
-              class="pressable absolute right-0 ethereal-pill rounded-full px-3 py-1.5 text-[11px] font-medium flex items-center gap-1.5 shadow-sm transition-all opacity-85 hover:opacity-100"
-              title="Cambiar estilo visual / portada de respaldo">
-              <span id="music-art-theme-dot" class="w-2.5 h-2.5 rounded-full inline-block shrink-0" style="background: #06b6d4;"></span>
-              <span id="music-art-theme-label" class="hidden sm:inline">Ondas Cian</span>
-            </button>
           </div>
 
           <!-- STAGE 1: BLUETOOTH HERO MUSIC STAGE (Coverflow + Title/Artist + Scrubber + 5 Round Controls) -->
@@ -9730,14 +9724,14 @@
     }
 
     const musicArtThemes = [
-      { id: 'cyan', label: 'Ondas Cian', bg1: '#082f49', bg2: '#020617', color1: '#06b6d4', color2: '#3b82f6' },
-      { id: 'amber', label: 'Horizonte Ámbar', bg1: '#451a03', bg2: '#1c0a13', color1: '#f59e0b', color2: '#e11d48' },
-      { id: 'violet', label: 'Prisma Violeta', bg1: '#2e1065', bg2: '#0f0720', color1: '#8b5cf6', color2: '#ec4899' },
-      { id: 'emerald', label: 'Pulso Esmeralda', bg1: '#022c22', bg2: '#041418', color1: '#10b981', color2: '#06b6d4' },
-      { id: 'crimson', label: 'Carbono Rojo RS', bg1: '#4c0519', bg2: '#110709', color1: '#f43f5e', color2: '#fb923c' },
-      { id: 'indigo', label: 'Órbita Índigo', bg1: '#1e1b4b', bg2: '#060c24', color1: '#6366f1', color2: '#38bdf8' },
-      { id: 'aurora', label: 'Aurora Boreal', bg1: '#0f2e2b', bg2: '#1a0b2e', color1: '#14b8a6', color2: '#a855f7' },
-      { id: 'gold', label: 'Vinilo Dorado', bg1: '#3a2705', bg2: '#140c02', color1: '#eab308', color2: '#f97316' }
+      { id: 'cyan', bg1: '#082f49', bg2: '#020617', color1: '#06b6d4', color2: '#3b82f6' },
+      { id: 'amber', bg1: '#451a03', bg2: '#1c0a13', color1: '#f59e0b', color2: '#e11d48' },
+      { id: 'violet', bg1: '#2e1065', bg2: '#0f0720', color1: '#8b5cf6', color2: '#ec4899' },
+      { id: 'emerald', bg1: '#022c22', bg2: '#041418', color1: '#10b981', color2: '#06b6d4' },
+      { id: 'crimson', bg1: '#4c0519', bg2: '#110709', color1: '#f43f5e', color2: '#fb923c' },
+      { id: 'indigo', bg1: '#1e1b4b', bg2: '#060c24', color1: '#6366f1', color2: '#38bdf8' },
+      { id: 'aurora', bg1: '#0f2e2b', bg2: '#1a0b2e', color1: '#14b8a6', color2: '#a855f7' },
+      { id: 'gold', bg1: '#3a2705', bg2: '#140c02', color1: '#eab308', color2: '#f97316' }
     ];
 
     function getSavedIdleCoverThemeIdx() {
@@ -9806,7 +9800,7 @@
           '<circle cx="150" cy="138" r="28" fill="url(#' + gid + 'a)"/>' +
           '<circle cx="222" cy="96" r="8" fill="#f8fafc" opacity="0.88"/>';
       } else if (themeIdx === 6) {
-        pattern = '<path d="M0 155 C70 95, 130 205, 200 130 C240 88, 275 110, 300 95 L300 225 L0 225 Z" fill="url(#' + gid + 'a)" opacity="0.34"/>' +
+        pattern = '<path d="M0 155 C70 95, 130 205, 200 130 C240 88, 275 110, 300 95 L300 300 L0 300 Z" fill="url(#' + gid + 'a)" opacity="0.34"/>' +
           '<path d="M0 180 C80 128, 160 218, 300 142" fill="none" stroke="' + t.color1 + '" stroke-width="4" opacity="0.85"/>' +
           '<path d="M0 135 C95 190, 185 88, 300 165" fill="none" stroke="' + t.color2 + '" stroke-width="3" opacity="0.65"/>';
       } else {
@@ -9817,22 +9811,25 @@
           '<circle cx="150" cy="136" r="10" fill="#090d16"/>';
       }
 
-      const labelHtml = safeTitle
-        ? '<text x="150" y="252" font-family="sans-serif" font-size="15" font-weight="700" fill="#f8fafc" text-anchor="middle">' + safeTitle + '</text>' +
+      const centeredPattern = (!safeTitle && themeIdx !== 6)
+        ? '<g transform="translate(0, 12)">' + pattern + '</g>'
+        : pattern;
+      const footerHtml = safeTitle
+        ? '<rect x="0" y="218" width="300" height="82" fill="' + t.bg2 + '" opacity="0.48"/>' +
+          '<text x="150" y="252" font-family="sans-serif" font-size="15" font-weight="700" fill="#f8fafc" text-anchor="middle">' + safeTitle + '</text>' +
           (safeArtist ? '<text x="150" y="274" font-family="sans-serif" font-size="12" font-weight="500" fill="#cbd5e1" opacity="0.82" text-anchor="middle">' + safeArtist + '</text>' : '')
-        : '<text x="150" y="264" font-family="sans-serif" font-size="13" font-weight="600" fill="#e2e8f0" opacity="0.85" text-anchor="middle">' + escapeXmlText(t.label) + '</text>';
+        : '';
 
       const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">' +
         '<defs>' +
         '<radialGradient id="' + gid + 'bg" cx="35%" cy="25%" r="85%"><stop offset="0%" stop-color="' + t.bg1 + '"/><stop offset="100%" stop-color="' + t.bg2 + '"/></radialGradient>' +
         '<linearGradient id="' + gid + 'a" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="' + t.color1 + '"/><stop offset="100%" stop-color="' + t.color2 + '"/></linearGradient>' +
-        '<radialGradient id="' + gid + 'glow" cx="50%" cy="44%" r="48%"><stop offset="0%" stop-color="' + t.color1 + '" stop-opacity="0.42"/><stop offset="100%" stop-color="' + t.color2 + '" stop-opacity="0"/></radialGradient>' +
+        '<radialGradient id="' + gid + 'glow" cx="50%" cy="48%" r="48%"><stop offset="0%" stop-color="' + t.color1 + '" stop-opacity="0.42"/><stop offset="100%" stop-color="' + t.color2 + '" stop-opacity="0"/></radialGradient>' +
         '</defs>' +
         '<rect width="300" height="300" fill="url(#' + gid + 'bg)"/>' +
         '<rect width="300" height="300" fill="url(#' + gid + 'glow)"/>' +
-        pattern +
-        '<rect x="0" y="218" width="300" height="82" fill="' + t.bg2 + '" opacity="0.48"/>' +
-        labelHtml +
+        centeredPattern +
+        footerHtml +
         '</svg>';
       return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
     }
@@ -15116,7 +15113,7 @@
       if (curSong && !curSong.hasRealCover) {
         applyMusicThemeToSong(curSong, cleanIdx);
       } else if (curSong && curSong.hasRealCover) {
-        showJoyToast('Estilo "' + musicArtThemes[cleanIdx].label + '" guardado para pistas sin portada');
+        showJoyToast('Estilo visual guardado para pistas sin portada');
       }
       renderAll();
     }
@@ -17094,7 +17091,7 @@
       return {
         isThemePreview: true,
         themeIdx: tIdx,
-        title: t.label,
+        title: '',
         cover: generateCarCoverSvg('', tIdx, '', tIdx),
         color1: t.color1,
         color2: t.color2
@@ -17577,22 +17574,6 @@
       const radioStage = document.getElementById('radio-stage');
       if (radioStage) radioStage.className = isRadio ? 'w-full max-w-3xl my-auto' : 'hidden';
 
-      const themePillBtn = document.getElementById('music-art-theme-btn');
-      const themePillDot = document.getElementById('music-art-theme-dot');
-      const themePillLbl = document.getElementById('music-art-theme-label');
-      if (themePillBtn) {
-        themePillBtn.style.display = isRadio ? 'none' : 'flex';
-        if (themePillDot) themePillDot.style.background = activeC1;
-        if (themePillLbl) {
-          if (curSong && curSong.hasRealCover) {
-            themePillLbl.textContent = 'Portada real';
-          } else {
-            const tObj = musicArtThemes[baseThemeForNeighbors] || musicArtThemes[0];
-            themePillLbl.textContent = tObj.label;
-          }
-        }
-      }
-
       // Populate Radio Stage
       document.getElementById('radio-big-freq').textContent = activeFreq;
       document.getElementById('radio-station-title').textContent = state.customFreq !== null
@@ -17641,18 +17622,17 @@
 
       // Active Title & Subtitle across Home, Cockpit, Vision Pill & Map
       const isIdlePlaceholder = !curSong || !!curSong.isWaitingPlaceholder;
-      const activeThemeObj = musicArtThemes[baseThemeForNeighbors] || musicArtThemes[0];
       const activeTitle = isRadio
         ? `${activeFreq} MHz · ${state.customFreq !== null ? 'FM Stereo' : curSt.name}`
         : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
       const activeSub = isRadio
         ? (state.customFreq !== null ? 'Sintonía Manual RDS' : `${curSt.sub} · ${curSt.genre}`)
-        : (isIdlePlaceholder ? `En espera · ${activeThemeObj.label}` : `${curSong.artist} · ${curSong.album}`);
+        : (isIdlePlaceholder ? 'En espera · Bluetooth / USB' : `${curSong.artist} · ${curSong.album}`);
 
       const heroTitle = document.getElementById('music-hero-title');
       if (heroTitle) heroTitle.textContent = isRadio ? activeTitle : (isIdlePlaceholder ? 'Audio del Sistema' : curSong.title);
       const heroArtist = document.getElementById('music-hero-artist');
-      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isIdlePlaceholder ? `Toca Play o desliza estilos (${activeThemeObj.label})` : curSong.artist);
+      if (heroArtist) heroArtist.textContent = isRadio ? activeSub : (isIdlePlaceholder ? 'Toca Play para reproducir o abre tu reproductor' : curSong.artist);
 
       document.getElementById('home-cov-curr').src = curSong.cover;
       document.getElementById('home-cov-prev').src = prevSong.cover;
