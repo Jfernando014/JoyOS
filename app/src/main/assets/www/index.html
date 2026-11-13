@@ -4707,6 +4707,241 @@
       background: rgba(56, 189, 248, 0.22);
     }
 
+    .joy-sys-input {
+      width: 100%;
+      margin-top: 12px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(0, 0, 0, 0.28);
+      padding: 0 12px;
+      font-size: 13px;
+      color: inherit;
+      outline: none;
+    }
+
+    .theme-light .joy-sys-input {
+      border-color: rgba(15, 23, 42, 0.16);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .joy-sys-input:focus {
+      border-color: var(--accent, #38bdf8);
+    }
+
+    /* Upgraded Interactive Automotive Screensaver */
+    #screensaver-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 60;
+      padding: 28px 36px;
+      background: #03060c;
+      color: #f8fafc;
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .ss-bg-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background-color: #03060c;
+      background-size: cover;
+      background-position: center;
+      transition: opacity 0.45s ease, filter 0.45s ease;
+    }
+
+    .ss-dim-scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0);
+      transition: background 0.35s ease;
+    }
+
+    #screensaver-overlay.ss-night-dim .ss-dim-scrim {
+      background: rgba(0, 0, 0, 0.56);
+    }
+
+    .ss-topbar,
+    .ss-bottombar {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .ss-chip {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(15, 23, 42, 0.55);
+      color: rgba(248, 250, 252, 0.8);
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.16s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ss-chip:hover {
+      border-color: rgba(255, 255, 255, 0.32);
+      color: #ffffff;
+    }
+
+    .ss-chip.is-active {
+      border-color: var(--accent, #38bdf8);
+      background: rgba(56, 189, 248, 0.22);
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.24);
+    }
+
+    .ss-center-stage {
+      position: relative;
+      z-index: 4;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      pointer-events: none;
+      transition: transform 1.8s ease-in-out;
+      max-width: 92%;
+    }
+
+    .ss-clock-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .ss-sec-pill {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--accent, #38bdf8);
+      font-variant-numeric: tabular-nums;
+      opacity: 0.92;
+    }
+
+    .ss-analog-face {
+      width: 196px;
+      height: 196px;
+      filter: drop-shadow(0 14px 32px rgba(0, 0, 0, 0.65));
+    }
+
+    .ss-info-strip {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ss-tele-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(15, 23, 42, 0.62);
+      color: rgba(248, 250, 252, 0.92);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .ss-nav-pill {
+      border-color: rgba(56, 189, 248, 0.42);
+      background: rgba(8, 47, 73, 0.65);
+    }
+
+    .ss-media-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px 8px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(12, 18, 32, 0.72);
+      max-width: 440px;
+    }
+
+    .ss-cover-thumb {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: rgba(56, 189, 248, 0.18);
+      flex-shrink: 0;
+    }
+
+    .ss-media-meta {
+      min-width: 0;
+      flex: 1;
+      text-align: left;
+    }
+
+    .ss-media-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #f8fafc;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px;
+    }
+
+    .ss-media-sub {
+      font-size: 11px;
+      color: rgba(248, 250, 252, 0.66);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px;
+    }
+
+    .ss-media-btns {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .ss-ctrl-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.08);
+      color: #f8fafc;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+
+    .ss-ctrl-btn.play {
+      background: var(--accent, #38bdf8);
+      border-color: transparent;
+      color: #04131c;
+    }
+
+    .ss-ctrl-btn:active {
+      transform: scale(0.92);
+    }
+
     /* Joy OS V8: Automotive Graphic Equalizer & Acoustic Direction Styling */
     .eq-track-wrap {
       position: relative;
@@ -5683,6 +5918,15 @@
 
       #ss-big-clock {
         font-size: 4.5rem !important;
+      }
+
+      #screensaver-overlay {
+        padding: 18px 22px !important;
+      }
+
+      .ss-analog-face {
+        width: 150px !important;
+        height: 150px !important;
       }
 
       #map-left-top-bar {
@@ -9189,6 +9433,7 @@
         <div class="joy-sys-card" role="dialog" aria-modal="true" aria-labelledby="joy-sys-title">
           <div id="joy-sys-title" class="joy-sys-title">Confirmar acción</div>
           <div id="joy-sys-msg" class="joy-sys-msg"></div>
+          <input id="joy-sys-input" type="text" class="joy-sys-input hidden" placeholder="https://...">
           <pre id="joy-sys-pre" class="joy-sys-pre hidden"></pre>
           <div id="joy-sys-actions" class="joy-sys-actions">
             <button id="joy-sys-extra" type="button" class="joy-sys-btn hidden"></button>
@@ -9227,51 +9472,100 @@
       </div>
 
       <input type="file" id="joy-backup-file-input" accept=".json,application/json" class="hidden" onchange="handleBackupFileSelected(event)">
+      <input type="file" id="ss-file-input" accept="image/*" class="hidden" onchange="handleScreensaverFileSelected(event)">
 
       <!-- ================================================================= -->
-      <!-- 2B. SALVAPANTALLAS INTERACTIVO OVERLAY (HORA, FECHA E IMÁGENES)   -->
+      <!-- 2B. SALVAPANTALLAS INTERACTIVO OVERLAY (HORA, FECHA, TELEMETRIA)  -->
       <!-- ================================================================= -->
       <div id="screensaver-overlay" onclick="closeScreensaver()"
-        class="hidden glass-blur absolute inset-0 z-50 flex-col justify-between p-10 cursor-pointer select-none transition-all duration-500"
-        style="background: radial-gradient(circle at 70% 25%, rgba(56,189,248,0.22) 0%, rgba(9,13,22,0.96) 65%, #05070c 100%);">
-        <!-- Top Subtle Bar: Theme / Background Switcher + Weather -->
-        <div class="flex items-center justify-between z-10" onclick="event.stopPropagation()">
+        class="hidden flex-col justify-between transition-all duration-500">
+        <!-- Real Animated Background Layer + Night Dim Scrim -->
+        <div id="screensaver-bg-layer" class="ss-bg-layer"></div>
+        <div class="ss-dim-scrim"></div>
+
+        <!-- Top Bar: Theme / Style / Format / Night-Dim Controls -->
+        <div class="ss-topbar" onclick="event.stopPropagation()">
           <div class="flex items-center gap-3">
-            <svg class="w-8 h-3.5 text-[var(--accent)] opacity-80" viewBox="0 0 120 44" fill="currentColor">
+            <svg class="w-8 h-3.5 text-[var(--accent)] opacity-85" viewBox="0 0 120 44" fill="currentColor">
               <path d="M4 16H40V6H80V16H116L110 28H80V38H40V28H10L4 16Z" />
             </svg>
-            <span class="text-xs font-medium text-white/60">Salvapantallas · JoyOS</span>
+            <span class="text-xs font-semibold text-white/80">Salvapantallas · JoyOS</span>
+            <span id="ss-plate-label" class="text-[11px] font-medium px-2.5 py-0.5 rounded-full bg-white/10 text-white/75">Chevrolet Joy</span>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="cycleScreensaverBg(0)" id="ss-bg-btn-0"
-              class="pressable px-3 py-1 rounded-full bg-white/15 text-white text-[11px] font-semibold">Noche
-              Joy</button>
-            <button onclick="cycleScreensaverBg(1)" id="ss-bg-btn-1"
-              class="pressable px-3 py-1 rounded-full bg-white/5 text-white/70 text-[11px] font-semibold">Aurora</button>
-            <button onclick="cycleScreensaverBg(2)" id="ss-bg-btn-2"
-              class="pressable px-3 py-1 rounded-full bg-white/5 text-white/70 text-[11px] font-semibold">Atardecer</button>
-            <button onclick="promptCustomScreensaverImg()"
-              class="pressable px-3 py-1 rounded-full bg-white/10 text-[var(--accent)] text-[11px] font-semibold">+
-              Imagen URL</button>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onclick="cycleScreensaverBg(0)" id="ss-bg-btn-0" class="pressable ss-chip is-active">Noche Joy</button>
+            <button type="button" onclick="cycleScreensaverBg(1)" id="ss-bg-btn-1" class="pressable ss-chip">Aurora</button>
+            <button type="button" onclick="cycleScreensaverBg(2)" id="ss-bg-btn-2" class="pressable ss-chip">Atardecer</button>
+            <button type="button" onclick="cycleScreensaverBg(3)" id="ss-bg-btn-3" class="pressable ss-chip">OLED Puro</button>
+            <button type="button" onclick="toggleScreensaverClockStyle()" id="ss-style-btn" class="pressable ss-chip">Analógico</button>
+            <button type="button" onclick="toggleScreensaverHourFormat()" id="ss-hourfmt-btn" class="pressable ss-chip">12h</button>
+            <button type="button" onclick="toggleScreensaverNightDim()" id="ss-dim-btn" class="pressable ss-chip">Nocturno</button>
+            <button type="button" onclick="promptCustomScreensaverImg()" id="ss-custom-btn" class="pressable ss-chip">+ Foto / URL</button>
           </div>
         </div>
 
-        <!-- Center Giant Minimalist Clock & Date -->
-        <div class="my-auto flex flex-col items-center text-center z-10 pointer-events-none">
-          <div id="ss-big-clock"
-            class="font-sora font-extralight text-8xl tracking-tight text-white tabular-nums drop-shadow-[0_12px_36px_rgba(0,0,0,0.6)]">
-            02:40</div>
-          <div id="ss-big-date" class="font-sora text-lg font-light text-white/75 mt-3 tracking-wide">Miércoles, 4 de
-            noviembre · 22 °C</div>
+        <!-- Center Clock, Weather & Live Vehicle/Nav Telemetry (Anti-Burn-In Drift) -->
+        <div id="ss-drift-box" class="ss-center-stage">
+          <div id="ss-digital-wrap" class="flex flex-col items-center">
+            <div class="ss-clock-row">
+              <div id="ss-big-clock"
+                class="font-sora font-extralight text-8xl tracking-tight text-white tabular-nums drop-shadow-[0_12px_36px_rgba(0,0,0,0.65)]">
+                09:58</div>
+              <span id="ss-sec-ampm" class="ss-sec-pill">:00 p. m.</span>
+            </div>
+          </div>
+
+          <div id="ss-analog-wrap" class="hidden flex-col items-center">
+            <svg class="ss-analog-face" viewBox="0 0 200 200">
+              <circle cx="100" cy="100" r="92" fill="rgba(10,16,30,0.55)" stroke="rgba(255,255,255,0.18)" stroke-width="2" />
+              <circle cx="100" cy="100" r="84" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1" stroke-dasharray="2 11.19" />
+              <line x1="100" y1="14" x2="100" y2="24" stroke="rgba(255,255,255,0.65)" stroke-width="2.5" stroke-linecap="round" />
+              <line x1="186" y1="100" x2="176" y2="100" stroke="rgba(255,255,255,0.65)" stroke-width="2.5" stroke-linecap="round" />
+              <line x1="100" y1="186" x2="100" y2="176" stroke="rgba(255,255,255,0.65)" stroke-width="2.5" stroke-linecap="round" />
+              <line x1="14" y1="100" x2="24" y2="100" stroke="rgba(255,255,255,0.65)" stroke-width="2.5" stroke-linecap="round" />
+              <line id="ss-hand-hour" x1="100" y1="100" x2="100" y2="54" stroke="#ffffff" stroke-width="5" stroke-linecap="round" />
+              <line id="ss-hand-min" x1="100" y1="100" x2="100" y2="34" stroke="rgba(248,250,252,0.88)" stroke-width="3.2" stroke-linecap="round" />
+              <line id="ss-hand-sec" x1="100" y1="112" x2="100" y2="26" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" />
+              <circle cx="100" cy="100" r="4.5" fill="var(--accent)" />
+            </svg>
+            <div id="ss-analog-digital-sub" class="font-sora text-lg font-medium text-white/85 tabular-nums mt-2">09:58 p. m.</div>
+          </div>
+
+          <div id="ss-big-date" class="font-sora text-lg font-light text-white/80 mt-3 tracking-wide">Jueves, 12 de noviembre · 22 °C</div>
+
+          <div class="ss-info-strip">
+            <div id="ss-speed-pill" class="ss-tele-pill">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span id="ss-veh-label">Estacionado · Monitoreo activo</span>
+            </div>
+            <div id="ss-nav-banner" class="ss-tele-pill ss-nav-pill hidden">
+              <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
+              <span id="ss-nav-label">Rumbo a destino</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Bottom Mini Now Playing & Tap Hint -->
-        <div class="flex items-center justify-between z-10 text-xs text-white/60">
-          <div class="flex items-center gap-3">
-            <span class="w-2 h-2 rounded-full bg-[var(--accent)]"></span>
-            <span id="ss-now-playing">Audio · Reproducción del Sistema</span>
+        <!-- Bottom Bar: Interactive Mini Audio Controls + Return Hint -->
+        <div class="ss-bottombar">
+          <div class="ss-media-pill" onclick="event.stopPropagation()">
+            <img id="ss-song-cover" class="ss-cover-thumb" alt="Portada">
+            <div class="ss-media-meta">
+              <div id="ss-song-label" class="ss-media-title">Audio del Sistema</div>
+              <div id="ss-song-sub" class="ss-media-sub">Bluetooth · Listo</div>
+            </div>
+            <div class="ss-media-btns">
+              <button type="button" onclick="changeSong(-1); updateScreensaverUI();" class="ss-ctrl-btn" title="Anterior" aria-label="Anterior">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+              </button>
+              <button type="button" onclick="togglePlay(); updateScreensaverUI();" id="ss-play-btn" class="ss-ctrl-btn play" title="Reproducir / Pausar" aria-label="Reproducir o pausar">
+                <svg id="ss-play-svg" class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              </button>
+              <button type="button" onclick="changeSong(1); updateScreensaverUI();" class="ss-ctrl-btn" title="Siguiente" aria-label="Siguiente">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+              </button>
+            </div>
           </div>
-          <span>Toca en cualquier lugar para volver</span>
+          <span class="text-xs text-white/60 pointer-events-none">Toca el fondo para volver al tablero</span>
         </div>
       </div>
 
@@ -9733,6 +10027,12 @@
       ignitionOffDelay: '1m', // '1m' | '5m' | 'never'
       otaAutoWifi: true,
       zlinkInstalled: null,
+      screensaverActive: false,
+      screensaverBgIdx: 0,
+      screensaverCustomUrl: '',
+      screensaverClockStyle: 'digital', // 'digital' | 'analog'
+      screensaverUse24h: false,
+      screensaverNightDim: false,
       _prevBtConnected: false,
       _lastPushedBrightness: -1,
       lastSpeedWarnAt: 0,
@@ -9998,7 +10298,12 @@
           preferredNavApp: state.preferredNavApp,
           startupAudioSource: state.startupAudioSource,
           ignitionOffDelay: state.ignitionOffDelay,
-          otaAutoWifi: state.otaAutoWifi
+          otaAutoWifi: state.otaAutoWifi,
+          screensaverBgIdx: state.screensaverBgIdx,
+          screensaverCustomUrl: state.screensaverCustomUrl,
+          screensaverClockStyle: state.screensaverClockStyle,
+          screensaverUse24h: state.screensaverUse24h,
+          screensaverNightDim: state.screensaverNightDim
         };
         safeSetStorage('joyos_sys_prefs_v1', payload);
       } catch (e) { }
@@ -10104,6 +10409,11 @@
           if (p.startupAudioSource === 'last' || p.startupAudioSource === 'bt' || p.startupAudioSource === 'radio' || p.startupAudioSource === 'usb') state.startupAudioSource = p.startupAudioSource;
           if (p.ignitionOffDelay === '1m' || p.ignitionOffDelay === '5m' || p.ignitionOffDelay === 'never') state.ignitionOffDelay = p.ignitionOffDelay;
           if (typeof p.otaAutoWifi === 'boolean') state.otaAutoWifi = p.otaAutoWifi;
+          if (typeof p.screensaverBgIdx === 'number') state.screensaverBgIdx = p.screensaverBgIdx;
+          if (typeof p.screensaverCustomUrl === 'string') state.screensaverCustomUrl = p.screensaverCustomUrl;
+          if (p.screensaverClockStyle === 'digital' || p.screensaverClockStyle === 'analog') state.screensaverClockStyle = p.screensaverClockStyle;
+          if (typeof p.screensaverUse24h === 'boolean') state.screensaverUse24h = p.screensaverUse24h;
+          if (typeof p.screensaverNightDim === 'boolean') state.screensaverNightDim = p.screensaverNightDim;
         }
         if (window.AndroidBridge && typeof window.AndroidBridge.isOtaAutoCheckEnabled === 'function') {
           try { state.otaAutoWifi = !!window.AndroidBridge.isOtaAutoCheckEnabled(); } catch (e) { }
@@ -10119,6 +10429,7 @@
       const ov = document.getElementById('joy-sys-dialog');
       const ttl = document.getElementById('joy-sys-title');
       const msg = document.getElementById('joy-sys-msg');
+      const inp = document.getElementById('joy-sys-input');
       const pre = document.getElementById('joy-sys-pre');
       const btnExtra = document.getElementById('joy-sys-extra');
       const btnCancel = document.getElementById('joy-sys-cancel');
@@ -10127,6 +10438,17 @@
       _joySysDialogOpts = opts || {};
       ttl.textContent = _joySysDialogOpts.title || 'Confirmar';
       msg.textContent = _joySysDialogOpts.msg || '';
+      if (inp) {
+        if (typeof _joySysDialogOpts.inputValue === 'string') {
+          inp.value = _joySysDialogOpts.inputValue;
+          inp.placeholder = _joySysDialogOpts.inputPlaceholder || 'https://...';
+          inp.classList.remove('hidden');
+          setTimeout(() => { try { inp.focus(); inp.select(); } catch (e) { } }, 60);
+        } else {
+          inp.value = '';
+          inp.classList.add('hidden');
+        }
+      }
       if (pre) {
         if (_joySysDialogOpts.preText) {
           pre.textContent = _joySysDialogOpts.preText;
@@ -10158,11 +10480,13 @@
 
     function closeJoySysDialog(confirmed) {
       const ov = document.getElementById('joy-sys-dialog');
+      const inp = document.getElementById('joy-sys-input');
+      const val = inp ? inp.value : '';
       const opts = _joySysDialogOpts;
       _joySysDialogOpts = null;
       if (ov) ov.classList.add('hidden');
       if (confirmed && opts && typeof opts.onConfirm === 'function') {
-        opts.onConfirm();
+        opts.onConfirm(val);
       } else if (!confirmed && opts && typeof opts.onCancel === 'function') {
         opts.onCancel();
       }
@@ -11684,12 +12008,24 @@
       });
     }
 
-    // --- SALVAPANTALLAS (SCREENSAVER) ---
+    // --- SALVAPANTALLAS AUTOMOTRIZ AVANZADO (SCREENSAVER) ---
     const screensaverBgs = [
       'radial-gradient(circle at 20% 20%, rgba(45,212,191,0.22), transparent 55%), radial-gradient(circle at 80% 75%, rgba(56,189,248,0.24), transparent 55%), linear-gradient(135deg, #020617 0%, #09152b 100%)',
       'radial-gradient(circle at 75% 25%, rgba(168,85,247,0.28), transparent 55%), radial-gradient(circle at 25% 80%, rgba(16,185,129,0.24), transparent 55%), linear-gradient(135deg, #040714 0%, #0f172a 100%)',
-      'radial-gradient(circle at 30% 30%, rgba(251,191,36,0.25), transparent 55%), radial-gradient(circle at 80% 70%, rgba(244,63,94,0.25), transparent 55%), linear-gradient(135deg, #0f0714 0%, #1c1018 100%)'
+      'radial-gradient(circle at 30% 30%, rgba(251,191,36,0.25), transparent 55%), radial-gradient(circle at 80% 70%, rgba(244,63,94,0.25), transparent 55%), linear-gradient(135deg, #0f0714 0%, #1c1018 100%)',
+      'radial-gradient(circle at 50% 50%, rgba(15,23,42,0.16), transparent 60%), linear-gradient(135deg, #000000 0%, #020307 100%)'
     ];
+    let _ssDriftTimer = null;
+    let _ssDriftStep = 0;
+
+    function updateScreensaverDrift() {
+      const box = document.getElementById('ss-drift-box');
+      if (!box) return;
+      const offsets = [[0, 0], [8, -5], [-7, 6], [6, 5], [-8, -4]];
+      const pt = offsets[_ssDriftStep % offsets.length];
+      _ssDriftStep++;
+      box.style.transform = `translate(${pt[0]}px, ${pt[1]}px)`;
+    }
 
     function openScreensaver() {
       state.screensaverActive = true;
@@ -11698,6 +12034,8 @@
         ov.classList.remove('hidden');
         ov.classList.add('flex');
       }
+      if (_ssDriftTimer) clearInterval(_ssDriftTimer);
+      _ssDriftTimer = setInterval(updateScreensaverDrift, 45000);
       updateScreensaverUI();
     }
 
@@ -11708,49 +12046,234 @@
         ov.classList.add('hidden');
         ov.classList.remove('flex');
       }
+      if (_ssDriftTimer) {
+        clearInterval(_ssDriftTimer);
+        _ssDriftTimer = null;
+      }
+      const box = document.getElementById('ss-drift-box');
+      if (box) box.style.transform = 'translate(0px, 0px)';
+      scheduleIdleScreensaver();
     }
 
     function cycleScreensaverBg(idx) {
       state.screensaverBgIdx = idx;
       state.screensaverCustomUrl = '';
+      saveMoreSettingsPrefs();
+      updateScreensaverUI();
+    }
+
+    function toggleScreensaverClockStyle() {
+      state.screensaverClockStyle = state.screensaverClockStyle === 'analog' ? 'digital' : 'analog';
+      saveMoreSettingsPrefs();
+      updateScreensaverUI();
+    }
+
+    function toggleScreensaverHourFormat() {
+      state.screensaverUse24h = !state.screensaverUse24h;
+      saveMoreSettingsPrefs();
+      updateScreensaverClock();
+      updateScreensaverUI();
+    }
+
+    function toggleScreensaverNightDim() {
+      state.screensaverNightDim = !state.screensaverNightDim;
+      saveMoreSettingsPrefs();
       updateScreensaverUI();
     }
 
     function promptCustomScreensaverImg() {
-      const url = prompt('Ingresa la URL de una imagen personalizada para el Salvapantallas:', 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80');
-      if (url && url.trim()) {
-        state.screensaverCustomUrl = url.trim();
-        updateScreensaverUI();
+      showJoySysDialog({
+        title: 'Fondo personalizado del Salvapantallas',
+        msg: 'Pega la URL de una imagen o elige una foto guardada en tu tablet:',
+        inputValue: state.screensaverCustomUrl || 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1400&q=80',
+        inputPlaceholder: 'https://...',
+        confirmLabel: 'Aplicar URL',
+        extraLabel: 'Subir foto local',
+        onExtra: () => {
+          closeJoySysDialog(false);
+          const inp = document.getElementById('ss-file-input');
+          if (inp) {
+            inp.value = '';
+            inp.click();
+          }
+        },
+        onConfirm: (urlVal) => {
+          const clean = String(urlVal || '').trim();
+          if (clean) {
+            state.screensaverCustomUrl = clean;
+            saveMoreSettingsPrefs();
+            updateScreensaverUI();
+            showJoyToast('Fondo aplicado', 'Imagen personalizada del salvapantallas activa', 'ok');
+          }
+        }
+      });
+    }
+
+    function handleScreensaverFileSelected(ev) {
+      const file = ev && ev.target && ev.target.files ? ev.target.files[0] : null;
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          state.screensaverCustomUrl = reader.result;
+          saveMoreSettingsPrefs();
+          updateScreensaverUI();
+          showJoyToast('Foto cargada', 'Tu foto se estableció como fondo del salvapantallas', 'ok');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateScreensaverClock() {
+      const now = new Date();
+      const rawH = now.getHours();
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const sec = String(now.getSeconds()).padStart(2, '0');
+      const ampm = rawH >= 12 ? 'p. m.' : 'a. m.';
+      let dispH = rawH;
+      if (!state.screensaverUse24h) {
+        dispH = rawH % 12;
+        if (dispH === 0) dispH = 12;
+      }
+      const hhStr = String(dispH).padStart(2, '0');
+
+      const ssClock = document.getElementById('ss-big-clock');
+      const ssSecAmPm = document.getElementById('ss-sec-ampm');
+      const ssAnalogSub = document.getElementById('ss-analog-digital-sub');
+      if (ssClock) ssClock.textContent = `${hhStr}:${mm}`;
+      if (ssSecAmPm) ssSecAmPm.textContent = state.screensaverUse24h ? `:${sec}` : `:${sec} ${ampm}`;
+      if (ssAnalogSub) ssAnalogSub.textContent = state.screensaverUse24h ? `${hhStr}:${mm}:${sec}` : `${hhStr}:${mm} ${ampm}`;
+
+      // Analog SVG hands
+      const sDeg = now.getSeconds() * 6;
+      const mDeg = now.getMinutes() * 6 + now.getSeconds() * 0.1;
+      const hDeg = ((now.getHours() % 12) * 30) + (now.getMinutes() * 0.5);
+      const hEl = document.getElementById('ss-hand-hour');
+      const mEl = document.getElementById('ss-hand-min');
+      const sEl = document.getElementById('ss-hand-sec');
+      if (hEl) hEl.setAttribute('transform', `rotate(${hDeg.toFixed(1)} 100 100)`);
+      if (mEl) mEl.setAttribute('transform', `rotate(${mDeg.toFixed(1)} 100 100)`);
+      if (sEl) sEl.setAttribute('transform', `rotate(${sDeg.toFixed(1)} 100 100)`);
+
+      const ssDate = document.getElementById('ss-big-date');
+      if (ssDate) {
+        const opts = { weekday: 'long', day: 'numeric', month: 'long' };
+        const dStr = now.toLocaleDateString('es-CO', opts);
+        const cityStr = (typeof r5State !== 'undefined' && r5State.city) ? r5State.city : 'Colombia';
+        ssDate.textContent = `${dStr.charAt(0).toUpperCase() + dStr.slice(1)} · ${cityStr} ${formatTemp(state.weatherTemp)}`;
       }
     }
 
     function updateScreensaverUI() {
+      const ov = document.getElementById('screensaver-overlay');
       const bgLayer = document.getElementById('screensaver-bg-layer');
+      if (ov) {
+        ov.classList.toggle('ss-night-dim', !!state.screensaverNightDim);
+      }
       if (bgLayer) {
         if (state.screensaverCustomUrl) {
-          bgLayer.style.backgroundImage = `linear-gradient(to bottom, rgba(2,6,23,0.45), rgba(2,6,23,0.75)), url('${state.screensaverCustomUrl}')`;
-          bgLayer.style.backgroundSize = 'cover';
-          bgLayer.style.backgroundPosition = 'center';
+          bgLayer.style.backgroundImage = `linear-gradient(to bottom, rgba(2,6,23,0.42), rgba(2,6,23,0.78)), url('${state.screensaverCustomUrl}')`;
         } else {
-          bgLayer.style.backgroundImage = screensaverBgs[state.screensaverBgIdx % screensaverBgs.length];
+          const idx = Math.max(0, Number(state.screensaverBgIdx) || 0) % screensaverBgs.length;
+          bgLayer.style.backgroundImage = screensaverBgs[idx];
         }
       }
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const ssClock = document.getElementById('ss-big-clock');
-      const ssDate = document.getElementById('ss-big-date');
-      const ssSong = document.getElementById('ss-song-label');
-      const ssPlate = document.getElementById('ss-plate-label');
-      if (ssClock) ssClock.textContent = `${hh}:${mm}`;
-      if (ssDate) {
-        const opts = { weekday: 'long', day: 'numeric', month: 'long' };
-        const dStr = now.toLocaleDateString('es-CO', opts);
-        ssDate.textContent = `${dStr.charAt(0).toUpperCase() + dStr.slice(1)} · ${r5State.city} ${state.weatherTemp}°C`;
+
+      // Active preset / control chips
+      [0, 1, 2, 3].forEach(i => {
+        const b = document.getElementById('ss-bg-btn-' + i);
+        if (b) b.classList.toggle('is-active', !state.screensaverCustomUrl && (Number(state.screensaverBgIdx) || 0) === i);
+      });
+      const customBtn = document.getElementById('ss-custom-btn');
+      if (customBtn) customBtn.classList.toggle('is-active', !!state.screensaverCustomUrl);
+      const styleBtn = document.getElementById('ss-style-btn');
+      if (styleBtn) {
+        styleBtn.textContent = state.screensaverClockStyle === 'analog' ? 'Digital' : 'Analógico';
+        styleBtn.classList.toggle('is-active', state.screensaverClockStyle === 'analog');
       }
-      const curSong = songs[state.songIdx] || songs[0];
-      if (ssSong) ssSong.textContent = `${curSong.title} — ${curSong.artist}`;
-      if (ssPlate) ssPlate.textContent = `Chevrolet Joy · ${r5State.plate}`;
+      const hourBtn = document.getElementById('ss-hourfmt-btn');
+      if (hourBtn) {
+        hourBtn.textContent = state.screensaverUse24h ? '24h' : '12h';
+        hourBtn.classList.toggle('is-active', !!state.screensaverUse24h);
+      }
+      const dimBtn = document.getElementById('ss-dim-btn');
+      if (dimBtn) dimBtn.classList.toggle('is-active', !!state.screensaverNightDim);
+
+      // Clock Style Toggle (Digital vs Analog)
+      const digWrap = document.getElementById('ss-digital-wrap');
+      const anaWrap = document.getElementById('ss-analog-wrap');
+      if (digWrap) {
+        digWrap.classList.toggle('hidden', state.screensaverClockStyle === 'analog');
+        digWrap.classList.toggle('flex', state.screensaverClockStyle !== 'analog');
+      }
+      if (anaWrap) {
+        anaWrap.classList.toggle('hidden', state.screensaverClockStyle !== 'analog');
+        anaWrap.classList.toggle('flex', state.screensaverClockStyle === 'analog');
+      }
+
+      updateScreensaverClock();
+
+      // Live Vehicle & Navigation Strips
+      const ssPlate = document.getElementById('ss-plate-label');
+      if (ssPlate) ssPlate.textContent = `Chevrolet Joy · ${(typeof r5State !== 'undefined' && r5State.plate) ? r5State.plate : 'Placa'}`;
+
+      const ssVeh = document.getElementById('ss-veh-label');
+      if (ssVeh) {
+        const activeSpd = Math.max(Number(state.speed) || 0, Number(state.gpsSpeed) || 0);
+        if (activeSpd > 0) {
+          ssVeh.textContent = `${formatSpeedVal(activeSpd)} ${speedUnitLabel()} · En marcha`;
+        } else {
+          const parts = [];
+          if (typeof state.voltage === 'number' && state.voltage > 0) parts.push(`${state.voltage.toFixed(1)} V`);
+          if (typeof state.obdTemp === 'number') parts.push(`Motor ${formatTemp(state.obdTemp)}`);
+          ssVeh.textContent = parts.length > 0 ? parts.join(' · ') : 'Estacionado · Monitoreo activo';
+        }
+      }
+
+      const ssNavBanner = document.getElementById('ss-nav-banner');
+      const ssNavLabel = document.getElementById('ss-nav-label');
+      if (ssNavBanner && ssNavLabel) {
+        if (typeof navState !== 'undefined' && navState.activeDest) {
+          const distStr = navState.totalDistM ? formatNavDistance(navState.totalDistM) : '';
+          const durStr = navState.totalDurS ? formatNavDuration(navState.totalDurS) : '';
+          const suffix = [durStr, distStr].filter(Boolean).join(' · ');
+          ssNavLabel.textContent = navState.activeDest.name + (suffix ? (' · ' + suffix) : '');
+          ssNavBanner.classList.remove('hidden');
+        } else {
+          ssNavBanner.classList.add('hidden');
+        }
+      }
+
+      // Bottom Mini Audio Player
+      const ssSong = document.getElementById('ss-song-label');
+      const ssSongSub = document.getElementById('ss-song-sub');
+      const ssCover = document.getElementById('ss-song-cover');
+      const ssPlaySvg = document.getElementById('ss-play-svg');
+      const isRadio = state.audioMode === 'radio';
+      if (isRadio) {
+        const curSt = (typeof radioStations !== 'undefined' && radioStations[state.stationIdx]) ? radioStations[state.stationIdx] : { freq: 98.5, name: 'FM Stereo', genre: 'Radio FM' };
+        const freq = state.customFreq !== null ? Number(state.customFreq).toFixed(1) : curSt.freq.toFixed(1);
+        if (ssSong) ssSong.textContent = `${freq} MHz · ${state.customFreq !== null ? 'Sintonía Manual' : curSt.name}`;
+        if (ssSongSub) ssSongSub.textContent = `${curSt.genre || 'FM Stereo'} · Radio en vivo`;
+        if (ssCover) ssCover.style.display = 'none';
+      } else {
+        const curSong = (typeof songs !== 'undefined' && songs[state.songIdx]) ? songs[state.songIdx] : { title: 'Audio del Sistema', artist: 'Bluetooth', cover: '' };
+        if (ssSong) ssSong.textContent = curSong.title || 'Audio del Sistema';
+        if (ssSongSub) ssSongSub.textContent = `${curSong.artist || 'Bluetooth'}${state.playing ? ' · Reproduciendo' : ' · En pausa'}`;
+        if (ssCover) {
+          if (curSong.cover) {
+            ssCover.src = curSong.cover;
+            ssCover.style.display = 'block';
+          } else {
+            ssCover.style.display = 'none';
+          }
+        }
+      }
+      if (ssPlaySvg) {
+        ssPlaySvg.innerHTML = state.playing
+          ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+          : '<polygon points="6 4 20 12 6 20 6 4"/>';
+      }
     }
 
     function launchOsApp(appId) {
@@ -12627,6 +13150,7 @@
           { t: 'seg', l: 'Tamaño de texto', o: ['Normal', 'Grande'], v: 0 },
           { t: 'tog', l: 'Animación de arranque', v: true },
           { t: 'seg', l: 'Apagar pantalla tras', o: ['1 min', '5 min', 'Nunca'], v: 1, d: 'Activa salvapantallas por inactividad y mantiene o libera bloqueo de pantalla' },
+          { t: 'act', l: 'Activar salvapantallas ahora', b: 'Activar', d: 'Inicia ahora la pantalla de reposo con reloj, clima y música' },
           { h: 'Comportamiento al iniciar' },
           { t: 'seg', l: 'Pantalla de inicio', o: ['Inicio', 'Cockpit', 'Música', 'Mapa'], v: 0, d: 'Vista predeterminada al encender JoyOS' },
           { t: 'act', l: 'Ajustes de pantalla Android', b: 'Abrir', d: 'Brillo nativo, rotación y fuente del sistema Android' }
@@ -13342,6 +13866,10 @@
           }
           if (x.l.includes('Optimizar Hardware')) {
             triggerHardwareOptimization(b, x);
+            return;
+          }
+          if (x.l.includes('salvapantallas')) {
+            openScreensaver();
             return;
           }
           if (x.l.includes('Ajustes de pantalla Android')) {
@@ -17628,6 +18156,9 @@
       if (hh === 0) hh = 12;
       const hhStr = String(hh).padStart(2, '0');
       clockEl.textContent = `${hhStr}:${mm} ${ampm}`;
+      if (state.screensaverActive && typeof updateScreensaverClock === 'function') {
+        updateScreensaverClock();
+      }
     }
     setInterval(updateTopClockLive, 1000);
     updateTopClockLive();
