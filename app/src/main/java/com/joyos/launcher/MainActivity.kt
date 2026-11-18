@@ -283,9 +283,21 @@ class MainActivity : AppCompatActivity() {
                         val v = extras.getString(k)
                         if (!v.isNullOrBlank()) { title = v.trim(); break }
                     }
+                    if (title.isNullOrBlank()) {
+                        for (k in listOf("song", "musicName", "music_name", "name")) {
+                            val v = extras.getString(k)
+                            if (!v.isNullOrBlank()) { title = v.trim(); break }
+                        }
+                    }
                     for (k in artistKeys) {
                         val v = extras.getString(k)
                         if (!v.isNullOrBlank()) { artist = v.trim(); break }
+                    }
+                    if (artist.isNullOrBlank()) {
+                        for (k in listOf("singer", "artist_name")) {
+                            val v = extras.getString(k)
+                            if (!v.isNullOrBlank()) { artist = v.trim(); break }
+                        }
                     }
                     for (k in albumKeys) {
                         val v = extras.getString(k)
@@ -293,17 +305,31 @@ class MainActivity : AppCompatActivity() {
                     }
                     for (k in durKeys) {
                         val v = extras.get(k)
-                        if (v is Number && v.toLong() > 0) { durationMs = v.toLong(); break }
+                        when (v) {
+                            is Number -> if (v.toLong() > 0) { durationMs = v.toLong(); break }
+                            is String -> v.toLongOrNull()?.let { if (it > 0) durationMs = it }
+                        }
+                        if (durationMs > 0) break
                     }
                     for (k in playKeys) {
                         if (extras.containsKey(k)) {
                             val v = extras.get(k)
                             when (v) {
                                 is Boolean -> isPlaying = v
-                                is Number -> isPlaying = (v.toInt() == 1 || v.toInt() == 3)
+                                is Number -> isPlaying = (v.toInt() == 1 || v.toInt() == 3 || v.toInt() == 10)
+                                is String -> {
+                                    val low = v.trim().lowercase(Locale.ROOT)
+                                    if (low == "true" || low == "1" || low == "play" || low == "playing") isPlaying = true
+                                    else if (low == "false" || low == "0" || low == "pause" || low == "paused" || low == "stop") isPlaying = false
+                                }
                             }
                             if (isPlaying != null) break
                         }
+                    }
+                    if (isPlaying == null && extras.containsKey("android.bluetooth.profile.extra.STATE")) {
+                        val ps = extras.getInt("android.bluetooth.profile.extra.STATE", -1)
+                        if (ps == 10) isPlaying = true // BluetoothA2dpSink.STATE_PLAYING
+                        else if (ps == 11) isPlaying = false // BluetoothA2dpSink.STATE_NOT_PLAYING
                     }
 
                     var artResult: JoyMediaArtworkHelper.ArtworkResult? = null
@@ -425,16 +451,29 @@ class MainActivity : AppCompatActivity() {
                 // Android Bluetooth AVRCP Controller & A2DP Sink
                 addAction("android.bluetooth.avrcp-controller.profile.action.TRACK_CHANGED")
                 addAction("android.bluetooth.avrcp-controller.profile.action.PLAYBACK_STATE_CHANGED")
+                addAction("android.bluetooth.avrcp-controller.profile.action.CONNECTION_STATE_CHANGED")
                 addAction("android.bluetooth.a2dp-sink.profile.action.PLAYING_STATE_CHANGED")
+                addAction("android.bluetooth.a2dp-sink.profile.action.AUDIO_CONFIG_CHANGED")
                 addAction("android.bluetooth.a2dp.profile.action.PLAYING_STATE_CHANGED")
-                // MediaTek / AutoChips AC8227L / ZXDZ_01 / WJ / TS / XYAuto OEM Broadcasts
+                // MediaTek / AutoChips AC8227L / ZXDZ_01 / WJ / TS / XYAuto / Gocsdk OEM Broadcasts
                 addAction("com.autochips.bluetooth.AvrcpControllerService.ACTION_TRACK_EVENT")
                 addAction("com.autochips.bluetooth.btmusic.ACTION_META_CHANGED")
+                addAction("com.autochips.bluetooth.a2dpsink.ACTION_PLAY_STATE")
+                addAction("com.autochips.bluetooth.AVRCP_METADATA")
                 addAction("com.autochips.bluetooth.PbapClientService.ACTION_EVENT")
                 addAction("com.ts.bt.music.metachanged")
                 addAction("com.ts.bt.playstatechanged")
+                addAction("com.ts.bt.ACTION_MUSIC_INFO")
                 addAction("com.xyauto.broadcast.bt.music.info")
                 addAction("com.xyauto.broadcast.bt.playstate")
+                addAction("com.xyauto.broadcast.bt.avrcp")
+                addAction("com.xyauto.bt.music.info")
+                addAction("com.xyauto.bt.playstate")
+                addAction("com.goodocom.gocsdk.music_info")
+                addAction("com.goodocom.gocsdk.play_status")
+                addAction("com.gocsdk.bt.music")
+                addAction("com.syu.bt.music")
+                addAction("com.tw.bt.music")
                 addAction("com.microntek.bt.report")
                 addAction("com.fyt.bt.music")
                 // OEM FM Radio & MCU state broadcasts
@@ -463,6 +502,12 @@ class MainActivity : AppCompatActivity() {
         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
             if (proxy != null) {
                 btProfileProxies[profile] = proxy
+                if (profile == 11) {
+                    try {
+                        proxy.javaClass.getMethod("setAudioFocusState", Int::class.javaPrimitiveType)
+                            .invoke(proxy, AudioManager.AUDIOFOCUS_GAIN)
+                    } catch (_: Throwable) {}
+                }
                 refreshBtTelemetryFromProfiles()
             }
         }
@@ -487,6 +532,7 @@ class MainActivity : AppCompatActivity() {
                 BluetoothProfile.A2DP,
                 BluetoothProfile.HEADSET,
                 11, // BluetoothProfile.A2DP_SINK (@hide on standard SDK, standard on automotive)
+                12, // BluetoothProfile.AVRCP_CONTROLLER (@hide on standard SDK, AVRCP metadata/remote control)
                 16  // BluetoothProfile.HEADSET_CLIENT (@hide on standard SDK, HFP Hands-Free Client)
             )
             for (profileId in profiles) {
@@ -779,9 +825,12 @@ class MainActivity : AppCompatActivity() {
                             } catch (_: Throwable) {}
                         }
                     }
-                    "android.media.VOLUME_CHANGED_ACTION" -> {
+                    "android.media.VOLUME_CHANGED_ACTION",
+                    "com.xyauto.broadcast.volume.change",
+                    "com.ts.MainUI.volume",
+                    "com.autochips.volume" -> {
                         val stream = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", AudioManager.STREAM_MUSIC)
-                        if (stream == AudioManager.STREAM_MUSIC) {
+                        if (stream == AudioManager.STREAM_MUSIC || stream == 6 || stream == 11) {
                             val vol = bridge.getMasterVolume()
                             runOnUiThread {
                                 try {
@@ -817,6 +866,9 @@ class MainActivity : AppCompatActivity() {
                 addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
                 addAction("android.net.wifi.WIFI_AP_STATE_CHANGED")
                 addAction("android.media.VOLUME_CHANGED_ACTION")
+                addAction("com.xyauto.broadcast.volume.change")
+                addAction("com.ts.MainUI.volume")
+                addAction("com.autochips.volume")
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 registerReceiver(connectivityCallReceiver, filter, Context.RECEIVER_EXPORTED)
@@ -1207,15 +1259,17 @@ class MainActivity : AppCompatActivity() {
                 mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
                 useWideViewPort = true
                 loadWithOverviewMode = true
+                textZoom = 100
                 displayZoomControls = false
                 builtInZoomControls = false
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.2"
+                        userAgentString = "$baseUa JoyOS/1.1.3"
                     }
                 } catch (_: Throwable) {}
             }
+            setInitialScale(0)
 
             webChromeClient = WebChromeClient()
             webViewClient = object : WebViewClient() {
