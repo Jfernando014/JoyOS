@@ -591,6 +591,10 @@ class AndroidBridge(
             audioManager?.let { am ->
                 try {
                     @Suppress("DEPRECATION")
+                    am.abandonAudioFocus(null)
+                } catch (_: Throwable) {}
+                try {
+                    @Suppress("DEPRECATION")
                     am.setStreamMute(AudioManager.STREAM_MUSIC, false)
                 } catch (_: Throwable) {}
                 try {
@@ -609,7 +613,9 @@ class AndroidBridge(
             val wakeIntents = listOf(
                 Intent("com.ts.bt.ACTION_A2DP_PLAY"),
                 Intent("com.xyauto.bt.A2DP_PLAY"),
+                Intent("com.xyauto.broadcast.bt.a2dp.play"),
                 Intent("com.autochips.bluetooth.BtMusic.PLAY"),
+                Intent("com.goodocom.gocsdk.A2DP_PLAY"),
                 Intent("com.forfan.btmusic.PLAY")
             )
             for (wakeIntent in wakeIntents) {
@@ -620,6 +626,10 @@ class AndroidBridge(
                     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
                         if (proxy == null) return
                         try {
+                            try {
+                                proxy.javaClass.getMethod("setAudioFocusState", Int::class.javaPrimitiveType)
+                                    .invoke(proxy, AudioManager.AUDIOFOCUS_GAIN)
+                            } catch (_: Throwable) {}
                             for (dev in proxy.connectedDevices) {
                                 try {
                                     proxy.javaClass.getMethod("connect", BluetoothDevice::class.java).invoke(proxy, dev)
@@ -645,35 +655,74 @@ class AndroidBridge(
      */
     @JavascriptInterface
     fun openNativeBtMusic(): Boolean {
+        try {
+            val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+            @Suppress("DEPRECATION")
+            val activities = packageManager.queryIntentActivities(intent, 0)
+            var fallbackPkg: String? = null
+            for (ri in activities) {
+                val pkg = ri.activityInfo?.packageName ?: continue
+                if (pkg == context.packageName) continue
+                val label = try { ri.loadLabel(packageManager).toString().lowercase(Locale.ROOT) } catch (_: Throwable) { "" }
+                val actName = (ri.activityInfo?.name ?: "").lowercase(Locale.ROOT)
+                val lowerPkg = pkg.lowercase(Locale.ROOT)
+                if (lowerPkg.contains("settings")) continue
+                val isDedicatedBtMusic = lowerPkg.contains("btmusic") ||
+                    actName.contains("btmusic") ||
+                    actName.contains("music") && lowerPkg.contains("bt") ||
+                    label.contains("bt music") ||
+                    label.contains("música bt") ||
+                    label.contains("musica bt") ||
+                    label.contains("a2dp")
+                if (isDedicatedBtMusic) {
+                    val exact = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                        setClassName(pkg, ri.activityInfo.name)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        context.startActivity(exact)
+                        return true
+                    } catch (_: Throwable) {
+                        if (launchApp(pkg)) return true
+                    }
+                }
+                if (fallbackPkg == null && (label == "bluetooth" || label.contains("bluetooth") || lowerPkg.contains(".bt") || lowerPkg.contains("bluetooth"))) {
+                    fallbackPkg = pkg
+                }
+            }
+            if (fallbackPkg != null && launchApp(fallbackPkg)) return true
+        } catch (_: Throwable) {}
         val btPkgs = listOf(
             "com.ts.bt",
             "com.xyauto.bt",
+            "com.xyauto.btmusic",
             "com.autochips.bluetooth",
+            "com.goodocom.gocsdk",
+            "com.atc.bt",
             "com.forfan.btmusic",
             "com.forfan.bt",
             "com.nwd.btmusic",
+            "com.nwd.bt",
             "com.syu.bt",
             "com.tw.bt",
+            "com.jancar.bt",
+            "com.qf.bt",
             "com.fyt.bt"
         )
         for (pkg in btPkgs) {
             if (launchApp(pkg)) return true
         }
-        try {
-            val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
-            @Suppress("DEPRECATION")
-            val activities = packageManager.queryIntentActivities(intent, 0)
-            for (ri in activities) {
-                val pkg = ri.activityInfo?.packageName ?: continue
-                if (pkg == context.packageName) continue
-                val label = try { ri.loadLabel(packageManager).toString().lowercase(Locale.ROOT) } catch (_: Throwable) { "" }
-                val lowerPkg = pkg.lowercase(Locale.ROOT)
-                if ((lowerPkg.contains("btmusic") || label == "bluetooth" || label.contains("bt music")) && !lowerPkg.contains("settings")) {
-                    if (launchApp(pkg)) return true
-                }
-            }
-        } catch (_: Throwable) {}
         return false
+    }
+
+    @JavascriptInterface
+    fun isNotificationListenerEnabled(): Boolean {
+        return try {
+            JoyMediaNotificationListener.isEnabled(context)
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     private val appIconCache = ConcurrentHashMap<String, String>()
@@ -1266,15 +1315,15 @@ class AndroidBridge(
     }
 
     /**
-     * Returns the currently installed JoyOS version name (e.g. "1.1.2").
+     * Returns the currently installed JoyOS version name (e.g. "1.1.3").
      */
     @JavascriptInterface
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.1.2"
+            pInfo.versionName ?: "1.1.3"
         } catch (_: Throwable) {
-            "1.1.2"
+            "1.1.3"
         }
     }
 
@@ -1776,11 +1825,14 @@ class AndroidBridge(
                     }
                 }
 
+                val cleanTitle = cleanMediaField(title).ifEmpty { decodeMediaText(file.nameWithoutExtension) }
+                val cleanArtist = cleanMediaField(artist).ifEmpty { "Desconocido" }
+                val cleanAlbum = cleanMediaField(album).ifEmpty { "Audio Local" }
                 val item = JSONObject().apply {
                     put("id", "m_" + file.absolutePath.hashCode())
-                    put("title", title)
-                    put("artist", artist)
-                    put("album", album)
+                    put("title", cleanTitle)
+                    put("artist", cleanArtist)
+                    put("album", cleanAlbum)
                     put("durationSec", durationSec)
                     put("path", file.absolutePath)
                     put("uri", "file://" + file.absolutePath)
@@ -2373,7 +2425,8 @@ class AndroidBridge(
             val allPkgs = try { packageManager.getInstalledPackages(0) } catch (_: Throwable) { emptyList() }
             val keywords = listOf(
                 "autochips", "xyauto", "ts.", "fyt", "microntek", "radio", "fmradio",
-                "bt", "bluetooth", "mcu", "canbus", "zlink", "tlink", "carplay", "wj", "atc"
+                "bt", "bluetooth", "goc", "a2dp", "avrcp", "sound", "mcu", "canbus",
+                "zlink", "tlink", "carplay", "wj", "atc"
             )
             for (pkgInfo in allPkgs) {
                 val pkgName = pkgInfo.packageName ?: continue
@@ -2410,6 +2463,27 @@ class AndroidBridge(
             }
             result.put("hardwareNodes", serialNodes)
             result.put("btMetadata", JSONObject(getBtMusicMetadata()))
+            result.put("notificationListenerEnabled", JoyMediaNotificationListener.isEnabled(context))
+            result.put("audioMusicActive", audioManager?.isMusicActive == true)
+
+            // Discover running OEM background services (BT / MCU / Radio / Gocsdk / XYAuto)
+            val runningServices = JSONArray()
+            try {
+                val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
+                @Suppress("DEPRECATION")
+                val svcs = am?.getRunningServices(100) ?: emptyList()
+                for (s in svcs) {
+                    val pkg = s.service?.packageName ?: continue
+                    val low = pkg.lowercase(Locale.ROOT)
+                    if (keywords.any { low.contains(it) } || low.contains("bluetooth") || low.contains("goc")) {
+                        runningServices.put(JSONObject().apply {
+                            put("package", pkg)
+                            put("service", s.service?.className ?: "")
+                        })
+                    }
+                }
+            } catch (_: Throwable) {}
+            result.put("runningServices", runningServices)
 
             // 4. Connected USB Host devices (for diagnosing 433.92 MHz TPMS receiver VID:PID)
             val usbArray = JSONArray()

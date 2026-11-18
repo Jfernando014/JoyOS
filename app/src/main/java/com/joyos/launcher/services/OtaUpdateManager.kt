@@ -37,7 +37,7 @@ class OtaUpdateManager(private val context: Context) {
     companion object {
         private const val TAG = "OtaUpdateManager"
         private const val GITHUB_API_URL = "https://api.github.com/repos/Jfernando014/JoyOS/releases/latest"
-        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.2"
+        private const val USER_AGENT = "JoyOS-Automotive-Launcher/1.1.3"
         private const val TIMEOUT_MS = 15000
     }
 
@@ -240,6 +240,16 @@ class OtaUpdateManager(private val context: Context) {
                 apkFile.delete()
                 return@withContext Result.failure(Exception("Downloaded APK file is incomplete"))
             }
+
+            try {
+                @Suppress("DEPRECATION")
+                val publicDl = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (publicDl != null && (publicDl.exists() || publicDl.mkdirs())) {
+                    val publicCopy = File(publicDl, "JoyOSLauncher.apk")
+                    apkFile.copyTo(publicCopy, overwrite = true)
+                    Log.i(TAG, "Backup APK also saved to public Downloads: ${publicCopy.absolutePath}")
+                }
+            } catch (_: Throwable) {}
 
             Log.i(TAG, "APK successfully downloaded to: ${apkFile.absolutePath} (${apkFile.length()} bytes)")
             onProgress(100)
