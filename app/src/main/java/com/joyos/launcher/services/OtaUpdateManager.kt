@@ -241,6 +241,16 @@ class OtaUpdateManager(private val context: Context) {
                 return@withContext Result.failure(Exception("Downloaded APK file is incomplete"))
             }
 
+            try {
+                @Suppress("DEPRECATION")
+                val publicDl = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (publicDl != null && (publicDl.exists() || publicDl.mkdirs())) {
+                    val publicCopy = File(publicDl, "JoyOSLauncher.apk")
+                    apkFile.copyTo(publicCopy, overwrite = true)
+                    Log.i(TAG, "Backup APK also saved to public Downloads: ${publicCopy.absolutePath}")
+                }
+            } catch (_: Throwable) {}
+
             Log.i(TAG, "APK successfully downloaded to: ${apkFile.absolutePath} (${apkFile.length()} bytes)")
             onProgress(100)
             Result.success(apkFile)
