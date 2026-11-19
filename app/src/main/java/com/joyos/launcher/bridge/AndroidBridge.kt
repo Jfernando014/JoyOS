@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable
 import android.hardware.usb.UsbManager
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
+import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -29,6 +30,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.os.SystemClock
 import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Base64
@@ -127,14 +129,28 @@ class AndroidBridge(
         deviceName: String? = null,
         deviceAddress: String? = null,
         a2dp: Boolean? = null,
-        hfp: Boolean? = null
+        hfp: Boolean? = null,
+        forceClear: Boolean = false
     ) {
-        if (battery != null) hfpBatteryPct = battery.coerceIn(-1, 100)
-        if (signal != null) hfpSignalBars = signal.coerceIn(-1, 4)
-        if (deviceName != null) hfpActiveName = deviceName
-        if (deviceAddress != null) hfpActiveAddress = deviceAddress
         if (a2dp != null) hfpA2dpConnected = a2dp
         if (hfp != null) hfpClientConnected = hfp
+        val stillConnected = hfpA2dpConnected || hfpClientConnected
+        if (battery != null) {
+            if (battery >= 0) {
+                hfpBatteryPct = battery.coerceIn(0, 100)
+            } else if (forceClear || !stillConnected) {
+                hfpBatteryPct = -1
+            }
+        }
+        if (signal != null) {
+            if (signal >= 0) {
+                hfpSignalBars = signal.coerceIn(0, 4)
+            } else if (forceClear || !stillConnected) {
+                hfpSignalBars = -1
+            }
+        }
+        if (deviceName != null) hfpActiveName = deviceName
+        if (deviceAddress != null) hfpActiveAddress = deviceAddress
     }
 
     private fun isHotspotActive(): Boolean {
@@ -368,8 +384,19 @@ class AndroidBridge(
 
             val fallbackPhone = bonded.firstOrNull { !isObdName(it.name) } ?: bonded.firstOrNull()
             val targetPhone = activeBondedPhone ?: (if (audioHfpConnected || a2dpOn || hfpOn) fallbackPhone else null)
-            val realPhoneBatt = (targetPhone?.let { getBtDeviceBatteryLevel(it) } ?: -1).let {
-                if (it >= 0) it else hfpBatteryPct
+            val directBatt = targetPhone?.let { getBtDeviceBatteryLevel(it) } ?: -1
+            val scannedBatt = if (directBatt >= 0) {
+                directBatt
+            } else if (phoneConnected) {
+                bonded.filter { !isObdName(it.name) }.map { getBtDeviceBatteryLevel(it) }.firstOrNull { it >= 0 } ?: -1
+            } else {
+                -1
+            }
+            val realPhoneBatt = if (scannedBatt >= 0) {
+                hfpBatteryPct = scannedBatt
+                scannedBatt
+            } else {
+                hfpBatteryPct
             }
 
             val deviceName = activeBondedPhone?.name
@@ -612,14 +639,29 @@ class AndroidBridge(
             }
             val wakeIntents = listOf(
                 Intent("com.ts.bt.ACTION_A2DP_PLAY"),
+                Intent("com.ts.MainUI.ACTION_BT_MUSIC"),
                 Intent("com.xyauto.bt.A2DP_PLAY"),
                 Intent("com.xyauto.broadcast.bt.a2dp.play"),
+                Intent("com.xyauto.broadcast.BT_MUSIC"),
                 Intent("com.autochips.bluetooth.BtMusic.PLAY"),
+                Intent("com.autochips.bluetooth.a2dpsink.ACTION_PLAY"),
                 Intent("com.goodocom.gocsdk.A2DP_PLAY"),
                 Intent("com.forfan.btmusic.PLAY")
             )
             for (wakeIntent in wakeIntents) {
                 try { context.sendBroadcast(wakeIntent) } catch (_: Throwable) {}
+            }
+            val oemBtServices = listOf(
+                ComponentName("com.xyauto.bt", "com.xyauto.bt.BtService"),
+                ComponentName("com.ts.bt", "com.ts.bt.BtService"),
+                ComponentName("com.autochips.bluetooth", "com.autochips.bluetooth.BluetoothService"),
+                ComponentName("com.goodocom.gocsdk", "com.goodocom.gocsdk.service.GocsdkService")
+            )
+            for (svc in oemBtServices) {
+                try {
+                    val si = Intent().setComponent(svc)
+                    context.startService(si)
+                } catch (_: Throwable) {}
             }
             try {
                 bluetoothAdapter?.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
@@ -772,12 +814,23 @@ class AndroidBridge(
         }
     }
 
+    @Volatile private var cachedAppsJson: String? = null
+    private val appsCacheLock = Any()
+
     /**
-     * Queries all launchable automotive and system applications installed on the head unit.
-     * Returns a JSON array formatted for JoyOS App Drawer (`::`).
+     * Pre-warms the installed app list & base64 icon cache on a background thread during startup
+     * so opening the App Drawer or initializing WebView never blocks the UI thread.
      */
-    @JavascriptInterface
-    fun getInstalledApps(): String {
+    fun warmInstalledAppsCache(): String {
+        return synchronized(appsCacheLock) {
+            cachedAppsJson?.let { return it }
+            val built = buildInstalledAppsJson()
+            if (built.length > 2) cachedAppsJson = built
+            built
+        }
+    }
+
+    private fun buildInstalledAppsJson(): String {
         return try {
             val appList = JSONArray()
             val intent = Intent(Intent.ACTION_MAIN, null).apply {
@@ -817,6 +870,16 @@ class AndroidBridge(
             Log.w("AndroidBridge", "Safe fallback for installed apps: ${e.message}")
             "[]"
         }
+    }
+
+    /**
+     * Queries all launchable automotive and system applications installed on the head unit.
+     * Uses an in-memory cache pre-warmed off the UI thread for instant non-blocking startup.
+     */
+    @JavascriptInterface
+    fun getInstalledApps(): String {
+        cachedAppsJson?.let { return it }
+        return warmInstalledAppsCache()
     }
 
     /**
@@ -1179,6 +1242,80 @@ class AndroidBridge(
     }
 
     /**
+     * Finds and launches the head unit's native MCU Equalizer / Speaker Fader-Balance app
+     * (e.g. "Igualada", "Ecualizador", "DSP", "com.xyauto.eq", "com.ts.eq") so the driver
+     * can control physical FL/FR/RL/RR hardware speaker routing controlled by the car MCU chip.
+     */
+    @JavascriptInterface
+    fun openNativeEqualizer(): Boolean {
+        try {
+            val intent = Intent(Intent.ACTION_MAIN, null).apply { addCategory(Intent.CATEGORY_LAUNCHER) }
+            @Suppress("DEPRECATION")
+            val activities = packageManager.queryIntentActivities(intent, 0)
+            for (ri in activities) {
+                val pkg = ri.activityInfo?.packageName ?: continue
+                if (pkg == context.packageName) continue
+                val label = try { ri.loadLabel(packageManager).toString().lowercase(Locale.ROOT) } catch (_: Throwable) { "" }
+                val lowerPkg = pkg.lowercase(Locale.ROOT)
+                val actName = (ri.activityInfo?.name ?: "").lowercase(Locale.ROOT)
+                val isEqApp = label.contains("igualada") ||
+                    label.contains("ecualizador") ||
+                    label.contains("equalizer") ||
+                    label.contains("fader") ||
+                    label == "eq" ||
+                    label == "dsp" ||
+                    label.contains("sonido") ||
+                    lowerPkg.contains(".eq") ||
+                    lowerPkg.contains("equalizer") ||
+                    lowerPkg.contains("musicfx") ||
+                    lowerPkg.contains("audiofx") ||
+                    lowerPkg.contains("soundeffect") ||
+                    actName.contains("equalizer") ||
+                    actName.contains(".eq")
+                if (isEqApp) {
+                    val exact = Intent(Intent.ACTION_MAIN).apply {
+                        addCategory(Intent.CATEGORY_LAUNCHER)
+                        setClassName(pkg, ri.activityInfo.name)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try {
+                        context.startActivity(exact)
+                        return true
+                    } catch (_: Throwable) {
+                        if (launchApp(pkg)) return true
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+
+        val eqPkgs = listOf(
+            "com.xyauto.eq",
+            "com.ts.eq",
+            "com.autochips.eq",
+            "com.forfan.eq",
+            "com.syu.eq",
+            "com.fyt.eq",
+            "com.microntek.eq",
+            "com.tw.eq",
+            "com.android.musicfx"
+        )
+        for (pkg in eqPkgs) {
+            if (launchApp(pkg)) return true
+        }
+        return try {
+            val fxIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(fxIntent)
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
      * Sends frequency tune broadcast intents to automotive MCU radio services.
      */
     @JavascriptInterface
@@ -1315,15 +1452,15 @@ class AndroidBridge(
     }
 
     /**
-     * Returns the currently installed JoyOS version name (e.g. "1.1.3").
+     * Returns the currently installed JoyOS version name (e.g. "1.1.4").
      */
     @JavascriptInterface
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.1.3"
+            pInfo.versionName ?: "1.1.4"
         } catch (_: Throwable) {
-            "1.1.3"
+            "1.1.4"
         }
     }
 
@@ -1900,6 +2037,7 @@ class AndroidBridge(
     @Volatile private var lastBtColor2: String = ""
     @Volatile private var lastBtQueueJson: String = "[]"
     @Volatile private var lastBtSupportsSeek: Boolean = true
+    @Volatile private var lastBtPositionUpdatedMs: Long = 0L
 
     companion object {
         private val PLUS_WORD_JOIN_REGEX = Regex("[A-Za-z0-9ÁÉÍÓÚÑáéíóúñ\\)\\]\\.'\"!?]\\+[A-Za-z0-9ÁÉÍÓÚÑáéíóúñ\\(\\['\"]")
@@ -1931,12 +2069,23 @@ class AndroidBridge(
     }
 
     private fun buildBtMetadataJson(): JSONObject {
+        val dur = if (lastBtDurationSec > 0) lastBtDurationSec else 210
+        val computedPos = if (lastBtPositionSec >= 0) {
+            if (lastBtPlaying && lastBtPositionUpdatedMs > 0L) {
+                val deltaSec = ((SystemClock.elapsedRealtime() - lastBtPositionUpdatedMs).coerceAtLeast(0L) / 1000L).toInt()
+                (lastBtPositionSec + deltaSec).coerceIn(0, dur)
+            } else {
+                lastBtPositionSec.coerceIn(0, dur)
+            }
+        } else {
+            -1
+        }
         return JSONObject().apply {
             put("title", lastBtTitle)
             put("artist", if (lastBtArtist.isNotBlank()) lastBtArtist else "Bluetooth Audio")
             put("album", if (lastBtAlbum.isNotBlank()) lastBtAlbum else "A2DP Stream")
-            put("durationSec", if (lastBtDurationSec > 0) lastBtDurationSec else 210)
-            put("positionSec", lastBtPositionSec)
+            put("durationSec", dur)
+            put("positionSec", computedPos)
             put("playing", lastBtPlaying)
             put("source", lastBtActionSource)
             put("sourceApp", lastBtSourceApp)
@@ -1968,9 +2117,11 @@ class AndroidBridge(
         var needOnlineLookup = false
         var queryTitle = ""
         var queryArtist = ""
+        var saveArtToDisk: JoyMediaArtworkHelper.ArtworkResult? = null
         val json: JSONObject
 
         synchronized(btMetaLock) {
+            val nowElapsed = SystemClock.elapsedRealtime()
             val nextTitle = cleanMediaField(title)
             val nextArtist = cleanMediaField(artist)
             val nextAlbum = cleanMediaField(album)
@@ -1983,7 +2134,10 @@ class AndroidBridge(
                 lastBtCoverDataUri = ""
                 lastBtColor1 = ""
                 lastBtColor2 = ""
-                if (positionSec < 0) lastBtPositionSec = 0
+                if (positionSec < 0) {
+                    lastBtPositionSec = 0
+                    lastBtPositionUpdatedMs = nowElapsed
+                }
                 if (queueJson == null) lastBtQueueJson = "[]"
             }
 
@@ -1991,7 +2145,17 @@ class AndroidBridge(
             if (nextArtist.isNotEmpty()) lastBtArtist = nextArtist
             if (nextAlbum.isNotEmpty()) lastBtAlbum = nextAlbum
             if (durationSec > 0) lastBtDurationSec = durationSec
-            if (positionSec >= 0) lastBtPositionSec = positionSec
+            if (positionSec >= 0) {
+                lastBtPositionSec = positionSec
+                lastBtPositionUpdatedMs = nowElapsed
+            } else if (isPlaying != null && isPlaying != lastBtPlaying && lastBtPositionSec >= 0 && lastBtPositionUpdatedMs > 0L) {
+                if (!isPlaying && lastBtPlaying) {
+                    val deltaSec = ((nowElapsed - lastBtPositionUpdatedMs).coerceAtLeast(0L) / 1000L).toInt()
+                    val capDur = if (lastBtDurationSec > 0) lastBtDurationSec else 210
+                    lastBtPositionSec = (lastBtPositionSec + deltaSec).coerceIn(0, capDur)
+                }
+                lastBtPositionUpdatedMs = nowElapsed
+            }
             if (isPlaying != null) lastBtPlaying = isPlaying
             if (sourceAction.isNotBlank()) lastBtActionSource = sourceAction
             if (!sourceApp.isNullOrBlank()) lastBtSourceApp = sourceApp
@@ -2002,6 +2166,15 @@ class AndroidBridge(
                 lastBtCoverDataUri = coverDataUri
                 if (!color1.isNullOrBlank()) lastBtColor1 = color1
                 if (!color2.isNullOrBlank()) lastBtColor2 = color2
+                if (lastBtTitle.isNotBlank()) {
+                    queryTitle = lastBtTitle
+                    queryArtist = lastBtArtist
+                    saveArtToDisk = JoyMediaArtworkHelper.ArtworkResult(
+                        dataUri = lastBtCoverDataUri,
+                        color1 = lastBtColor1.ifBlank { "#06b6d4" },
+                        color2 = lastBtColor2.ifBlank { "#3b82f6" }
+                    )
+                }
             } else if (lastBtCoverDataUri.isEmpty() && lastBtTitle.isNotBlank()) {
                 needOnlineLookup = true
                 queryTitle = lastBtTitle
@@ -2013,10 +2186,21 @@ class AndroidBridge(
 
         onEvaluateJs?.invoke("if (typeof window.onBtMusicMetadata === 'function') window.onBtMusicMetadata($json);")
 
+        saveArtToDisk?.let { artToSave ->
+            mediaBridgeScope.launch {
+                JoyMediaArtworkHelper.saveToCache(context, queryTitle, queryArtist, artToSave)
+            }
+        }
+
         if (needOnlineLookup) {
             artworkLookupJob?.cancel()
             artworkLookupJob = mediaBridgeScope.launch {
-                val artRes = JoyMediaArtworkHelper.fetchArtworkForTrack(queryTitle, queryArtist, artUrlHint)
+                val artRes = JoyMediaArtworkHelper.fetchArtworkForTrack(
+                    title = queryTitle,
+                    artist = queryArtist,
+                    urlHint = artUrlHint,
+                    context = context
+                )
                 if (artRes != null) {
                     var updatedJson: JSONObject? = null
                     synchronized(btMetaLock) {

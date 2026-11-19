@@ -22,6 +22,7 @@ import android.net.Uri
 import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Bundle
+import android.os.SystemClock
 import android.telephony.TelephonyManager
 import android.util.Log
 import android.view.View
@@ -227,6 +228,9 @@ class MainActivity : AppCompatActivity() {
 
         configureWebView()
         loadJoyOS()
+        lifecycleScope.launch(Dispatchers.IO) {
+            try { bridge.warmInstalledAppsCache() } catch (_: Throwable) {}
+        }
         ensureAutomotivePermissions()
         registerAutomotiveMediaReceivers()
         registerConnectivityAndCallReceivers()
@@ -499,6 +503,7 @@ class MainActivity : AppCompatActivity() {
     private var lastKnownPhoneSignal: Int = -1
 
     private val btProfileListener = object : BluetoothProfile.ServiceListener {
+        @SuppressLint("MissingPermission")
         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
             if (proxy != null) {
                 btProfileProxies[profile] = proxy
@@ -506,6 +511,11 @@ class MainActivity : AppCompatActivity() {
                     try {
                         proxy.javaClass.getMethod("setAudioFocusState", Int::class.javaPrimitiveType)
                             .invoke(proxy, AudioManager.AUDIOFOCUS_GAIN)
+                    } catch (_: Throwable) {}
+                    try {
+                        if (proxy.connectedDevices.isNotEmpty()) {
+                            bridge.activateBtAudioSink()
+                        }
                     } catch (_: Throwable) {}
                 }
                 refreshBtTelemetryFromProfiles()
@@ -552,6 +562,9 @@ class MainActivity : AppCompatActivity() {
             var hfpOk = false
             var activeAddr = ""
             var activeName = ""
+            var bestExactBatt = -1
+            var bestAgBatt = -1
+            var bestAgSig = -1
             for ((profileId, proxy) in btProfileProxies) {
                 val connected = try {
                     proxy.connectedDevices
@@ -560,17 +573,59 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (connected.isNotEmpty()) {
                     val dev = connected.first()
+                    val devName = try { dev.name ?: "" } catch (_: Throwable) { "" }
+                    val low = devName.lowercase(Locale.ROOT)
+                    val isObd = low.contains("obd") || low.contains("elm327") || low.contains("vgate") || low.contains("vlinker") || low.contains("veepeak") || low.contains("konnwei") || low.contains("carista")
                     if (profileId == BluetoothProfile.A2DP || profileId == 11) a2dpOk = true
                     if (profileId == BluetoothProfile.HEADSET || profileId == 16) hfpOk = true
-                    if (activeAddr.isEmpty()) {
+                    if (!isObd && activeAddr.isEmpty()) {
                         activeAddr = dev.address ?: ""
-                        activeName = try { dev.name ?: "" } catch (_: Throwable) { "" }
+                        activeName = devName
+                    }
+                    if (!isObd) {
+                        // Prefer direct BluetoothDevice.getBatteryLevel() (API 27+) when available
+                        try {
+                            val bLevel = (dev.javaClass.getMethod("getBatteryLevel").invoke(dev) as? Int) ?: -1
+                            if (bLevel in 0..100) bestExactBatt = bLevel
+                        } catch (_: Throwable) {}
+
+                        // Query cached HFP AG indicators immediately on startup/resume (doesn't wait for new AG_EVENT)
+                        if (profileId == 16) {
+                            try {
+                                val agBundle = proxy.javaClass
+                                    .getMethod("getCurrentAgEvents", BluetoothDevice::class.java)
+                                    .invoke(proxy, dev) as? Bundle
+                                if (agBundle != null) {
+                                    val rawBat = agBundle.getInt("android.bluetooth.headsetclient.extra.BATTERY_LEVEL", -1)
+                                    if (rawBat >= 0) {
+                                        bestAgBatt = if (rawBat <= 5) (rawBat * 20).coerceIn(0, 100) else rawBat.coerceIn(0, 100)
+                                    }
+                                    val netStatus = agBundle.getInt("android.bluetooth.headsetclient.extra.NETWORK_STATUS", -1)
+                                    val rawSig = agBundle.getInt("android.bluetooth.headsetclient.extra.NETWORK_SIGNAL_STRENGTH", -1)
+                                    if (rawSig >= 0) {
+                                        bestAgSig = if (rawSig == 0) 0 else ((rawSig * 4 + 4) / 5).coerceIn(0, 4)
+                                    } else if (netStatus == 0) {
+                                        bestAgSig = 0
+                                    }
+                                }
+                            } catch (_: Throwable) {}
+                        }
                     }
                 }
             }
+            if (bestExactBatt in 0..100) {
+                lastKnownPhoneBattery = bestExactBatt
+            } else if (bestAgBatt in 0..100) {
+                if (lastKnownPhoneBattery < 0 || kotlin.math.abs(bestAgBatt - lastKnownPhoneBattery) >= 20) {
+                    lastKnownPhoneBattery = bestAgBatt
+                }
+            }
+            if (bestAgSig in 0..4) {
+                lastKnownPhoneSignal = bestAgSig
+            }
             bridge.updateBluetoothTelemetry(
-                battery = lastKnownPhoneBattery,
-                signal = lastKnownPhoneSignal,
+                battery = if (lastKnownPhoneBattery >= 0) lastKnownPhoneBattery else null,
+                signal = if (lastKnownPhoneSignal >= 0) lastKnownPhoneSignal else null,
                 deviceName = activeName.ifEmpty { null },
                 deviceAddress = activeAddr.ifEmpty { null },
                 a2dp = a2dpOk,
@@ -712,7 +767,7 @@ class MainActivity : AppCompatActivity() {
                         if (!isObd) {
                             lastKnownPhoneBattery = -1
                             lastKnownPhoneSignal = -1
-                            bridge.updateBluetoothTelemetry(battery = -1, signal = -1, a2dp = false, hfp = false)
+                            bridge.updateBluetoothTelemetry(battery = -1, signal = -1, a2dp = false, hfp = false, forceClear = true)
                         }
                         refreshBtTelemetryFromProfiles()
                     }
@@ -1014,11 +1069,24 @@ class MainActivity : AppCompatActivity() {
 
             val rawDur = meta?.getLong(MediaMetadata.METADATA_KEY_DURATION) ?: 0L
             val durSec = if (rawDur > 1000) (rawDur / 1000).toInt() else rawDur.toInt()
-            val posSec = pb?.position?.let { if (it >= 0) (it / 1000).toInt() else -1 } ?: -1
             val isPlaying: Boolean? = pb?.let {
                 it.state == PlaybackState.STATE_PLAYING || it.state == PlaybackState.STATE_BUFFERING
             }
-            val supportsSeek = pb == null || (pb.actions and PlaybackState.ACTION_SEEK_TO) != 0L
+            val posSec = if (pb != null && pb.position >= 0L) {
+                val rawPosMs = pb.position
+                val extrapolatedMs = if (pb.state == PlaybackState.STATE_PLAYING && pb.lastPositionUpdateTime > 0L) {
+                    val deltaMs = (SystemClock.elapsedRealtime() - pb.lastPositionUpdateTime).coerceAtLeast(0L)
+                    val speed = if (pb.playbackSpeed > 0f) pb.playbackSpeed else 1f
+                    rawPosMs + (deltaMs * speed).toLong()
+                } else {
+                    rawPosMs
+                }
+                val cappedMs = if (rawDur > 1000L) extrapolatedMs.coerceAtMost(rawDur) else extrapolatedMs
+                (cappedMs / 1000L).toInt().coerceAtLeast(0)
+            } else {
+                -1
+            }
+            val supportsSeek = pb != null && (pb.actions and PlaybackState.ACTION_SEEK_TO) != 0L
 
             if (title.isEmpty() && isPlaying == null) return
 
@@ -1116,6 +1184,7 @@ class MainActivity : AppCompatActivity() {
         try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
         try { tpmsReceiver.register() } catch (_: Throwable) {}
         try { attachMediaSessionsIfAllowed() } catch (_: Throwable) {}
+        try { refreshBtTelemetryFromProfiles() } catch (_: Throwable) {}
     }
 
     override fun onPause() {
@@ -1265,7 +1334,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.3"
+                        userAgentString = "$baseUa JoyOS/1.1.4"
                     }
                 } catch (_: Throwable) {}
             }
