@@ -10,9 +10,11 @@ import android.util.Base64
 import android.util.Log
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 import kotlin.math.min
@@ -21,11 +23,14 @@ import kotlin.math.roundToInt
 /**
  * Decodes, scales, caches and extracts vibrant ambient colors from album artwork
  * across MediaSession, AVRCP intents, local MP3/FLAC tags and optional online lookup.
+ * Includes a persistent on-disk cache so previously fetched covers work offline without Wi-Fi.
  */
 object JoyMediaArtworkHelper {
 
     private const val TAG = "JoyMediaArtworkHelper"
-    private const val MAX_CACHE_ENTRIES = 48
+    private const val MAX_CACHE_ENTRIES = 64
+    private const val MAX_DISK_CACHE_ENTRIES = 150
+    private const val DISK_CACHE_DIR_NAME = "joy_art_cache"
 
     data class ArtworkResult(
         val dataUri: String,
@@ -170,13 +175,25 @@ object JoyMediaArtworkHelper {
     }
 
     /**
-     * Synchronous remote artwork lookup (run on Dispatchers.IO).
-     * Checks in-memory cache, optional artUrlHint, and falls back to iTunes public Search API.
+     * Persists a known cover result into RAM and disk cache so future offline plays reuse it immediately.
+     */
+    fun saveToCache(context: Context?, title: String, artist: String, value: ArtworkResult) {
+        val cleanTitle = title.trim()
+        val cleanArtist = artist.trim()
+        if (cleanTitle.isEmpty()) return
+        val cacheKey = "${cleanTitle.lowercase()}|${cleanArtist.lowercase()}"
+        putInCache(cacheKey, value, context)
+    }
+
+    /**
+     * Synchronous artwork lookup (run on Dispatchers.IO).
+     * Checks in-memory cache, persistent offline disk cache, optional artUrlHint, and iTunes public Search API.
      */
     fun fetchArtworkForTrack(
         title: String,
         artist: String,
-        urlHint: String? = null
+        urlHint: String? = null,
+        context: Context? = null
     ): ArtworkResult? {
         val cleanTitle = title.trim()
         val cleanArtist = artist.trim()
@@ -185,8 +202,14 @@ object JoyMediaArtworkHelper {
         val cacheKey = "${cleanTitle.lowercase()}|${cleanArtist.lowercase()}"
         remoteCache[cacheKey]?.let { return it }
 
+        // 0. Persistent offline disk cache (survives reboots & works with Wi-Fi off)
+        readFromDiskCache(context, cacheKey)?.let { cached ->
+            putInCache(cacheKey, cached, null)
+            return cached
+        }
+
         val lastFail = failedKeys[cacheKey]
-        if (lastFail != null && System.currentTimeMillis() - lastFail < 5 * 60_000L && urlHint.isNullOrBlank()) {
+        if (lastFail != null && System.currentTimeMillis() - lastFail < 45_000L && urlHint.isNullOrBlank()) {
             return null
         }
 
@@ -195,7 +218,7 @@ object JoyMediaArtworkHelper {
             val directBytes = downloadBytes(urlHint, timeoutMs = 4500)
             val directRes = processBytesToArtwork(directBytes, maxDim = 300, quality = 80)
             if (directRes != null) {
-                putInCache(cacheKey, directRes)
+                putInCache(cacheKey, directRes, context)
                 return directRes
             }
         }
@@ -238,7 +261,7 @@ object JoyMediaArtworkHelper {
             val imgBytes = downloadBytes(art300, timeoutMs = 4500) ?: downloadBytes(art100, timeoutMs = 4000)
             val res = processBytesToArtwork(imgBytes, maxDim = 300, quality = 80)
             if (res != null) {
-                putInCache(cacheKey, res)
+                putInCache(cacheKey, res, context)
             } else {
                 failedKeys[cacheKey] = System.currentTimeMillis()
             }
@@ -250,13 +273,69 @@ object JoyMediaArtworkHelper {
         }
     }
 
-    private fun putInCache(key: String, value: ArtworkResult) {
+    private fun diskKeyHash(key: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(key.toByteArray(Charsets.UTF_8))
+        val sb = StringBuilder(digest.size * 2)
+        for (b in digest) {
+            sb.append(String.format("%02x", b.toInt() and 0xFF))
+        }
+        return sb.toString()
+    }
+
+    private fun readFromDiskCache(context: Context?, key: String): ArtworkResult? {
+        if (context == null) return null
+        return try {
+            val dir = File(context.cacheDir, DISK_CACHE_DIR_NAME)
+            val file = File(dir, "${diskKeyHash(key)}.json")
+            if (!file.exists() || !file.isFile || file.length() <= 32L) return null
+            val obj = JSONObject(file.readText(Charsets.UTF_8))
+            val uri = obj.optString("dataUri", "")
+            val c1 = obj.optString("color1", "#06b6d4")
+            val c2 = obj.optString("color2", "#3b82f6")
+            if (uri.startsWith("data:image/") && uri.length > 48) {
+                try { file.setLastModified(System.currentTimeMillis()) } catch (_: Throwable) {}
+                ArtworkResult(uri, c1, c2)
+            } else {
+                null
+            }
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    private fun writeToDiskCache(context: Context?, key: String, value: ArtworkResult) {
+        if (context == null) return
+        try {
+            val dir = File(context.cacheDir, DISK_CACHE_DIR_NAME)
+            if (!dir.exists()) dir.mkdirs()
+            val file = File(dir, "${diskKeyHash(key)}.json")
+            val obj = JSONObject().apply {
+                put("dataUri", value.dataUri)
+                put("color1", value.color1)
+                put("color2", value.color2)
+            }
+            file.writeText(obj.toString(), Charsets.UTF_8)
+            val files = dir.listFiles()
+            if (files != null && files.size > MAX_DISK_CACHE_ENTRIES) {
+                files.sortBy { it.lastModified() }
+                val toRemove = files.size - MAX_DISK_CACHE_ENTRIES
+                for (i in 0 until toRemove) {
+                    try { files[i].delete() } catch (_: Throwable) {}
+                }
+            }
+        } catch (_: Throwable) {}
+    }
+
+    private fun putInCache(key: String, value: ArtworkResult, context: Context? = null) {
         if (remoteCache.size >= MAX_CACHE_ENTRIES) {
             val firstKey = remoteCache.keys().let { if (it.hasMoreElements()) it.nextElement() else null }
             if (firstKey != null) remoteCache.remove(firstKey)
         }
         remoteCache[key] = value
         failedKeys.remove(key)
+        if (context != null) {
+            writeToDiskCache(context, key, value)
+        }
     }
 
     private fun downloadBytes(urlStr: String, timeoutMs: Int = 4000): ByteArray? {

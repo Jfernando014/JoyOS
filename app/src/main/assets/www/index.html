@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta id="joy-viewport-meta" name="viewport" content="width=1040" />
-  <!-- JOYOS_PROD_VER=1.1.3 -->
-  <title>JoyOS Production v1.1.3 — Chevrolet Joy</title>
+  <!-- JOYOS_PROD_VER=1.1.4 -->
+  <title>JoyOS Production v1.1.4 — Chevrolet Joy</title>
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/leaflet.css">
   <script src="js/leaflet.js"></script>
@@ -4842,20 +4842,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, rgba(92, 225, 230, 0.22), rgba(56, 189, 248, 0.12));
-      border: 2px solid rgba(92, 225, 230, 0.55);
+      background: linear-gradient(135deg, rgba(var(--arc), 0.22), rgba(var(--arc), 0.10));
+      border: 2px solid rgba(var(--arc), 0.55);
       overflow: hidden;
       position: relative;
       font-family: 'Sora', sans-serif;
       font-size: 26px;
       font-weight: 700;
-      color: #5ce1e6;
+      color: var(--accent);
     }
 
     .theme-light .joy-call-avatar-ring {
-      color: #0284c7;
-      border-color: rgba(2, 132, 199, 0.45);
-      background: linear-gradient(135deg, rgba(2, 132, 199, 0.14), rgba(56, 189, 248, 0.08));
+      color: var(--accent);
+      border-color: rgba(var(--arc), 0.45);
+      background: linear-gradient(135deg, rgba(var(--arc), 0.16), rgba(var(--arc), 0.08));
     }
 
     .joy-call-avatar-ring.ringing {
@@ -5534,8 +5534,8 @@
     .theme-light #eq-knob-2:hover,
     .theme-light #eq-knob-3:hover,
     .theme-light #eq-knob-4:hover {
-      border-color: #0284c7 !important;
-      box-shadow: 0 6px 18px rgba(2, 132, 199, 0.45), 0 2px 4px rgba(15, 23, 42, 0.25) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 6px 18px rgba(var(--arc), 0.45), 0 2px 4px rgba(15, 23, 42, 0.25) !important;
     }
 
     .theme-light .eq-track-wrap .w-3\.5 {
@@ -5551,7 +5551,7 @@
       width: 100%;
       height: 6px;
       border-radius: 9999px;
-      background: linear-gradient(to right, #22d3ee 0%, #22d3ee 10%, rgba(255, 255, 255, 0.12) 10%, rgba(255, 255, 255, 0.12) 100%);
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) 10%, rgba(255, 255, 255, 0.12) 10%, rgba(255, 255, 255, 0.12) 100%);
       outline: none;
       cursor: pointer;
       margin: 0;
@@ -5559,7 +5559,7 @@
     }
 
     .theme-light .eq-sub-range {
-      background: linear-gradient(to right, #0284c7 0%, #0284c7 10%, rgba(15, 23, 42, 0.1) 10%, rgba(15, 23, 42, 0.1) 100%);
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) 10%, rgba(15, 23, 42, 0.1) 10%, rgba(15, 23, 42, 0.1) 100%);
     }
 
     .eq-sub-range::-webkit-slider-thumb {
@@ -5569,14 +5569,14 @@
       height: 18px;
       border-radius: 50%;
       background: #ffffff;
-      border: 2.5px solid #22d3ee;
+      border: 2.5px solid var(--accent);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
       cursor: pointer;
       transition: transform 120ms ease, box-shadow 120ms ease;
     }
 
     .theme-light .eq-sub-range::-webkit-slider-thumb {
-      border-color: #0284c7;
+      border-color: var(--accent);
     }
 
     .eq-sub-range::-webkit-slider-thumb:hover {
@@ -5589,13 +5589,13 @@
       height: 18px;
       border-radius: 50%;
       background: #ffffff;
-      border: 2.5px solid #22d3ee;
+      border: 2.5px solid var(--accent);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
       cursor: pointer;
     }
 
     .theme-light .eq-sub-range::-moz-range-thumb {
-      border-color: #0284c7;
+      border-color: var(--accent);
     }
 
     /* Car Cabin Sound Stage Theming */
@@ -5614,13 +5614,13 @@
 
     .file-drive-card:hover {
       background: rgba(19, 29, 46, 0.85);
-      border-color: rgba(92, 225, 230, 0.25);
+      border-color: rgba(var(--arc), 0.28);
     }
 
     .file-drive-card.active {
-      background: rgba(92, 225, 230, 0.08);
-      border-color: rgba(92, 225, 230, 0.45);
-      box-shadow: 0 0 16px rgba(92, 225, 230, 0.08);
+      background: rgba(var(--arc), 0.10);
+      border-color: rgba(var(--arc), 0.48);
+      box-shadow: 0 0 16px rgba(var(--arc), 0.10);
     }
 
     .theme-light .file-drive-card {
@@ -5635,9 +5635,9 @@
     }
 
     .theme-light .file-drive-card.active {
-      background: rgba(2, 132, 199, 0.04);
-      border-color: rgba(2, 132, 199, 0.5);
-      box-shadow: 0 0 16px rgba(2, 132, 199, 0.08);
+      background: rgba(var(--arc), 0.06);
+      border-color: rgba(var(--arc), 0.52);
+      box-shadow: 0 0 16px rgba(var(--arc), 0.10);
     }
 
     /* Filter Pills */
@@ -5653,10 +5653,10 @@
     }
 
     .filter-pill.active {
-      background: #5ce1e6 !important;
+      background: var(--accent) !important;
       color: #0b1320 !important;
       font-weight: 800 !important;
-      box-shadow: 0 2px 10px rgba(92, 225, 230, 0.3);
+      box-shadow: 0 2px 10px rgba(var(--arc), 0.30);
     }
 
     .theme-light .filter-pill {
@@ -5673,11 +5673,11 @@
     }
 
     .theme-light .filter-pill.active {
-      background: #0284c7 !important;
+      background: var(--accent) !important;
       color: #ffffff !important;
       font-weight: 800 !important;
       border: none !important;
-      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.25);
+      box-shadow: 0 2px 10px rgba(var(--arc), 0.25);
     }
 
     /* File Item Cards */
@@ -5772,9 +5772,9 @@
 
     /* Action Button Pills */
     .file-action-pill {
-      background: #5ce1e6;
+      background: var(--accent);
       color: #0b1320;
-      box-shadow: 0 2px 8px rgba(92, 225, 230, 0.25);
+      box-shadow: 0 2px 8px rgba(var(--arc), 0.25);
     }
 
     .file-action-pill:hover {
@@ -5789,13 +5789,13 @@
     }
 
     .theme-light .file-action-pill {
-      background: #0284c7;
+      background: var(--accent);
       color: #ffffff;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+      box-shadow: 0 2px 8px rgba(var(--arc), 0.25);
     }
 
     .theme-light .file-action-pill:hover {
-      background: #0369a1;
+      background: var(--accent-strong);
     }
 
     .theme-light .file-action-pill.installed {
@@ -6128,6 +6128,24 @@
       border-radius: 0 !important;
       border: 0 !important;
       box-shadow: none !important;
+      filter: none !important;
+    }
+
+    /* Full-bleed overlays with zero rounded corners on native head unit (prevents white corners in Light Mode) */
+    html.is-native-car .boot-stage,
+    body.is-native-car .boot-stage,
+    html.is-native-car #profile-selector-overlay,
+    body.is-native-car #profile-selector-overlay,
+    html.is-native-car #screensaver-overlay,
+    body.is-native-car #screensaver-overlay,
+    html.is-native-car .joy-call-backdrop,
+    body.is-native-car .joy-call-backdrop,
+    html.is-native-car .joy-sys-backdrop,
+    body.is-native-car .joy-sys-backdrop,
+    html.is-native-car #pin-lock-overlay,
+    body.is-native-car #pin-lock-overlay {
+      border-radius: 0 !important;
+      border: 0 !important;
     }
 
     /* Desktop-only soft glass blur (disabled on AC8227L/Mali-450 for solid 60 FPS) */
@@ -6138,18 +6156,32 @@
 
     /* 60 FPS GPU Acceleration for MediaTek AC8227L / Mali-450 MP2 */
     html.is-native-car .ethereal-card,
+    html.is-native-car .ethereal-pill,
     html.is-native-car .soft-surface,
     html.is-native-car .dock,
     html.is-native-car .bt-soft-card,
     html.is-native-car .bt-soft-item,
     html.is-native-car .glass-blur,
+    html.is-native-car .aj-panel,
+    html.is-native-car .aj-pop,
+    html.is-native-car .map-style-popover,
+    html.is-native-car .joy-call-card,
+    html.is-native-car .joy-sys-card,
+    html.is-native-car .ss-widget,
     html.is-native-car [class*="backdrop-blur"],
     body.is-native-car .ethereal-card,
+    body.is-native-car .ethereal-pill,
     body.is-native-car .soft-surface,
     body.is-native-car .dock,
     body.is-native-car .bt-soft-card,
     body.is-native-car .bt-soft-item,
     body.is-native-car .glass-blur,
+    body.is-native-car .aj-panel,
+    body.is-native-car .aj-pop,
+    body.is-native-car .map-style-popover,
+    body.is-native-car .joy-call-card,
+    body.is-native-car .joy-sys-card,
+    body.is-native-car .ss-widget,
     body.is-native-car [class*="backdrop-blur"] {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -6161,6 +6193,25 @@
     body.is-native-car .notif-pill {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+    }
+
+    /* Eliminate GPU-killing fullscreen blur & continuous infinite animations on Mali-450 */
+    html.is-native-car #music-cover-blur-img,
+    body.is-native-car #music-cover-blur-img {
+      display: none !important;
+      filter: none !important;
+    }
+
+    html.is-native-car #sound-stage-aura,
+    body.is-native-car #sound-stage-aura {
+      filter: none !important;
+    }
+
+    html.is-native-car .animate-ping,
+    html.is-native-car .animate-pulse,
+    body.is-native-car .animate-ping,
+    body.is-native-car .animate-pulse {
+      animation: none !important;
     }
 
     html.is-native-car .theme-dark .ethereal-card,
@@ -6182,13 +6233,68 @@
       background: radial-gradient(circle, var(--accent) 0%, transparent 70%) !important;
     }
 
-    /* Night Dimming, Live Brightness Filter & Large Text Accessibility Modes */
-    #tablet-viewport {
+    /* Night Dimming, Live Brightness Filter (Desktop-only CSS pass; native uses real hardware backlight) */
+    html.joy-css-dim-active #tablet-viewport {
       filter: brightness(var(--joy-bright-filter, 1)) contrast(var(--joy-contrast-filter, 1));
     }
 
     html.night-dim-active #tablet-viewport {
       --joy-contrast-filter: 1.04;
+    }
+
+    /* Adaptive OTA Update Pill (clean in both Dark & Light modes, always inside .side.right) */
+    #ota-update-pill {
+      background: rgba(var(--arc), 0.16);
+      border: 1px solid rgba(var(--arc), 0.42);
+      color: var(--accent);
+      box-shadow: 0 2px 10px rgba(var(--arc), 0.18);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .theme-light #ota-update-pill {
+      background: rgba(var(--arc), 0.12);
+      border-color: rgba(var(--arc), 0.40);
+      color: var(--accent-strong);
+      box-shadow: 0 2px 8px rgba(var(--arc), 0.14);
+    }
+
+    /* Custom real-time synced scrollbar for App Drawer (reliable visual feedback on Chrome 61 WebView) */
+    #os-apps-scroll {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    #os-apps-scroll::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    #os-apps-scrollbar-track {
+      width: 6px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.08);
+      position: relative;
+      flex-shrink: 0;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .theme-light #os-apps-scrollbar-track {
+      background: rgba(15, 23, 42, 0.10);
+    }
+
+    #os-apps-scrollbar-thumb {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      border-radius: 9999px;
+      background: var(--accent);
+      opacity: 0.72;
+      min-height: 28px;
+      will-change: transform;
     }
 
     html.large-text body {
@@ -6552,6 +6658,29 @@
 
     [data-map-style="satellite"] .joy-map-tiles {
       filter: brightness(96%) contrast(106%) saturate(110%);
+    }
+
+    /* Native AC8227L / Mali-450 Lean Map Tile Filters (eliminates 5-pass GPU stalls) */
+    html.is-native-car .theme-light .joy-map-tiles,
+    html.is-native-car [data-map-style="day"] .joy-map-tiles,
+    html.is-native-car [data-map-style="satellite"] .joy-map-tiles {
+      filter: none !important;
+    }
+
+    html.is-native-car [data-map-style="night"] .joy-map-tiles {
+      filter: invert(92%) hue-rotate(180deg) !important;
+    }
+
+    html.is-native-car [data-map-style="asphalt"] .joy-map-tiles {
+      filter: grayscale(100%) invert(92%) !important;
+    }
+
+    html.is-native-car [data-map-style="silver"] .joy-map-tiles {
+      filter: grayscale(100%) !important;
+    }
+
+    html.is-native-car [data-map-style="amber"] .joy-map-tiles {
+      filter: invert(92%) sepia(60%) !important;
     }
 
     #interactive-map.pin-pick-active,
@@ -6931,6 +7060,14 @@
       margin-left: 18px;
     }
 
+    html.legacy-flex-gap .bar .side.right>*+* {
+      margin-left: 12px;
+    }
+
+    html.legacy-flex-gap #ota-update-pill>*+* {
+      margin-left: 5px;
+    }
+
     html.legacy-flex-gap .weather>*+* {
       margin-left: 7px;
     }
@@ -7228,6 +7365,22 @@
       <!-- ================================================================= -->
       <div id="boot-overlay" class="boot-stage cursor-pointer hidden-boot" style="display: none;"
         title="Toca para omitir">
+        <script>
+          (function () {
+            try {
+              var raw = localStorage.getItem('joyos_more_prefs_v1');
+              var prefs = raw ? JSON.parse(raw) : null;
+              if (!prefs || prefs.bootAnimEnabled !== false) {
+                var ov = document.getElementById('boot-overlay');
+                if (ov) {
+                  ov.classList.remove('hidden-boot');
+                  ov.style.display = 'block';
+                  ov.style.opacity = '1';
+                }
+              }
+            } catch (e) { }
+          })();
+        </script>
 
 
         <!-- STAGE 1: AUTHENTIC FACETED CHEVROLET LOGOV2 (PURE LOGO-MASKED SHEEN — ZERO BOX LEAKAGE) -->
@@ -7468,7 +7621,7 @@
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
                   Actualización JoyOS
                   <span id="ota-modal-tag"
-                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.3</span>
+                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.4</span>
                 </h3>
                 <p class="text-xs text-slate-400" id="ota-modal-subtitle">Nueva versión disponible desde GitHub</p>
               </div>
@@ -7559,7 +7712,7 @@
             class="pressable flex items-center gap-2 px-2.5 py-1 rounded-full soft-surface soft-surface-interactive text-xs font-semibold"
             title="Cambiar o editar perfil">
             <span id="top-profile-avatar"
-              class="w-5 h-5 rounded-full bg-gradient-to-br from-[#5ce1e6] to-[#0284c7] text-slate-950 font-bold text-[10px] flex items-center justify-center overflow-hidden shadow-sm">C</span>
+              class="w-5 h-5 rounded-full bg-[var(--accent)] text-slate-950 font-bold text-[10px] flex items-center justify-center overflow-hidden shadow-sm">C</span>
             <span id="top-profile-name" class="text-[var(--ink)] text-xs font-semibold">Conductor 1</span>
           </button>
         </div>
@@ -7572,25 +7725,24 @@
           </button>
         </div>
 
-        <!-- Over-The-Air (OTA) Dynamic Update Pill -->
-        <div id="ota-update-pill"
-          class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-xs font-bold cursor-pointer pressable animate-pulse shadow-[0_0_12px_rgba(6,182,212,0.35)]"
-          onclick="openOtaModal()" title="Nueva versión de JoyOS disponible">
-          <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-          </svg>
-          <span id="ota-pill-text">JoyOS · Actualizar</span>
-        </div>
-
         <!-- Hidden legacy node; volume now stacks in #notification-stack-container -->
         <div id="transient-vol-pill" class="hidden">
           <i><b id="transient-vol-bar" style="width: 50%;"></b></i>
           <span id="transient-vol-num">15</span>
         </div>
 
-        <!-- Right Side: Tell-Tales (.tell) + Dynamic Connectivity (.conn) -->
-        <div class="side right">
+        <!-- Right Side: Compact OTA Pill + Tell-Tales (.tell) + Dynamic Connectivity (.conn) -->
+        <div class="side right" style="gap: 14px;">
+          <!-- Over-The-Air (OTA) Dynamic Update Pill (kept inside .side.right so .bar grid never wraps!) -->
+          <div id="ota-update-pill"
+            class="hidden items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold cursor-pointer pressable shrink-0 whitespace-nowrap"
+            onclick="openOtaModal()" title="Nueva versión de JoyOS disponible">
+            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            <span id="ota-pill-text">Actualizar</span>
+          </div>
           <div class="tell">
             <!-- Parqueo / Hazard Double Arrows (.t-turn) -->
             <svg id="top-ind-haz" class="ic t-turn" viewBox="0 0 24 24">
@@ -9711,13 +9863,20 @@
                 <div
                   class="col-span-5 bt-soft-card p-4 rounded-3xl flex flex-col justify-between items-center border border-black/5 dark:border-white/5 relative overflow-hidden">
                   <!-- Header -->
-                  <div class="w-full flex items-center justify-between shrink-0">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-[var(--mute)]">DIRECCIÓN DEL
-                      SONIDO</span>
-                    <button onclick="resetSoundStage()"
-                      class="pressable px-3.5 py-1 rounded-full text-xs font-semibold soft-surface soft-surface-interactive border border-black/5 dark:border-white/10 text-[var(--ink)] shadow-sm">
-                      Centrar
-                    </button>
+                  <div class="w-full flex items-center justify-between gap-2 shrink-0">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-[var(--mute)]">ESCENA /
+                      FADER</span>
+                    <div class="flex items-center gap-1.5">
+                      <button id="eq-native-fader-btn" onclick="openNativeEqualizerUI()"
+                        title="Abrir ecualizador y fader físico de parlantes de la radio (MCU)"
+                        class="pressable px-2.5 py-1 rounded-full text-[11px] font-semibold soft-surface soft-surface-interactive border border-[var(--accent)]/40 text-[var(--accent)] shadow-sm">
+                        Fader MCU ↗
+                      </button>
+                      <button onclick="resetSoundStage()"
+                        class="pressable px-3 py-1 rounded-full text-[11px] font-semibold soft-surface soft-surface-interactive border border-black/5 dark:border-white/10 text-[var(--ink)] shadow-sm">
+                        Centrar
+                      </button>
+                    </div>
                   </div>
 
                   <!-- Automotive Sound Stage (Bird's Eye Cabin) -->
@@ -9792,9 +9951,12 @@
                   </div>
 
                   <!-- Sound Direction Coordinate Readout -->
-                  <div id="sound-stage-readout"
-                    class="text-xs font-bold text-[var(--accent)] tabular-nums tracking-wide shrink-0">
-                    Centro · +12 % adelante
+                  <div class="flex flex-col items-center gap-0.5 shrink-0">
+                    <div id="sound-stage-readout"
+                      class="text-xs font-bold text-[var(--accent)] tabular-nums tracking-wide">
+                      Centro · +12 % adelante
+                    </div>
+                    <span class="text-[10px] text-[var(--mute)] opacity-80">Escena DSP · Fader por parlante en MCU</span>
                   </div>
                 </div>
               </div>
@@ -10028,10 +10190,16 @@
                 <h2 class="font-sora text-lg font-medium tracking-tight">Aplicaciones</h2>
               </div>
 
-              <!-- Scrollable App Grid (4 Columns, clean bounds above dock) -->
-              <div id="os-apps-grid"
-                class="grid grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto py-1 pr-1 content-start">
-                <!-- Populated dynamically by renderAppsUI() -->
+              <!-- Scrollable App Grid + Custom Real-Time Synced Scrollbar (reliable on Android 8.1 WebView) -->
+              <div class="relative flex-1 min-h-0 flex items-stretch gap-2.5 overflow-hidden">
+                <div id="os-apps-scroll" class="flex-1 min-h-0 overflow-y-auto py-1 pr-1">
+                  <div id="os-apps-grid" class="grid grid-cols-4 gap-4 content-start">
+                    <!-- Populated dynamically by renderAppsUI() -->
+                  </div>
+                </div>
+                <div id="os-apps-scrollbar-track" class="my-1" aria-hidden="true">
+                  <div id="os-apps-scrollbar-thumb"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -10778,7 +10946,7 @@
   </div>
 
   <script>
-    const JOYOS_VERSION = '1.1.3';
+    const JOYOS_VERSION = '1.1.4';
     if (!Array.prototype.flatMap) {
       Array.prototype.flatMap = function (callback, thisArg) {
         return Array.prototype.concat.apply([], this.map(callback, thisArg));
@@ -11392,6 +11560,8 @@
       if (htmlEl) {
         htmlEl.style.setProperty('--joy-bright-filter', cssBright.toFixed(3));
         htmlEl.classList.toggle('night-dim-active', nightOn || lightsOn);
+        const needCssDim = !window.AndroidBridge && (cssBright < 0.995 || nightOn || lightsOn);
+        htmlEl.classList.toggle('joy-css-dim-active', needCssDim);
       }
 
       if (pushNative && window.AndroidBridge && typeof window.AndroidBridge.setSystemBrightness === 'function') {
@@ -11834,7 +12004,7 @@
       });
       return {
         app: 'JoyOS',
-        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.3',
+        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.4',
         exportedAt: new Date().toISOString(),
         keys: data
       };
@@ -12035,7 +12205,11 @@
         showHomeFloatingNotice();
       }
       if (t === 'apps') {
+        if (typeof loadNativeInstalledAppsAsync === 'function') loadNativeInstalledAppsAsync();
         renderAppsUI();
+        if (typeof syncAppsDrawerScrollbar === 'function') {
+          setTimeout(syncAppsDrawerScrollbar, 40);
+        }
       }
       if (t === 'files') {
         loadNativeStorageFiles();
@@ -12043,8 +12217,18 @@
       if (t === 'map') {
         setTimeout(() => {
           initJoyMap();
-          if (joyMap) joyMap.invalidateSize();
-        }, 120);
+          if (joyMap) {
+            joyMap.invalidateSize();
+            if (mapFollowCar && lastGpsCoords) {
+              try { joyMap.setView(lastGpsCoords, joyMap.getZoom(), { animate: false }); } catch (e) { }
+            }
+            if (joyCarMarker && lastGpsCoords) {
+              joyCarMarker.setLatLng(lastGpsCoords);
+              const puckEl = document.getElementById('joy-car-puck-el');
+              if (puckEl) puckEl.style.transform = 'rotate(' + lastGpsBearing + 'deg)';
+            }
+          }
+        }, 80);
       }
       if (t === 'music') {
         refreshMusicFromDevice();
@@ -13667,9 +13851,63 @@
       }
     }
 
+    let _appsScrollBound = false;
+    let _appsScrollRaf = 0;
+
+    function syncAppsDrawerScrollbar() {
+      const scroller = document.getElementById('os-apps-scroll');
+      const track = document.getElementById('os-apps-scrollbar-track');
+      const thumb = document.getElementById('os-apps-scrollbar-thumb');
+      if (!scroller || !track || !thumb) return;
+      const sh = scroller.scrollHeight;
+      const ch = scroller.clientHeight;
+      if (sh <= ch + 2 || ch <= 0) {
+        track.style.opacity = '0';
+        track.style.pointerEvents = 'none';
+        return;
+      }
+      track.style.opacity = '1';
+      track.style.pointerEvents = 'auto';
+      const trackH = track.clientHeight || ch;
+      const thumbH = Math.max(28, Math.round((ch / sh) * trackH));
+      const maxScroll = Math.max(1, sh - ch);
+      const ratio = Math.max(0, Math.min(1, scroller.scrollTop / maxScroll));
+      const maxTop = Math.max(0, trackH - thumbH);
+      const topPx = Math.round(ratio * maxTop);
+      thumb.style.height = thumbH + 'px';
+      thumb.style.transform = 'translateY(' + topPx + 'px)';
+    }
+
+    function bindAppsDrawerScrollbar() {
+      if (_appsScrollBound) return;
+      const scroller = document.getElementById('os-apps-scroll');
+      const track = document.getElementById('os-apps-scrollbar-track');
+      if (!scroller) return;
+      _appsScrollBound = true;
+      scroller.addEventListener('scroll', () => {
+        if (_appsScrollRaf) return;
+        _appsScrollRaf = requestAnimationFrame(() => {
+          _appsScrollRaf = 0;
+          syncAppsDrawerScrollbar();
+        });
+      }, { passive: true });
+      if (track) {
+        track.addEventListener('pointerdown', (e) => {
+          const rect = track.getBoundingClientRect();
+          if (!rect.height) return;
+          const rel = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+          scroller.scrollTop = rel * Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+          syncAppsDrawerScrollbar();
+        });
+      }
+    }
+
     function renderAppsUI() {
       const grid = document.getElementById('os-apps-grid');
       if (!grid) return;
+      if (typeof ensureNativeInstalledAppsLoaded === 'function') {
+        ensureNativeInstalledAppsLoaded();
+      }
 
       grid.innerHTML = osApps.map(app => {
         const iconMarkup = app.iconDataUri
@@ -13682,6 +13920,8 @@
           </div>
         `;
       }).join('');
+      bindAppsDrawerScrollbar();
+      requestAnimationFrame(syncAppsDrawerScrollbar);
     }
 
     function renderFilesManagerUI() {
@@ -14492,12 +14732,42 @@
       return true;
     }
 
+    const JOY_ACCENT_PALETTE = {
+      cyan: { dark: '#5ce1e6', light: '#0284c7', darkRgb: '92, 225, 230', lightRgb: '2, 132, 199' },
+      violet: { dark: '#c084fc', light: '#7c3aed', darkRgb: '192, 132, 252', lightRgb: '124, 58, 237' },
+      amber: { dark: '#fbbf24', light: '#d97706', darkRgb: '251, 191, 36', lightRgb: '217, 119, 6' },
+      emerald: { dark: '#34d399', light: '#059669', darkRgb: '52, 211, 153', lightRgb: '5, 150, 105' },
+      rose: { dark: '#fb7185', light: '#e11d48', darkRgb: '251, 113, 133', lightRgb: '225, 29, 72' }
+    };
+
+    function getActiveAccentHex() {
+      const p = JOY_ACCENT_PALETTE[state.accent || 'cyan'] || JOY_ACCENT_PALETTE.cyan;
+      return state.theme === 'light' ? p.light : p.dark;
+    }
+
+    function getActiveAccentRgb() {
+      const p = JOY_ACCENT_PALETTE[state.accent || 'cyan'] || JOY_ACCENT_PALETTE.cyan;
+      return state.theme === 'light' ? p.lightRgb : p.darkRgb;
+    }
+
+    function openNativeEqualizerUI() {
+      if (window.AndroidBridge && typeof window.AndroidBridge.openNativeEqualizer === 'function') {
+        let ok = false;
+        try { ok = !!window.AndroidBridge.openNativeEqualizer(); } catch (e) { ok = false; }
+        if (!ok) {
+          showJoyToast('Fader MCU', 'No se encontró la app nativa de ecualizador de la radio', 'info');
+        }
+      } else {
+        showJoyToast('Fader MCU', 'En el auto abre el ecualizador nativo (Igualada / DSP) para balance físico de parlantes', 'info');
+      }
+    }
+
     function updateSubwooferLevel(val) {
       const num = Math.round(Number(val));
       const lvl = Math.max(0, Math.min(10, num));
       state.subwooferLevel = lvl;
       const isLight = state.theme === 'light';
-      const eqAccent = isLight ? '#0284c7' : '#22d3ee';
+      const eqAccent = getActiveAccentHex();
       const trackBg = isLight ? 'rgba(15, 23, 42, 0.1)' : 'rgba(255, 255, 255, 0.12)';
       const lbl = document.getElementById('eq-subwoofer-val');
       if (lbl) {
@@ -14588,9 +14858,10 @@
         aura.style.left = `${px}%`;
         aura.style.top = `${py}%`;
         const isLight = state.theme === 'light';
+        const rgb = getActiveAccentRgb();
         aura.style.background = isLight
-          ? 'radial-gradient(circle, rgba(2, 132, 199, 0.40) 0%, rgba(2, 132, 199, 0.12) 45%, transparent 75%)'
-          : 'radial-gradient(circle, rgba(34, 211, 238, 0.45) 0%, rgba(34, 211, 238, 0.15) 45%, transparent 75%)';
+          ? `radial-gradient(circle, rgba(${rgb}, 0.36) 0%, rgba(${rgb}, 0.12) 45%, transparent 75%)`
+          : `radial-gradient(circle, rgba(${rgb}, 0.42) 0%, rgba(${rgb}, 0.14) 45%, transparent 75%)`;
       }
       if (readout) {
         const x = state.soundStageX;
@@ -14674,8 +14945,7 @@
         d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
       }
       line.setAttribute('d', d);
-      const isLight = state.theme === 'light';
-      line.setAttribute('stroke', isLight ? '#0284c7' : '#22d3ee');
+      line.setAttribute('stroke', getActiveAccentHex());
     }
 
     function initEqFaderDragging() {
@@ -15843,7 +16113,7 @@
         const pill = document.getElementById('ota-update-pill');
         const pillTxt = document.getElementById('ota-pill-text');
         if (pill && pillTxt) {
-          pillTxt.textContent = `JoyOS v${data.version} · Actualizar`;
+          pillTxt.textContent = `v${data.version} · Actualizar`;
           pill.classList.remove('hidden');
           pill.classList.add('flex');
         }
@@ -16161,9 +16431,12 @@
       });
     }
 
-    function triggerBootCeremony(forceFail = false) {
+    let _bootOpensProfileOnFinish = false;
+
+    function triggerBootCeremony(forceFail = false, openProfileAfter = false) {
       const overlay = document.getElementById('boot-overlay');
       if (!overlay) return;
+      _bootOpensProfileOnFinish = !!openProfileAfter;
       initBootGauges();
       clearTimeout(bootFadeTimeout);
       clearTimeout(bootTelltaleT1);
@@ -16208,6 +16481,8 @@
       clearTimeout(bootFadeTimeout);
       clearTimeout(bootTelltaleT1);
       clearTimeout(bootTelltaleT2);
+      const shouldOpenProfile = _bootOpensProfileOnFinish;
+      _bootOpensProfileOnFinish = false;
       const overlay = document.getElementById('boot-overlay');
       if (overlay) {
         overlay.style.pointerEvents = 'none';
@@ -16217,7 +16492,12 @@
         setTimeout(() => {
           overlay.classList.add('hidden-boot');
           overlay.style.display = 'none';
+          if (shouldOpenProfile && typeof openProfileSelector === 'function') {
+            openProfileSelector();
+          }
         }, 350);
+      } else if (shouldOpenProfile && typeof openProfileSelector === 'function') {
+        openProfileSelector();
       }
     }
 
@@ -16883,15 +17163,35 @@
 
       state.songIdx = 0;
       const nowMs = Date.now();
-      if (!window._isSeekingAudio && nowMs > (window._btSeekLockUntil || 0)) {
-        if (typeof meta.positionSec === 'number' && meta.positionSec >= 0 && dur > 0) {
-          state.songProgressPct = Math.max(0, Math.min(100, (meta.positionSec / dur) * 100));
-        } else if (!isSameAsTop) {
-          state.songProgressPct = 0;
-        }
-      }
+      const prevPlaying = !!state.playing;
       if (typeof meta.playing === 'boolean' && nowMs > (window._btTransportLockUntil || 0)) {
         state.playing = meta.playing;
+      }
+      const trackKey = btTrackObj.title + '|' + btTrackObj.artist;
+      if (!window._isSeekingAudio && nowMs > (window._btSeekLockUntil || 0)) {
+        if (typeof meta.positionSec === 'number' && meta.positionSec >= 0 && dur > 0) {
+          const curEstSec = (state._posTrackKey === trackKey && typeof state._posAnchorSec === 'number')
+            ? (state._posAnchorSec + (prevPlaying ? Math.max(0, (nowMs - (state._posAnchorTs || nowMs)) / 1000) : 0))
+            : ((state.songProgressPct || 0) / 100) * dur;
+          const drift = Math.abs(meta.positionSec - curEstSec);
+          const mustResync = !isSameAsTop || (state.playing !== prevPlaying) || meta.positionSec === 0 || drift >= 3.0 || state._posTrackKey !== trackKey;
+          if (mustResync) {
+            state._posAnchorSec = Math.max(0, Math.min(dur, meta.positionSec));
+            state._posAnchorTs = nowMs;
+            state._posTrackKey = trackKey;
+            state.songProgressPct = Math.max(0, Math.min(100, (state._posAnchorSec / dur) * 100));
+          }
+        } else if (!isSameAsTop) {
+          state._posAnchorSec = 0;
+          state._posAnchorTs = nowMs;
+          state._posTrackKey = trackKey;
+          state.songProgressPct = 0;
+        } else if (state.playing !== prevPlaying && state._posTrackKey === trackKey && typeof state._posAnchorSec === 'number') {
+          if (!state.playing && prevPlaying) {
+            state._posAnchorSec = Math.min(dur, state._posAnchorSec + Math.max(0, (nowMs - (state._posAnchorTs || nowMs)) / 1000));
+          }
+          state._posAnchorTs = nowMs;
+        }
       }
 
       if (hasReal && (!meta.color1 || !meta.color2)) {
@@ -17304,6 +17604,9 @@
       } else {
         state.songIdx = (state.songIdx + dir + songs.length) % songs.length;
         state.songProgressPct = 0;
+        state._posAnchorSec = 0;
+        state._posAnchorTs = Date.now();
+        state._posTrackKey = '';
         const nextSongObj = songs[state.songIdx];
         ensureTrackArtwork(state.songIdx);
         if (nextSongObj && nextSongObj.audioUri) {
@@ -17338,6 +17641,9 @@
     function selectSongIndex(idx) {
       state.songIdx = idx;
       state.songProgressPct = 0;
+      state._posAnchorSec = 0;
+      state._posAnchorTs = Date.now();
+      state._posTrackKey = '';
       const curSong = songs[state.songIdx];
       ensureTrackArtwork(state.songIdx);
       if (curSong && curSong.audioUri) {
@@ -17394,9 +17700,20 @@
           }
         } else {
           try { joyAudio.pause(); joyAudio.removeAttribute('src'); } catch (e) { }
+          const nowT = Date.now();
+          const activeDur = (curSong && curSong.durationSec) ? curSong.durationSec : 210;
           const targetPlay = !state.playing;
+          if (!targetPlay && typeof state._posAnchorSec === 'number' && state._posAnchorTs) {
+            state._posAnchorSec = Math.min(activeDur, state._posAnchorSec + Math.max(0, (nowT - state._posAnchorTs) / 1000));
+            state._posAnchorTs = nowT;
+          } else if (targetPlay) {
+            if (typeof state._posAnchorSec !== 'number') {
+              state._posAnchorSec = ((state.songProgressPct || 0) / 100) * activeDur;
+            }
+            state._posAnchorTs = nowT;
+          }
           state.playing = targetPlay;
-          window._btTransportLockUntil = Date.now() + 1800;
+          window._btTransportLockUntil = nowT + 1800;
           if (window.AndroidBridge) {
             if (targetPlay && typeof window.AndroidBridge.activateBtAudioSink === 'function') {
               try { window.AndroidBridge.activateBtAudioSink(); } catch (e) { }
@@ -18365,13 +18682,18 @@
         ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
         : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
 
-      joyMapTileLayer = L.tileLayer(primaryUrl, {
+      const isNativeCar = document.documentElement.classList.contains('is-native-car');
+      const tileOptsBase = isNativeCar
+        ? { updateWhenIdle: true, updateWhenZooming: false, keepBuffer: 1 }
+        : {};
+
+      joyMapTileLayer = L.tileLayer(primaryUrl, Object.assign({
         subdomains: '0123',
         maxNativeZoom: 19,
         maxZoom: 19,
         className: 'joy-map-tiles',
         zIndex: 2
-      });
+      }, tileOptsBase));
 
       joyMapTileLayer.on('tileerror', () => {
         joyMapTileErrors++;
@@ -18379,20 +18701,20 @@
           joyMapFallbackUsed = true;
           try { joyMap.removeLayer(joyMapTileLayer); } catch (e) { }
           if (joyMapRefLayer) { try { joyMap.removeLayer(joyMapRefLayer); } catch (e) { } joyMapRefLayer = null; }
-          joyMapTileLayer = L.tileLayer(fallbackUrl, {
+          joyMapTileLayer = L.tileLayer(fallbackUrl, Object.assign({
             maxNativeZoom: 18,
             maxZoom: 19,
             className: 'joy-map-tiles',
             zIndex: 2
-          }).addTo(joyMap);
+          }, tileOptsBase)).addTo(joyMap);
           if (tileGroup === 'satellite') {
-            joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+            joyMapRefLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', Object.assign({
               maxNativeZoom: 18,
               maxZoom: 19,
               className: 'joy-map-tiles',
               opacity: 0.92,
               zIndex: 3
-            }).addTo(joyMap);
+            }, tileOptsBase)).addTo(joyMap);
           }
         }
       });
@@ -18482,12 +18804,15 @@
       if (!el || typeof L === 'undefined') return;
 
       try {
+        const isNativeCar = document.documentElement.classList.contains('is-native-car');
         joyMap = L.map('interactive-map', {
           zoomControl: false,
           attributionControl: false,
-          fadeAnimation: true,
-          zoomAnimation: true,
-          inertia: true
+          fadeAnimation: !isNativeCar,
+          zoomAnimation: !isNativeCar,
+          markerZoomAnimation: !isNativeCar,
+          inertia: !isNativeCar,
+          preferCanvas: isNativeCar
         }).setView(lastGpsCoords, 15);
 
         // Capa táctica offline garantizada debajo de las teselas online
@@ -18497,8 +18822,11 @@
         // Aplicar estilo y capas de mapa guardados (Noche, Asfalto, Cian, Ámbar, Día, Satélite)
         applyJoyMapStyle(false);
 
-        const carHtml = '<div id="joy-car-puck-el" style="transform: rotate(' + lastGpsBearing + 'deg); transition: transform 0.4s ease-out;" class="relative w-10 h-10 flex items-center justify-center">' +
-          '<div class="absolute -inset-2 rounded-full bg-[var(--accent)]/20 animate-ping"></div>' +
+        const puckHalo = isNativeCar
+          ? '<div class="absolute -inset-1.5 rounded-full bg-[var(--accent)]/15"></div>'
+          : '<div class="absolute -inset-2 rounded-full bg-[var(--accent)]/20 animate-ping"></div>';
+        const carHtml = '<div id="joy-car-puck-el" style="transform: rotate(' + lastGpsBearing + 'deg); transition: transform ' + (isNativeCar ? '0.15s' : '0.4s') + ' ease-out;" class="relative w-10 h-10 flex items-center justify-center">' +
+          puckHalo +
           '<div class="w-9 h-9 rounded-full bg-slate-950/95 border-2 border-[var(--accent)] shadow-[0_0_16px_var(--accent)] flex items-center justify-center">' +
           '<svg class="w-5 h-5 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor">' +
           '<polygon points="12 3 19 21 12 17 5 21 12 3"/>' +
@@ -18626,11 +18954,18 @@
           updateRecenterButtonState();
         }
 
-        if (joyMap) {
+        if (joyMap && state.tab === 'map') {
+          const isNativeCar = document.documentElement.classList.contains('is-native-car');
+          const nowGpsMs = Date.now();
           if (mapFollowCar) {
             const curCenter = joyMap.getCenter();
             const centerDriftM = haversineMeters(curCenter.lat, curCenter.lng, lat, lon);
-            if (centerDriftM > 350) {
+            if (isNativeCar) {
+              if (centerDriftM > 4.0 && (nowGpsMs - (window._lastMapPanMs || 0) >= 800 || centerDriftM > 35)) {
+                window._lastMapPanMs = nowGpsMs;
+                try { joyMap.panTo(lastGpsCoords, { animate: false }); } catch (err) { }
+              }
+            } else if (centerDriftM > 350) {
               try { joyMap.stop(); } catch (err) { }
               joyMap.panTo(lastGpsCoords, { animate: false });
             } else if (centerDriftM > 1.5) {
@@ -18687,8 +19022,15 @@
     function startSeekAudio(e, barEl) {
       if (!barEl || window._isSeekingAudio) return;
       if (e && e.stopPropagation) e.stopPropagation();
+      const curSong = songs[state.songIdx] || songs[0];
+      const hasLocalAudio = (typeof joyAudio !== 'undefined' && joyAudio.src && isFinite(joyAudio.duration) && joyAudio.duration > 0);
+      if (!hasLocalAudio && curSong && curSong.isLiveBt && state.btSupportsSeek === false) {
+        showJoyToast('No disponible por Bluetooth', 'El audio Bluetooth AVRCP de la radio no permite adelantar/atrasar; usa el teléfono o música USB', 'info');
+        return;
+      }
       window._isSeekingAudio = true;
-      let lastRel = 0;
+      const prevPct = state.songProgressPct || 0;
+      let lastRel = prevPct / 100;
       let finished = false;
       function seekFromEvent(ev) {
         const cx = getClientXFromEvt(ev);
@@ -18720,17 +19062,34 @@
         finished = true;
         cleanup();
         window._isSeekingAudio = false;
-        window._btSeekLockUntil = Date.now() + 1600;
-        const curSong = songs[state.songIdx] || songs[0];
-        if (typeof joyAudio !== 'undefined' && joyAudio.src && !joyAudio.paused && joyAudio.duration) {
-          try { joyAudio.currentTime = lastRel * joyAudio.duration; } catch (err) { }
-        } else if (curSong && !curSong.isWaitingPlaceholder && window.AndroidBridge && typeof window.AndroidBridge.seekActiveMedia === 'function') {
-          const targetSec = Math.round(lastRel * (curSong.durationSec || 210));
+        window._btSeekLockUntil = Date.now() + 1800;
+        const activeSong = songs[state.songIdx] || songs[0];
+        const dur = (activeSong && activeSong.durationSec) ? activeSong.durationSec : 210;
+        if (typeof joyAudio !== 'undefined' && joyAudio.src && isFinite(joyAudio.duration) && joyAudio.duration > 0) {
+          try {
+            const targetLocalSec = lastRel * joyAudio.duration;
+            joyAudio.currentTime = targetLocalSec;
+            state._posAnchorSec = targetLocalSec;
+            state._posAnchorTs = Date.now();
+          } catch (err) { }
+        } else if (activeSong && !activeSong.isWaitingPlaceholder && window.AndroidBridge && typeof window.AndroidBridge.seekActiveMedia === 'function') {
+          const targetSec = Math.round(lastRel * dur);
           let ok = false;
           try { ok = !!window.AndroidBridge.seekActiveMedia(targetSec); } catch (err) { ok = false; }
-          if (!ok || state.btSupportsSeek === false) {
-            showJoyToast('Barra de progreso', 'Este reproductor Bluetooth no admite adelantar/atrasar', 'info');
+          if (!ok) {
+            state.btSupportsSeek = false;
+            state.songProgressPct = prevPct;
+            updateAudioProgressUI();
+            showJoyToast('No disponible por Bluetooth', 'El audio Bluetooth AVRCP de la radio no permite adelantar/atrasar; usa el teléfono o música USB', 'info');
+          } else {
+            state._posAnchorSec = targetSec;
+            state._posAnchorTs = Date.now();
+            state._posTrackKey = activeSong.title + '|' + activeSong.artist;
           }
+        } else if (activeSong) {
+          state._posAnchorSec = Math.round(lastRel * dur);
+          state._posAnchorTs = Date.now();
+          state._posTrackKey = activeSong.title + '|' + activeSong.artist;
         }
       }
       window.addEventListener('pointermove', onMove);
@@ -19054,7 +19413,11 @@
       document.documentElement.classList.toggle('dark', state.theme !== 'light');
       const vp = document.getElementById('tablet-viewport');
       vp.className = `${state.theme === 'dark' ? 'theme-dark' : 'theme-light'} accent-${state.accent || 'cyan'} relative rounded-[30px] overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/10 flex flex-col justify-between px-6 pt-5 pb-0 transition-colors duration-500`;
-      applyJoyMapStyle(false);
+      const mapThemeSig = state.theme + '|' + (navState.mapStyle || 'auto');
+      if (state.tab === 'map' || state._lastAppliedMapThemeSig !== mapThemeSig) {
+        state._lastAppliedMapThemeSig = mapThemeSig;
+        applyJoyMapStyle(false);
+      }
 
       // --- TOP BAR: BLUETOOTH ACTIVO/APAGADO, SEÑAL Y BATERÍA DEL TELÉFONO, CLIMA ---
       const activePhoneDev = (btDevices || []).find((d, i) => d && d.type !== 'obd' && !d.isTelemetry && (d.connected || i === state.btDeviceIdx))
@@ -19158,6 +19521,7 @@
       const ambGradEl = document.getElementById('music-ambient-grad');
       const ambScrimEl = document.getElementById('music-ambient-scrim');
       const isLightUi = state.theme === 'light';
+      const isNativeCarUi = document.documentElement.classList.contains('is-native-car');
 
       if (amb) amb.style.opacity = state.tab === 'music' ? '1' : '0';
       if (blurImgEl) {
@@ -19165,8 +19529,13 @@
           if (blurImgEl.getAttribute('src') !== curSong.cover) {
             blurImgEl.src = curSong.cover;
           }
-          blurImgEl.style.opacity = curSong.hasRealCover ? (isLightUi ? '0.26' : '0.44') : (isLightUi ? '0.20' : '0.32');
-          blurImgEl.style.filter = isLightUi ? 'blur(52px) saturate(1.45) brightness(1.06)' : 'blur(52px) saturate(1.6) brightness(0.84)';
+          if (!isNativeCarUi) {
+            blurImgEl.style.opacity = curSong.hasRealCover ? (isLightUi ? '0.26' : '0.44') : (isLightUi ? '0.20' : '0.32');
+            blurImgEl.style.filter = isLightUi ? 'blur(52px) saturate(1.45) brightness(1.06)' : 'blur(52px) saturate(1.6) brightness(0.84)';
+          } else {
+            blurImgEl.style.opacity = '0';
+            blurImgEl.style.filter = 'none';
+          }
         } else {
           blurImgEl.style.opacity = '0';
         }
@@ -19285,13 +19654,14 @@
       if (visSrcName) visSrcName.textContent = srcName;
 
       // Home Right Card Mode Toggle
+      const activePillText = state.theme === 'light' ? 'text-white' : 'text-slate-950';
       if (homeSrcBt) {
         homeSrcBt.className = !isRadio
-          ? 'pressable px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent)] text-slate-950 shadow-sm'
+          ? `pressable px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent)] ${activePillText} shadow-sm`
           : 'pressable px-3 py-1 rounded-full text-xs font-medium bg-current/5 border border-[var(--line)] opacity-75 hover:opacity-100';
       }
       document.getElementById('home-src-radio').className = isRadio
-        ? 'pressable px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent)] text-slate-950 shadow-sm'
+        ? `pressable px-3 py-1 rounded-full text-xs font-bold bg-[var(--accent)] ${activePillText} shadow-sm`
         : 'pressable px-3 py-1 rounded-full text-xs font-medium bg-current/5 border border-[var(--line)] opacity-75 hover:opacity-100';
 
       document.getElementById('home-media-expand-label').textContent = isRadio ? 'Abrir Radio FM ↗' : 'Abrir Coverflow ↗';
@@ -19304,17 +19674,13 @@
       const tabBt = document.getElementById('music-tab-bt');
       if (tabBt) {
         tabBt.className = !isRadio
-          ? (state.theme === 'light'
-            ? 'pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[#0284c7] text-white flex items-center gap-2 shadow-sm'
-            : 'pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent)] text-slate-950 flex items-center gap-2 shadow-sm')
+          ? `pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent)] ${activePillText} flex items-center gap-2 shadow-sm`
           : 'pressable px-4 py-1.5 rounded-full text-xs font-medium text-[var(--mute)] hover:text-[var(--ink)] flex items-center gap-2';
       }
       const tabRadio = document.getElementById('music-tab-radio');
       if (tabRadio) {
         tabRadio.className = isRadio
-          ? (state.theme === 'light'
-            ? 'pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[#0284c7] text-white flex items-center gap-2 shadow-sm'
-            : 'pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent)] text-slate-950 flex items-center gap-2 shadow-sm')
+          ? `pressable active-tab px-4 py-1.5 rounded-full text-xs font-bold bg-[var(--accent)] ${activePillText} flex items-center gap-2 shadow-sm`
           : 'pressable px-4 py-1.5 rounded-full text-xs font-medium text-[var(--mute)] hover:text-[var(--ink)] flex items-center gap-2';
       }
 
@@ -19418,10 +19784,13 @@
 
       const heroPlayBtn = document.getElementById('music-hero-play-btn');
       if (heroPlayBtn) {
+        const arcRgb = getActiveAccentRgb();
         if (state.theme === 'light') {
-          heroPlayBtn.className = 'pressable w-14 h-14 rounded-full flex items-center justify-center bg-[#0284c7] text-white shadow-[0_8px_24px_rgba(2,132,199,0.35)] hover:scale-105 active:scale-95 transition-all';
+          heroPlayBtn.className = 'pressable w-14 h-14 rounded-full flex items-center justify-center bg-[var(--accent)] text-white hover:scale-105 active:scale-95 transition-all';
+          heroPlayBtn.style.boxShadow = `0 8px 24px rgba(${arcRgb}, 0.36)`;
         } else {
-          heroPlayBtn.className = 'pressable w-14 h-14 rounded-full flex items-center justify-center bg-[var(--accent)] text-slate-950 shadow-[0_8px_24px_rgba(92,225,230,0.45)] hover:scale-105 active:scale-95 transition-all';
+          heroPlayBtn.className = 'pressable w-14 h-14 rounded-full flex items-center justify-center bg-[var(--accent)] text-slate-950 hover:scale-105 active:scale-95 transition-all';
+          heroPlayBtn.style.boxShadow = `0 8px 24px rgba(${arcRgb}, 0.42)`;
         }
       }
 
@@ -19490,10 +19859,10 @@
       if (mapSrcBt && mapSrcRad) {
         mapSrcBt.textContent = 'Bluetooth';
         mapSrcBt.className = !isRadio
-          ? 'pressable px-2.5 py-1 rounded-full text-[11px] font-bold bg-[var(--accent)] text-slate-950 shadow-sm'
+          ? `pressable px-2.5 py-1 rounded-full text-[11px] font-bold bg-[var(--accent)] ${activePillText} shadow-sm`
           : 'pressable px-2.5 py-1 rounded-full text-[11px] font-medium bg-current/5 border border-[var(--line)] opacity-75 hover:opacity-100';
         mapSrcRad.className = isRadio
-          ? 'pressable px-2.5 py-1 rounded-full text-[11px] font-bold bg-[var(--accent)] text-slate-950 shadow-sm'
+          ? `pressable px-2.5 py-1 rounded-full text-[11px] font-bold bg-[var(--accent)] ${activePillText} shadow-sm`
           : 'pressable px-2.5 py-1 rounded-full text-[11px] font-medium bg-current/5 border border-[var(--line)] opacity-75 hover:opacity-100';
       }
 
@@ -19555,10 +19924,10 @@
       const countLblEl = document.getElementById('bt-linked-count-label');
       const scanBtBtnEl = document.getElementById('btn-bt-scan');
       if (tabDevBtn) tabDevBtn.className = !isPhoneTab
-        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        ? `pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] ${activePillText}`
         : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
       if (tabPhoneBtn) tabPhoneBtn.className = isPhoneTab
-        ? 'pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] text-slate-950'
+        ? `pressable px-3.5 py-1 rounded-full text-xs font-semibold bg-[var(--accent)] ${activePillText}`
         : 'pressable px-3.5 py-1 rounded-full text-xs font-semibold text-[var(--mute)]';
       if (devListEl) devListEl.className = isPhoneTab ? 'hidden' : 'flex flex-col gap-3 my-auto overflow-y-auto pr-1 py-1 max-h-[275px]';
       if (dialPaneEl) dialPaneEl.className = isPhoneTab ? 'flex flex-col justify-between gap-2.5 flex-1 min-h-0' : 'hidden';
@@ -19574,7 +19943,9 @@
             : 'pressable py-1.5 px-2.5 rounded-xl text-left border border-[var(--line)] bg-current/5 opacity-75 hover:opacity-100 transition-all';
         }
       });
-      renderBluetoothDevicesList();
+      if (state.tab === 'settings' && state.settingsSubView === 'bt') {
+        renderBluetoothDevicesList();
+      }
 
       const apVal = document.getElementById('bt-card-autoplay-val');
       if (apVal) apVal.textContent = state.btAutoPlay ? 'Activo' : 'Inactivo';
@@ -19588,7 +19959,7 @@
       if (eqSubTag) eqSubTag.textContent = curEq.label;
 
       const isLightMode = state.theme === 'light';
-      const eqAccent = isLightMode ? '#0284c7' : '#22d3ee';
+      const eqAccent = getActiveAccentHex();
 
       curEq.bars.forEach((val, idx) => {
         // Height for Card 2 overview pillars (val is -10 to +10 dB)
@@ -19629,12 +20000,13 @@
         }
       });
 
+      const eqRgb = getActiveAccentRgb();
       ['flat', 'bass', 'rock', 'voice'].forEach(p => {
         // Card 2 overview buttons
         const btn = document.getElementById('eq-btn-' + p);
         if (btn) {
           btn.className = state.eqPreset === p
-            ? 'pressable py-1.5 rounded-xl text-[11px] font-bold bg-[var(--accent)] text-slate-950 shadow-sm'
+            ? `pressable py-1.5 rounded-xl text-[11px] font-bold bg-[var(--accent)] ${activePillText} shadow-sm`
             : 'pressable py-1.5 rounded-xl text-[11px] font-medium text-[var(--mute)] hover:text-[var(--ink)]';
         }
         // Sub-view buttons
@@ -19644,12 +20016,14 @@
           subBtn.setAttribute('aria-pressed', isAct ? 'true' : 'false');
           if (isLightMode) {
             subBtn.className = isAct
-              ? 'pressable py-1.5 rounded-xl text-xs font-bold bg-[#0284c7] text-white shadow-md text-center'
+              ? 'pressable py-1.5 rounded-xl text-xs font-bold bg-[var(--accent)] text-white shadow-md text-center'
               : 'pressable py-1.5 rounded-xl text-xs font-semibold text-slate-700 hover:text-slate-950 bg-black/[0.04] hover:bg-black/[0.08] border border-black/10 text-center shadow-xs';
+            subBtn.style.boxShadow = isAct ? `0 4px 12px rgba(${eqRgb}, 0.28)` : '';
           } else {
             subBtn.className = isAct
-              ? 'pressable py-1.5 rounded-xl text-xs font-bold bg-[#22d3ee] text-slate-950 shadow-[0_0_12px_rgba(34,211,238,0.45)] text-center'
+              ? 'pressable py-1.5 rounded-xl text-xs font-bold bg-[var(--accent)] text-slate-950 text-center'
               : 'pressable py-1.5 rounded-xl text-xs font-medium text-white/70 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 text-center';
+            subBtn.style.boxShadow = isAct ? `0 0 12px rgba(${eqRgb}, 0.42)` : '';
           }
         }
       });
@@ -20019,6 +20393,44 @@
       _weatherDiagTimer = setTimeout(() => { _weatherDiagTaps = 0; }, 900);
     }
 
+    let _nativeAppsLoaded = false;
+    function ensureNativeInstalledAppsLoaded() {
+      if (_nativeAppsLoaded) return false;
+      if (!window.AndroidBridge || typeof window.AndroidBridge.getInstalledApps !== 'function') return false;
+      _nativeAppsLoaded = true;
+      try {
+        const rawJson = window.AndroidBridge.getInstalledApps();
+        const nativeApps = JSON.parse(rawJson || '[]');
+        nativeApps.forEach(na => {
+          const existing = osApps.find(ex => ex.pkg === na.package);
+          if (existing) {
+            if (na.iconDataUri) existing.iconDataUri = na.iconDataUri;
+          } else {
+            osApps.push({
+              id: 'native_' + na.package.replace(/[^a-zA-Z0-9]/g, '_'),
+              name: na.name,
+              sub: na.package,
+              badge: 'Android OS',
+              grad: 'from-cyan-500 to-blue-600',
+              pkg: na.package,
+              iconDataUri: na.iconDataUri || '',
+              action: `launchOsApp('${na.package}')`,
+              svg: '<svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3"/></svg>'
+            });
+          }
+        });
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function loadNativeInstalledAppsAsync() {
+      if (ensureNativeInstalledAppsLoaded()) {
+        renderAppsUI();
+      }
+    }
+
     function initNativeHardwareMode() {
       const isNative = typeof window.AndroidBridge !== 'undefined' ||
         window.location.search.includes('prod=1') ||
@@ -20033,51 +20445,6 @@
         }
         const natBtBtn = document.getElementById('music-native-bt-btn');
         if (natBtBtn) natBtBtn.classList.remove('hidden');
-        try {
-          if (window.AndroidBridge && typeof window.AndroidBridge.isNotificationListenerEnabled === 'function') {
-            const notifBtn = document.getElementById('music-notif-perm-btn');
-            if (notifBtn) {
-              notifBtn.classList.toggle('hidden', !!window.AndroidBridge.isNotificationListenerEnabled());
-            }
-          }
-        } catch (e) { }
-      }
-
-      if (window.AndroidBridge && typeof window.AndroidBridge.getInstalledApps === 'function') {
-        try {
-          const rawJson = window.AndroidBridge.getInstalledApps();
-          const nativeApps = JSON.parse(rawJson || '[]');
-          nativeApps.forEach(na => {
-            const existing = osApps.find(ex => ex.pkg === na.package);
-            if (existing) {
-              if (na.iconDataUri) existing.iconDataUri = na.iconDataUri;
-            } else {
-              osApps.push({
-                id: 'native_' + na.package.replace(/[^a-zA-Z0-9]/g, '_'),
-                name: na.name,
-                sub: na.package,
-                badge: 'Android OS',
-                grad: 'from-cyan-500 to-blue-600',
-                pkg: na.package,
-                iconDataUri: na.iconDataUri || '',
-                action: `launchOsApp('${na.package}')`,
-                svg: '<svg class="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="12" cy="12" r="3"/></svg>'
-              });
-            }
-          });
-          renderAppsUI();
-        } catch (e) { }
-      }
-
-      if (window.AndroidBridge && typeof window.AndroidBridge.getGpsLocation === 'function') {
-        try {
-          const gpsSeed = JSON.parse(window.AndroidBridge.getGpsLocation() || '{}');
-          if (typeof gpsSeed.latitude === 'number' && typeof gpsSeed.longitude === 'number' &&
-            (gpsSeed.latitude !== 0 || gpsSeed.longitude !== 0) &&
-            typeof window.onTelemetryUpdate === 'function') {
-            window.onTelemetryUpdate(gpsSeed);
-          }
-        } catch (e) { }
       }
 
       const hasSavedDsp = loadDspStateLocal(true);
@@ -20103,7 +20470,24 @@
         r5State.picoRestricted = computeRealPicoYPlaca(r5State.plate, r5State.city).restricted;
       }
 
-      updateHardwareStatus();
+      // Defer heavy native bridge IPC until after boot ceremony starts smoothly (eliminates 5s startup stall)
+      setTimeout(() => {
+        if (window.AndroidBridge && typeof window.AndroidBridge.getGpsLocation === 'function') {
+          try {
+            const gpsSeed = JSON.parse(window.AndroidBridge.getGpsLocation() || '{}');
+            if (typeof gpsSeed.latitude === 'number' && typeof gpsSeed.longitude === 'number' &&
+              (gpsSeed.latitude !== 0 || gpsSeed.longitude !== 0) &&
+              typeof window.onTelemetryUpdate === 'function') {
+              window.onTelemetryUpdate(gpsSeed);
+            }
+          } catch (e) { }
+        }
+        updateHardwareStatus(true);
+      }, 400);
+
+      setTimeout(() => {
+        loadNativeInstalledAppsAsync();
+      }, 1100);
     }
 
     function openWifiDirect() {
@@ -20114,8 +20498,49 @@
       }
     }
 
-    function updateHardwareStatus() {
+    let _hwPollTick = 0;
+    function syncTopBarPhoneReadouts() {
+      const topBatt = document.getElementById('top-phone-batt');
+      const topSig = document.getElementById('top-signal-icon');
+      const topPhoneWrap = document.getElementById('top-phone-wrap');
+      const phoneOnline = !!state.phoneConnected;
+      if (topPhoneWrap) {
+        topPhoneWrap.className = phoneOnline
+          ? 'phone cursor-pointer opacity-90 transition-opacity duration-300'
+          : 'phone cursor-pointer opacity-25 transition-opacity duration-300';
+      }
+      if (topSig) {
+        const realSig = typeof state.phoneSignal === 'number' ? state.phoneSignal : -1;
+        const sigBars = phoneOnline && realSig >= 0 ? Math.max(0, Math.min(4, realSig)) : 0;
+        topSig.className = (phoneOnline && realSig >= 0)
+          ? 'opacity-90 transition-opacity duration-300'
+          : (phoneOnline ? 'opacity-40 transition-opacity duration-300' : 'opacity-25 transition-opacity duration-300');
+        [1, 2, 3, 4].forEach(b => {
+          const barEl = document.getElementById('sig-bar-' + b);
+          if (barEl) barEl.setAttribute('opacity', (phoneOnline && realSig >= 0 && b <= sigBars) ? '1' : '0.22');
+        });
+      }
+      if (topBatt) {
+        const realBatt = typeof state.phoneBattery === 'number' ? state.phoneBattery : -1;
+        if (phoneOnline && realBatt >= 0) {
+          topBatt.textContent = `${realBatt}%`;
+          topBatt.className = 'text-[11px] font-semibold text-[var(--ink)] tabular-nums transition-opacity duration-300';
+        } else if (phoneOnline) {
+          topBatt.textContent = 'BT';
+          topBatt.className = 'text-[11px] font-semibold text-[var(--accent)] opacity-80 tabular-nums transition-opacity duration-300';
+        } else {
+          topBatt.textContent = '--%';
+          topBatt.className = 'text-[11px] font-semibold text-[var(--mute)] opacity-35 tabular-nums transition-opacity duration-300';
+        }
+      }
+    }
+
+    function updateHardwareStatus(forceHeavy) {
       if (!window.AndroidBridge) return;
+      _hwPollTick++;
+      const inSettings = state.tab === 'settings';
+      const runHeavy = !!forceHeavy || inSettings || (_hwPollTick % 3 === 1);
+
       // 1. Wi-Fi, IP, Internet & Hotspot
       try {
         if (typeof window.AndroidBridge.getWifiStatus === 'function') {
@@ -20154,6 +20579,7 @@
       } catch (e) { }
 
       // 2. Bluetooth + Auto-Play Edge Trigger
+      let btChanged = false;
       try {
         if (typeof window.AndroidBridge.getBluetoothStatus === 'function') {
           const b = JSON.parse(window.AndroidBridge.getBluetoothStatus() || '{}');
@@ -20162,8 +20588,17 @@
           state.phoneConnected = typeof b.phoneConnected === 'boolean' ? b.phoneConnected : !!b.connected;
           state.btConnected = !!b.connected || state.phoneConnected;
           state.obdConnected = typeof b.obdConnected === 'boolean' ? b.obdConnected : state.obdConnected;
-          state.phoneBattery = typeof b.phoneBattery === 'number' ? b.phoneBattery : -1;
-          state.phoneSignal = typeof b.phoneSignal === 'number' ? b.phoneSignal : -1;
+          if (typeof b.phoneBattery === 'number') {
+            if (b.phoneBattery >= 0 || !state.phoneConnected) {
+              state.phoneBattery = b.phoneBattery;
+            }
+          }
+          if (typeof b.phoneSignal === 'number') {
+            if (b.phoneSignal >= 0 || !state.phoneConnected) {
+              state.phoneSignal = b.phoneSignal;
+            }
+          }
+          btChanged = (wasPhoneConnected !== state.phoneConnected);
           state._prevBtConnected = state.phoneConnected;
           state.btDeviceName = b.device || 'Sin dispositivo';
           setAjItemVal('con', 'Bluetooth', !!state.btEnabled);
@@ -20182,8 +20617,6 @@
             showJoyToast('Audio Bluetooth automático', `Reproduciendo tras conectar ${state.btDeviceName}`, 'ok');
           }
           const btIco = document.getElementById('top-bt-icon');
-          const phoneWrap = document.getElementById('top-phone-wrap');
-          const sigIco = document.getElementById('top-signal-icon');
           if (btIco) {
             if (state.btConnected) {
               btIco.classList.remove('opacity-35');
@@ -20195,21 +20628,9 @@
               btIco.setAttribute('title', b.enabled ? 'Bluetooth listo' : 'Bluetooth apagado');
             }
           }
-          if (phoneWrap) {
-            if (state.phoneConnected) {
-              phoneWrap.classList.remove('opacity-30');
-              phoneWrap.setAttribute('title', `Teléfono: ${b.device}`);
-            } else {
-              phoneWrap.classList.add('opacity-30');
-              phoneWrap.setAttribute('title', 'Teléfono no conectado');
-            }
-          }
-          if (sigIco) {
-            if (state.phoneConnected && state.phoneSignal >= 0) sigIco.classList.remove('opacity-30');
-            else sigIco.classList.add('opacity-30');
-          }
+          syncTopBarPhoneReadouts();
         }
-        if (typeof window.AndroidBridge.isNotificationListenerEnabled === 'function') {
+        if (runHeavy && typeof window.AndroidBridge.isNotificationListenerEnabled === 'function') {
           const notifBtn = document.getElementById('music-notif-perm-btn');
           if (notifBtn) notifBtn.classList.toggle('hidden', !!window.AndroidBridge.isNotificationListenerEnabled());
         }
@@ -20221,7 +20642,7 @@
             if (state.vol > 0) state.prevVolBeforeMute = state.vol;
           }
         }
-        if (typeof window.AndroidBridge.getBluetoothBondedDevices === 'function') {
+        if ((runHeavy || btChanged) && typeof window.AndroidBridge.getBluetoothBondedDevices === 'function') {
           const rawBonded = window.AndroidBridge.getBluetoothBondedDevices();
           const bonded = JSON.parse(rawBonded || '[]');
           if (Array.isArray(bonded)) {
@@ -20241,7 +20662,9 @@
             });
             const connIdx = btDevices.findIndex(d => d && d.connected && d.type !== 'obd');
             if (connIdx >= 0) state.btDeviceIdx = connIdx;
-            renderBluetoothDevicesList();
+            if (state.tab === 'settings' && state.settingsSubView === 'bt') {
+              renderBluetoothDevicesList();
+            }
           }
         }
         if (typeof window.AndroidBridge.getCallStatus === 'function') {
@@ -20268,55 +20691,59 @@
         }
       } catch (e) { }
 
-      // 4. CPU Temp, Thermal Governor, RAM & Storage
-      try {
-        if (typeof window.AndroidBridge.getCpuTemperature === 'function') {
-          const cpuT = window.AndroidBridge.getCpuTemperature();
-          if (cpuT > 0) {
-            state.cpuTemp = cpuT;
-            const subBattCpuTxt = document.getElementById('r5-sub-batt-cpu-txt');
-            if (subBattCpuTxt) {
-              const vStr = state.voltage ? `${state.voltage.toFixed(1)} V` : '-- V';
-              subBattCpuTxt.textContent = `${vStr} · CPU ${formatTemp(cpuT)}`;
-            }
-            if (state.fanMode === 'auto' && typeof window.AndroidBridge.setCoolingFanMode === 'function') {
-              try {
-                window.AndroidBridge.setCoolingFanMode('auto', Math.round(state.fanTempThreshold || 65), !!state.fanContinuous);
-              } catch (e2) { }
+      // 4. CPU Temp, Thermal Governor, RAM & Storage (throttled to Settings or every 15s to save CPU/IPC)
+      if (runHeavy) {
+        try {
+          if (typeof window.AndroidBridge.getCpuTemperature === 'function') {
+            const cpuT = window.AndroidBridge.getCpuTemperature();
+            if (cpuT > 0) {
+              state.cpuTemp = cpuT;
+              const subBattCpuTxt = document.getElementById('r5-sub-batt-cpu-txt');
+              if (subBattCpuTxt) {
+                const vStr = state.voltage ? `${state.voltage.toFixed(1)} V` : '-- V';
+                subBattCpuTxt.textContent = `${vStr} · CPU ${formatTemp(cpuT)}`;
+              }
+              if (state.fanMode === 'auto' && typeof window.AndroidBridge.setCoolingFanMode === 'function') {
+                try {
+                  window.AndroidBridge.setCoolingFanMode('auto', Math.round(state.fanTempThreshold || 65), !!state.fanContinuous);
+                } catch (e2) { }
+              }
             }
           }
-        }
-        if (typeof window.AndroidBridge.getSystemRamInfo === 'function') {
-          const ramInfo = JSON.parse(window.AndroidBridge.getSystemRamInfo() || '{}');
-          if (ramInfo && ramInfo.usedGb) {
-            const ramEl = document.getElementById('settings-ram-val');
-            if (ramEl) {
-              const tStr = String(ramInfo.totalGb || '--');
-              ramEl.textContent = tStr.toUpperCase().includes('GB') ? `${ramInfo.usedGb} / ${tStr}` : `${ramInfo.usedGb} / ${tStr} GB`;
+          if (typeof window.AndroidBridge.getSystemRamInfo === 'function') {
+            const ramInfo = JSON.parse(window.AndroidBridge.getSystemRamInfo() || '{}');
+            if (ramInfo && ramInfo.usedGb) {
+              const ramEl = document.getElementById('settings-ram-val');
+              if (ramEl) {
+                const tStr = String(ramInfo.totalGb || '--');
+                ramEl.textContent = tStr.toUpperCase().includes('GB') ? `${ramInfo.usedGb} / ${tStr}` : `${ramInfo.usedGb} / ${tStr} GB`;
+              }
+              const hwCat = ajData.find(c => c.id === 'info_hw');
+              const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Memoria RAM')) : null;
+              if (hwRamItem) hwRamItem.v = `${ramInfo.usedGb} GB en uso de ${ramInfo.totalGb} GB (${ramInfo.availMb} MB libres)`;
             }
-            const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwRamItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Memoria RAM')) : null;
-            if (hwRamItem) hwRamItem.v = `${ramInfo.usedGb} GB en uso de ${ramInfo.totalGb} GB (${ramInfo.availMb} MB libres)`;
+          }
+          if (typeof window.AndroidBridge.getStorageStats === 'function') {
+            const stInfo = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}');
+            if (stInfo && stInfo.mounted) {
+              const hwCat = ajData.find(c => c.id === 'info_hw');
+              const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Almacenamiento Interno')) : null;
+              if (hwStItem) hwStItem.v = `${stInfo.freeGb} GB libres de ${stInfo.totalGb} GB (${stInfo.usedPercent}% usado)`;
+            }
+          }
+        } catch (e) { }
+        if (inSettings) {
+          updateMoreSystemReadouts();
+          if (state.settingsSubView === 'more' && !_ajRangeDragging) {
+            renderMoreSettings();
           }
         }
-        if (typeof window.AndroidBridge.getStorageStats === 'function') {
-          const stInfo = JSON.parse(window.AndroidBridge.getStorageStats('internal') || '{}');
-          if (stInfo && stInfo.mounted) {
-            const hwCat = ajData.find(c => c.id === 'info_hw');
-            const hwStItem = (hwCat && hwCat.it) ? hwCat.it.find(i => i.l && i.l.includes('Almacenamiento Interno')) : null;
-            if (hwStItem) hwStItem.v = `${stInfo.freeGb} GB libres de ${stInfo.totalGb} GB (${stInfo.usedPercent}% usado)`;
-          }
-        }
-      } catch (e) { }
-      updateMoreSystemReadouts();
-      if (state.tab === 'settings' && state.settingsSubView === 'more' && !_ajRangeDragging) {
-        renderMoreSettings();
       }
     }
 
     initNativeHardwareMode();
-    setInterval(updateHardwareStatus, 3000);
-    refreshDynamicWeather();
+    setInterval(() => updateHardwareStatus(false), 5000);
+    setTimeout(refreshDynamicWeather, 1500);
 
     window.onTelemetryUpdate = function (data) {
       if (!data) return;
@@ -20493,7 +20920,7 @@
     setInterval(updateTopClockLive, 1000);
     updateTopClockLive();
 
-    // 1-second audio progress tick during playback
+    // Monotonic audio progress clock during playback (prevents +2s / -1s drift and timer jitter)
     setInterval(() => {
       if (state.callState && state.callState !== 'idle' && typeof refreshCallTimers === 'function') {
         refreshCallTimers();
@@ -20504,20 +20931,28 @@
         if (joyAudioPlaying) return;
         if (!curSong || curSong.isWaitingPlaceholder) return;
         const dur = curSong.durationSec || 210;
-        const incPct = (1 / dur) * 100;
-        if (curSong.isLiveBt) {
-          state.songProgressPct = Math.min(99.5, state.songProgressPct + incPct);
-          updateAudioProgressUI();
-        } else {
-          state.songProgressPct = Math.min(100, state.songProgressPct + incPct);
-          if (state.songProgressPct >= 100) {
+        const tKey = curSong.title + '|' + curSong.artist;
+        const nowMs = Date.now();
+        if (state._posTrackKey !== tKey || typeof state._posAnchorSec !== 'number' || !state._posAnchorTs) {
+          state._posTrackKey = tKey;
+          state._posAnchorSec = ((state.songProgressPct || 0) / 100) * dur;
+          state._posAnchorTs = nowMs;
+        }
+        const elapsedSec = state._posAnchorSec + Math.max(0, (nowMs - state._posAnchorTs) / 1000);
+        const clampedSec = curSong.isLiveBt ? Math.min(dur - 0.5, elapsedSec) : Math.min(dur, elapsedSec);
+        const nextFloor = Math.floor(clampedSec);
+        if (nextFloor !== state._lastRenderedAudioSec || state._lastRenderedAudioKey !== tKey) {
+          state._lastRenderedAudioSec = nextFloor;
+          state._lastRenderedAudioKey = tKey;
+          state.songProgressPct = dur > 0 ? Math.max(0, Math.min(curSong.isLiveBt ? 99.5 : 100, (clampedSec / dur) * 100)) : 0;
+          if (!curSong.isLiveBt && state.songProgressPct >= 100) {
             changeSong(1);
           } else {
             updateAudioProgressUI();
           }
         }
       }
-    }, 1000);
+    }, 500);
 
     loadNavState();
     loadMoreSettingsPrefs();
@@ -20526,6 +20961,7 @@
     window.addEventListener('resize', () => {
       updateEqCurve();
       updateSoundStageUI();
+      if (typeof syncAppsDrawerScrollbar === 'function') syncAppsDrawerScrollbar();
     });
     ['pointerdown', 'keydown', 'touchstart'].forEach(evtName => {
       document.addEventListener(evtName, () => scheduleIdleScreensaver(), { passive: true });
@@ -20546,7 +20982,7 @@
       completeSwitchTab(state.startupTab);
     }
     updateMoreSystemReadouts();
-    // Safety Boot Handler: Run once when window dimensions are settled, and allow 1-tap skip
+    // Safety Boot Handler: #boot-overlay is already visible at 0ms via inline script; start animation right away and open Profile Selector on finish
     let _bootPerformed = false;
     function safeBootSequence() {
       if (_bootPerformed) return;
@@ -20555,17 +20991,10 @@
         if (typeof skipBootCeremony === 'function') skipBootCeremony();
         return;
       }
-      if (window.AndroidBridge) {
-        setTimeout(() => {
-          initBootGauges();
-          triggerBootCeremony(false);
-        }, 350);
-      } else {
-        setTimeout(() => {
-          initBootGauges();
-          triggerBootCeremony(false);
-        }, 150);
-      }
+      setTimeout(() => {
+        initBootGauges();
+        triggerBootCeremony(false, true);
+      }, 60);
     }
 
     const _bootOverlay = document.getElementById('boot-overlay');
@@ -20576,7 +21005,7 @@
     }
 
     safeBootSequence();
-    refreshMusicFromDevice();
+    setTimeout(refreshMusicFromDevice, 280);
   </script>
 </body>
 
