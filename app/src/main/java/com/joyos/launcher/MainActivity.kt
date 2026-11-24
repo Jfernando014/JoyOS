@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 try {
                     webView.evaluateJavascript(
-                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted, lat: $latFormatted, lon: $lonFormatted, bearing: $bearFormatted, altitude: $altFormatted, hasFix: ${data.hasFix}, provider: $providerQuoted, accuracy: $accFormatted });",
+                        "if (typeof window.onGpsUpdate === 'function') window.onGpsUpdate({ speed: ${data.speedKmh}, tripKm: $tripFormatted, lat: $latFormatted, lon: $lonFormatted, bearing: $bearFormatted, altitude: $altFormatted, hasFix: ${data.hasFix}, provider: $providerQuoted, accuracy: $accFormatted, gpsTimeMs: ${data.gpsTimeMs} });",
                         null
                     )
                     webView.evaluateJavascript(
@@ -168,6 +168,8 @@ class MainActivity : AppCompatActivity() {
             onSeekMediaPosition = { posMs -> seekSessionPosition(posMs) },
             onConnectBluetoothDevice = { address -> connectBtDeviceProxy(address) },
             onDisconnectBluetoothDevice = { address -> disconnectBtDeviceProxy(address) },
+            onSwitchProfileBluetooth = { address -> switchProfileBluetoothProxy(address) },
+            onFocusBtAudioSink = { focusA2dpSinkProxy() },
             onAnswerCallAction = { answerBtOrTelecomCall() },
             onEndCallAction = { endBtOrTelecomCall() },
             onDialCallAction = { number -> dialBtHfpCall(number) }
@@ -502,16 +504,28 @@ class MainActivity : AppCompatActivity() {
     private var lastKnownPhoneBattery: Int = -1
     private var lastKnownPhoneSignal: Int = -1
 
+    private fun focusA2dpSinkProxy() {
+        val proxy = btProfileProxies[11] ?: return
+        try {
+            proxy.javaClass.getMethod("setAudioFocusState", Int::class.javaPrimitiveType)
+                .invoke(proxy, AudioManager.AUDIOFOCUS_GAIN)
+        } catch (_: Throwable) {}
+    }
+
+    private fun isObdBluetoothName(name: String?): Boolean {
+        val low = (name ?: "").lowercase(Locale.ROOT)
+        return low.contains("obd") || low.contains("elm") || low.contains("vgate") ||
+            low.contains("vlink") || low.contains("v-link") || low.contains("icar") ||
+            low.contains("veepeak") || low.contains("konnwei") || low.contains("carista")
+    }
+
     private val btProfileListener = object : BluetoothProfile.ServiceListener {
         @SuppressLint("MissingPermission")
         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
             if (proxy != null) {
                 btProfileProxies[profile] = proxy
                 if (profile == 11) {
-                    try {
-                        proxy.javaClass.getMethod("setAudioFocusState", Int::class.javaPrimitiveType)
-                            .invoke(proxy, AudioManager.AUDIOFOCUS_GAIN)
-                    } catch (_: Throwable) {}
+                    focusA2dpSinkProxy()
                     try {
                         if (proxy.connectedDevices.isNotEmpty()) {
                             bridge.activateBtAudioSink()
@@ -661,7 +675,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun disconnectBtDeviceProxy(address: String): Boolean {
+    private fun disconnectBtDeviceProxy(address: String, skipObd: Boolean = true): Boolean {
         return try {
             val adapter = btAdapter ?: return false
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
@@ -670,6 +684,9 @@ class MainActivity : AppCompatActivity() {
                 return false
             }
             val device = adapter.getRemoteDevice(address) ?: return false
+            if (skipObd && isObdBluetoothName(try { device.name } catch (_: Throwable) { null })) {
+                return false
+            }
             var anyRequested = false
             for ((_, proxy) in btProfileProxies) {
                 try {
@@ -682,6 +699,54 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Throwable) {
             false
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun switchProfileBluetoothProxy(targetAddress: String): Boolean {
+        val adapter = btAdapter ?: return false
+        if (!adapter.isEnabled || targetAddress.isBlank()) return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return false
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val otherConnectedPhones = mutableSetOf<String>()
+                var targetAlreadyConnected = false
+                for ((profileId, proxy) in btProfileProxies) {
+                    if (profileId != 11 && profileId != 16 && profileId != BluetoothProfile.A2DP && profileId != BluetoothProfile.HEADSET) {
+                        continue
+                    }
+                    val list = try { proxy.connectedDevices } catch (_: Throwable) { emptyList() }
+                    for (dev in list) {
+                        val addr = dev.address ?: continue
+                        val name = try { dev.name } catch (_: Throwable) { null }
+                        if (isObdBluetoothName(name)) continue
+                        if (addr.equals(targetAddress, ignoreCase = true)) {
+                            targetAlreadyConnected = true
+                        } else {
+                            otherConnectedPhones.add(addr)
+                        }
+                    }
+                }
+                for (otherAddr in otherConnectedPhones) {
+                    disconnectBtDeviceProxy(otherAddr, skipObd = true)
+                }
+                if (otherConnectedPhones.isNotEmpty()) {
+                    delay(850)
+                }
+                if (!targetAlreadyConnected || otherConnectedPhones.isNotEmpty()) {
+                    connectBtDeviceProxy(targetAddress)
+                    delay(1200)
+                    focusA2dpSinkProxy()
+                }
+                refreshBtTelemetryFromProfiles()
+            } catch (e: Throwable) {
+                Log.w("JoyOS", "switchProfileBluetoothProxy handled: ${e.message}")
+            }
+        }
+        return true
     }
 
     @SuppressLint("MissingPermission")
@@ -819,6 +884,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     "android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED",
                     "android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED" -> {
+                        focusA2dpSinkProxy()
                         refreshBtTelemetryFromProfiles()
                     }
                     TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
@@ -1184,6 +1250,7 @@ class MainActivity : AppCompatActivity() {
         try { obdManager.start(lifecycleScope) } catch (_: Throwable) {}
         try { tpmsReceiver.register() } catch (_: Throwable) {}
         try { attachMediaSessionsIfAllowed() } catch (_: Throwable) {}
+        try { focusA2dpSinkProxy() } catch (_: Throwable) {}
         try { refreshBtTelemetryFromProfiles() } catch (_: Throwable) {}
     }
 
@@ -1334,7 +1401,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.4"
+                        userAgentString = "$baseUa JoyOS/1.1.5"
                     }
                 } catch (_: Throwable) {}
             }

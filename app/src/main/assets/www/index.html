@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta id="joy-viewport-meta" name="viewport" content="width=1040" />
-  <!-- JOYOS_PROD_VER=1.1.4 -->
-  <title>JoyOS Production v1.1.4 — Chevrolet Joy</title>
+  <!-- JOYOS_PROD_VER=1.1.5 -->
+  <title>JoyOS Production v1.1.5 — Chevrolet Joy</title>
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/leaflet.css">
   <script src="js/leaflet.js"></script>
@@ -5999,27 +5999,29 @@
     /* --- JOYOS V8.0: FIFO NOTIFICATION & VOLUME STACK + 4-WAY SWIPE DISMISS --- */
     .notif-stack {
       position: absolute;
-      top: 50px;
+      top: 62px;
       left: 0;
       right: 0;
-      z-index: 65;
+      z-index: 45;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
       pointer-events: none;
       width: auto;
       max-width: 100%;
-      padding: 0 16px;
+      padding: 0 20px;
+    }
+
+    .notif-stack > .notif-pill + .notif-pill {
+      margin-top: 10px;
     }
 
     .notif-pill {
       pointer-events: auto;
       display: flex;
       align-items: center;
-      gap: 11px;
-      padding: 9px 18px;
-      border-radius: 999px;
+      padding: 11px 20px;
+      border-radius: 20px;
       background: rgba(11, 17, 29, 0.96);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.56), 0 0 0 1px rgba(255, 255, 255, 0.12);
       color: var(--ink);
@@ -6027,13 +6029,80 @@
       touch-action: none;
       user-select: none;
       transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1), opacity 260ms ease, box-shadow 200ms ease;
-      max-width: 520px;
-      width: 100%;
+      max-width: 660px;
+      width: auto;
+      min-width: 340px;
+      line-height: 1.4;
+    }
+
+    .notif-pill .notif-dot {
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .notif-pill .notif-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 12px;
+      line-height: 1.4;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .notif-pill .notif-title {
+      font-family: 'Sora', sans-serif;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: 0.01em;
+    }
+
+    .notif-pill .notif-sep {
+      margin: 0 8px;
+      opacity: 0.4;
+    }
+
+    .notif-pill .notif-plate {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    .notif-pill .notif-cta {
+      margin-left: 16px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
     }
 
     .theme-light .notif-pill {
       background: rgba(255, 255, 255, 0.97);
       box-shadow: 0 14px 34px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(15, 23, 42, 0.10);
+    }
+
+    .theme-light .notif-pill .notif-cta {
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(15, 23, 42, 0.10);
+    }
+
+    .notif-pill .notif-vol-icon {
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    .notif-pill .notif-vol-lbl {
+      margin-right: 12px;
+      white-space: nowrap;
+    }
+
+    .notif-pill .notif-vol-track {
+      margin-right: 12px;
     }
 
     .notif-pill:active {
@@ -6190,9 +6259,16 @@
     html.is-native-car .island,
     body.is-native-car .island,
     html.is-native-car .notif-pill,
-    body.is-native-car .notif-pill {
+    body.is-native-car .notif-pill,
+    html.is-native-car .boot-status-pill,
+    body.is-native-car .boot-status-pill {
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+    }
+
+    html.is-native-car .boot-mid-logo,
+    body.is-native-car .boot-mid-logo {
+      filter: none !important;
     }
 
     /* Eliminate GPU-killing fullscreen blur & continuous infinite animations on Mali-450 */
@@ -7509,33 +7585,33 @@
               </div>
 
               <!-- 1. Nombre del Perfil -->
-              <div class="soft-surface rounded-2xl p-3.5 flex flex-col gap-1.5">
+              <div class="soft-surface rounded-2xl p-3 flex flex-col gap-1">
                 <label class="text-[11px] font-semibold text-[var(--mute)]">Nombre del perfil</label>
                 <input id="prof-edit-name" type="text" maxlength="16"
-                  class="theme-input w-full px-3.5 py-2.5 rounded-xl font-semibold text-sm outline-none"
+                  class="theme-input w-full px-3 py-2 rounded-xl font-semibold text-sm outline-none"
                   placeholder="Nombre del perfil" />
               </div>
 
               <!-- 2. Color de Acento y Tema de Interfaz (Cambia en tiempo real!) -->
-              <div class="soft-surface rounded-2xl p-3.5 flex flex-col gap-2">
+              <div class="soft-surface rounded-2xl p-3 flex flex-col gap-1.5">
                 <label class="text-[11px] font-semibold text-[var(--mute)]">Color de acento y tema de interfaz</label>
                 <div class="grid grid-cols-5 gap-2">
                   <button onclick="setDraftProfileField('accent', 'cyan')" id="prof-ac-cyan"
-                    class="pressable h-9 rounded-xl bg-[#5ce1e6] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Cian</button>
+                    class="pressable h-8 rounded-xl bg-[#5ce1e6] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Cian</button>
                   <button onclick="setDraftProfileField('accent', 'violet')" id="prof-ac-violet"
-                    class="pressable h-9 rounded-xl bg-[#c084fc] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Violeta</button>
+                    class="pressable h-8 rounded-xl bg-[#c084fc] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Violeta</button>
                   <button onclick="setDraftProfileField('accent', 'amber')" id="prof-ac-amber"
-                    class="pressable h-9 rounded-xl bg-[#fbbf24] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Ámbar</button>
+                    class="pressable h-8 rounded-xl bg-[#fbbf24] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Ámbar</button>
                   <button onclick="setDraftProfileField('accent', 'emerald')" id="prof-ac-emerald"
-                    class="pressable h-9 rounded-xl bg-[#34d399] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Verde</button>
+                    class="pressable h-8 rounded-xl bg-[#34d399] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Verde</button>
                   <button onclick="setDraftProfileField('accent', 'rose')" id="prof-ac-rose"
-                    class="pressable h-9 rounded-xl bg-[#fb7185] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Rojo
+                    class="pressable h-8 rounded-xl bg-[#fb7185] text-slate-950 font-bold text-[11px] flex items-center justify-center shadow-sm">Rojo
                     RS</button>
                 </div>
               </div>
 
               <!-- 3. Modo de Pantalla (Dark / Light en tiempo real!) -->
-              <div class="soft-surface rounded-2xl p-3.5 flex items-center justify-between">
+              <div class="soft-surface rounded-2xl p-3 flex items-center justify-between">
                 <div>
                   <div class="text-xs font-semibold text-[var(--ink)]">Modo de pantalla</div>
                   <div class="text-[11px] text-[var(--mute)]">Se previsualiza al instante</div>
@@ -7546,6 +7622,19 @@
                   <button onclick="setDraftProfileField('theme', 'light')" id="prof-th-light"
                     class="pressable px-3.5 py-1.5 rounded-lg font-semibold text-xs transition-all">Light</button>
                 </div>
+              </div>
+
+              <!-- 4. Teléfono Bluetooth predeterminado (Cambia automáticamente al seleccionar perfil sin tocar OBD2) -->
+              <div class="soft-surface rounded-2xl p-3 flex items-center justify-between">
+                <div class="pr-2 min-w-0">
+                  <div class="text-xs font-semibold text-[var(--ink)]">Teléfono Bluetooth base</div>
+                  <div class="text-[10px] text-[var(--mute)]">Se conecta solo al entrar (respeta OBD2)</div>
+                </div>
+                <select id="prof-edit-bt-select" onchange="setDraftProfileBtDevice(this.value)"
+                  style="max-width: 190px;"
+                  class="theme-input ml-2 px-2.5 py-1.5 rounded-xl font-semibold text-xs outline-none cursor-pointer">
+                  <option value="">Sin teléfono asignado</option>
+                </select>
               </div>
             </div>
 
@@ -7621,7 +7710,7 @@
                 <h3 class="font-bold text-base text-white flex items-center gap-2">
                   Actualización JoyOS
                   <span id="ota-modal-tag"
-                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.4</span>
+                    class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">v1.1.5</span>
                 </h3>
                 <p class="text-xs text-slate-400" id="ota-modal-subtitle">Nueva versión disponible desde GitHub</p>
               </div>
@@ -8731,6 +8820,11 @@
                   <span id="radio-genre-tag" class="text-xs text-[var(--mute)]">Rock &amp; Clásicos</span>
                 </div>
                 <div class="flex items-center gap-2">
+                  <button id="radio-sync-city-btn" onclick="syncRadioPresetsToCity(null, true)"
+                    class="pressable px-2.5 py-1 rounded-xl bg-[var(--accent)]/15 border border-[var(--accent)]/35 hover:border-[var(--accent)] text-xs text-[var(--accent)] font-semibold flex items-center gap-1"
+                    title="Actualizar emisoras FM locales según la ciudad GPS actual">
+                    <span>Sincronizar ciudad</span>
+                  </button>
                   <button
                     onclick="if(window.AndroidBridge&&typeof window.AndroidBridge.openNativeRadio==='function')window.AndroidBridge.openNativeRadio();"
                     class="pressable px-2.5 py-1 rounded-xl bg-current/5 border border-[var(--line)] hover:border-[var(--accent)] text-xs text-[var(--accent)] font-semibold flex items-center gap-1.5"
@@ -9497,6 +9591,10 @@
                     <div class="flex items-center justify-between pt-1">
                       <span class="text-[var(--mute)]">Códec de audio</span>
                       <span class="font-semibold text-[var(--accent)]">AAC / SBC · 48 kHz</span>
+                    </div>
+                    <div id="bt-profile-default-row" class="flex items-center justify-between pt-1.5 border-t border-[var(--line)]">
+                      <span class="text-[var(--mute)]">Base (<span id="bt-profile-active-label">Perfil</span>)</span>
+                      <span id="bt-profile-default-name" style="max-width: 140px;" class="font-semibold text-[var(--accent)] truncate">Manual</span>
                     </div>
                   </div>
                 </div>
@@ -10482,9 +10580,9 @@
                     <button onclick="selectFileDrive('usb')" id="drive-btn-usb"
                       class="pressable p-3 rounded-2xl border text-left flex flex-col gap-2 transition file-drive-card active">
                       <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-xs text-[var(--ink)]">USB Guantera</span>
-                        <span id="drive-badge-usb"
-                          class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30">Activa</span>
+                        <span class="font-bold text-xs text-[var(--ink)] truncate">USB Guantera</span>
+                        <span id="drive-badge-usb" style="padding-left: 10px;"
+                          class="ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30">Activa</span>
                       </div>
                       <div id="drive-cap-usb" class="text-[11px] text-[var(--mute)] tabular-nums">Sin memoria USB
                         insertada</div>
@@ -10498,9 +10596,9 @@
                     <button onclick="selectFileDrive('internal')" id="drive-btn-internal"
                       class="pressable p-3 rounded-2xl border text-left flex flex-col gap-2 transition file-drive-card">
                       <div class="flex items-center justify-between w-full">
-                        <span class="font-bold text-xs text-[var(--ink)]">Memoria interna</span>
-                        <span id="drive-badge-internal"
-                          class="text-[10px] text-[var(--mute)] font-medium">Interna</span>
+                        <span class="font-bold text-xs text-[var(--ink)] truncate">Memoria interna</span>
+                        <span id="drive-badge-internal" style="padding-left: 10px;"
+                          class="ml-auto shrink-0 text-[10px] text-[var(--mute)] font-medium">Interna</span>
                       </div>
                       <div id="drive-cap-internal" class="text-[11px] text-[var(--mute)] tabular-nums">Calculando
                         espacio...</div>
@@ -10946,7 +11044,7 @@
   </div>
 
   <script>
-    const JOYOS_VERSION = '1.1.4';
+    const JOYOS_VERSION = '1.1.5';
     if (!Array.prototype.flatMap) {
       Array.prototype.flatMap = function (callback, thisArg) {
         return Array.prototype.concat.apply([], this.map(callback, thisArg));
@@ -11127,31 +11225,120 @@
       }
     }
 
-    const defaultRadioStations = [
-      { freq: 94.9, name: "La FM", sub: "Noticias & Música Contemporánea", genre: "Adulto Contemporáneo", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/LA_FM_BOG.mp3", color1: "#0284c7", color2: "#38bdf8" },
-      { freq: 98.5, name: "Radioacktiva", sub: "El Planeta Rock · En Vivo", genre: "Rock & Clásicos", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIOACTIVA_BOG.mp3", color1: "#f59e0b", color2: "#e11d48" },
-      { freq: 99.9, name: "W Radio", sub: "Más Piel · Señal Nacional", genre: "Actualidad & Entrevistas", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#ec4899", color2: "#6366f1" },
-      { freq: 100.9, name: "Caracol Radio", sub: "6AM Hoy por Hoy · HD", genre: "Noticias & Deportes", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#06b6d4", color2: "#3b82f6" },
-      { freq: 103.9, name: "La X · Más Música", sub: "103.9 FM · Anglo Hits", genre: "Pop & Electrónica", streamUrl: "https://streaming.radiola.com.co:8000/lax", color1: "#8b5cf6", color2: "#ec4899" },
-      { freq: 104.9, name: "Olímpica Stereo", sub: "¡Se Metió! · Latina", genre: "Tropical & Variada", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/OLIMPICA_BOG.mp3", color1: "#10b981", color2: "#eab308" }
-    ];
+    const CITY_RADIO_PRESETS = {
+      'Popayán': [
+        { freq: 91.7, name: "Radio Autónoma", sub: "91.7 FM · Popayán Universitaria", genre: "Cultural & Música", streamUrl: "", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 94.7, name: "La Rumbera", sub: "94.7 FM · Popayán Crossover", genre: "Crossover & Fiesta", streamUrl: "", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 98.1, name: "W Radio", sub: "98.1 FM · Popayán Noticias", genre: "Actualidad & Entrevistas", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 100.1, name: "Radio Uno", sub: "100.1 FM · La de Uno Popayán", genre: "Popular, Vallenato & Tropical", streamUrl: "", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 104.1, name: "Unicauca Estéreo", sub: "104.1 FM · Universidad del Cauca", genre: "Clásicos, Indie & Cultura", streamUrl: "", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 106.1, name: "Tropicana", sub: "106.1 FM · Popayán Tropical", genre: "Salsa, Urbana & Popular", streamUrl: "", color1: "#10b981", color2: "#eab308" }
+      ],
+      'Bogotá': [
+        { freq: 94.9, name: "La FM", sub: "94.9 FM · Bogotá Noticias & Música", genre: "Adulto Contemporáneo", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/LA_FM_BOG.mp3", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 97.9, name: "Radioacktiva", sub: "97.9 FM · Planeta Rock Bogotá", genre: "Rock & Clásicos", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/RADIOACTIVA_BOG.mp3", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 99.9, name: "W Radio", sub: "99.9 FM · Señal Nacional", genre: "Actualidad & Entrevistas", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 100.9, name: "Caracol Radio", sub: "100.9 FM · Noticias & Deportes", genre: "Noticias & Deportes", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 103.9, name: "La X · Más Música", sub: "103.9 FM · Anglo Hits Bogotá", genre: "Pop & Electrónica", streamUrl: "https://streaming.radiola.com.co:8000/lax", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 105.9, name: "Olímpica Stereo", sub: "105.9 FM · Bogotá Latina", genre: "Tropical & Variada", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/OLIMPICA_BOG.mp3", color1: "#10b981", color2: "#eab308" }
+      ],
+      'Cali': [
+        { freq: 89.5, name: "Radio Tiempo", sub: "89.5 FM · Cali Romántica", genre: "Pop Latino & Baladas", streamUrl: "", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 90.5, name: "Caracol Radio", sub: "90.5 FM · Cali Noticias", genre: "Noticias & Deportes", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 93.1, name: "Tropicana", sub: "93.1 FM · Cali Capital de la Salsa", genre: "Salsa & Tropical", streamUrl: "", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 96.9, name: "La X", sub: "96.9 FM · Rock, Pop & Electrónica", genre: "Anglo & Electrónica", streamUrl: "", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 104.5, name: "Olímpica Stereo", sub: "104.5 FM · Cali Tropical", genre: "Tropical & Vallenato", streamUrl: "", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 105.3, name: "La FM", sub: "105.3 FM · Cali Actualidad", genre: "Noticias & Música", streamUrl: "", color1: "#10b981", color2: "#eab308" }
+      ],
+      'Medellín': [
+        { freq: 90.3, name: "Caracol Radio", sub: "90.3 FM · Medellín", genre: "Noticias & Deportes", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 94.9, name: "Bésame FM", sub: "94.9 FM · Medellín Romántica", genre: "Baladas & Pop", streamUrl: "", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 98.9, name: "Tropicana", sub: "98.9 FM · Medellín", genre: "Tropical & Urbana", streamUrl: "", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 102.3, name: "Radioacktiva", sub: "102.3 FM · Planeta Rock", genre: "Rock & Alternativa", streamUrl: "", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 102.9, name: "W Radio", sub: "102.9 FM · Medellín", genre: "Actualidad & Entrevistas", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 104.9, name: "Olímpica Stereo", sub: "104.9 FM · Medellín", genre: "Tropical & Vallenato", streamUrl: "", color1: "#10b981", color2: "#eab308" }
+      ],
+      'Barranquilla': [
+        { freq: 89.1, name: "Tropicana", sub: "89.1 FM · Barranquilla", genre: "Tropical & Urbana", streamUrl: "", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 90.1, name: "W Radio", sub: "90.1 FM · Barranquilla", genre: "Noticias & Actualidad", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 92.1, name: "Olímpica Stereo", sub: "92.1 FM · Barranquilla", genre: "Tropical & Vallenato", streamUrl: "", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 96.1, name: "Radio Tiempo", sub: "96.1 FM · Barranquilla", genre: "Pop Latino & Variado", streamUrl: "", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 97.6, name: "Caracol Radio", sub: "97.6 FM · Barranquilla", genre: "Noticias & Deportes", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 99.1, name: "La FM", sub: "99.1 FM · Barranquilla", genre: "Noticias & Variedades", streamUrl: "", color1: "#10b981", color2: "#eab308" }
+      ],
+      'Bucaramanga': [
+        { freq: 90.7, name: "W Radio", sub: "90.7 FM · Bucaramanga", genre: "Actualidad & Noticias", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/WRADIO.mp3", color1: "#0284c7", color2: "#38bdf8" },
+        { freq: 95.7, name: "Tropicana", sub: "95.7 FM · Bucaramanga", genre: "Tropical & Popular", streamUrl: "", color1: "#f59e0b", color2: "#e11d48" },
+        { freq: 97.7, name: "Olímpica Stereo", sub: "97.7 FM · Bucaramanga", genre: "Tropical & Vallenato", streamUrl: "", color1: "#ec4899", color2: "#6366f1" },
+        { freq: 99.2, name: "Caracol Radio", sub: "99.2 FM · Bucaramanga", genre: "Noticias & Hablada", streamUrl: "https://playerservices.streamtheworld.com/api/livestream-redirect/CARACOL_RADIO.mp3", color1: "#06b6d4", color2: "#3b82f6" },
+        { freq: 99.7, name: "La FM", sub: "99.7 FM · Bucaramanga", genre: "Noticias & Música", streamUrl: "", color1: "#8b5cf6", color2: "#ec4899" },
+        { freq: 105.7, name: "La Mega", sub: "105.7 FM · Bucaramanga", genre: "Urbano & Pop Juvenil", streamUrl: "", color1: "#10b981", color2: "#eab308" }
+      ]
+    };
+    const defaultRadioStations = CITY_RADIO_PRESETS['Popayán'];
     const savedRadioPresets = safeGetStorage('joyos_v8_radio_presets');
+    function isLegacyBogotaDefaults(arr) {
+      if (!Array.isArray(arr) || arr.length !== 6) return false;
+      const sig = arr.map(s => Number(s && s.freq || 0).toFixed(1)).join(',');
+      return sig === '94.9,98.5,99.9,100.9,103.9,104.9';
+    }
     const radioStations = (Array.isArray(savedRadioPresets) && savedRadioPresets.length === 6)
       ? savedRadioPresets
       : JSON.parse(JSON.stringify(defaultRadioStations));
 
+    function getCityRadioPresets(cityName) {
+      const norm = (typeof normalizeColombiaCityName === 'function') ? normalizeColombiaCityName(cityName) : '';
+      const key = (norm && CITY_RADIO_PRESETS[norm]) ? norm : (CITY_RADIO_PRESETS[cityName] ? cityName : 'Popayán');
+      return { city: key, list: CITY_RADIO_PRESETS[key] || defaultRadioStations };
+    }
+
+    function syncRadioPresetsToCity(cityName, manualClick) {
+      const targetCity = cityName || (typeof r5State !== 'undefined' && r5State.city) || 'Popayán';
+      const customLocked = !!safeGetStorage('joyos_v8_radio_custom_v1');
+      if (!manualClick && customLocked && !isLegacyBogotaDefaults(radioStations)) {
+        return false;
+      }
+      const prevCity = safeGetStorage('joyos_v8_radio_city_v1') || '';
+      const resolved = getCityRadioPresets(targetCity);
+      if (!manualClick && prevCity === resolved.city && !isLegacyBogotaDefaults(radioStations)) {
+        return false;
+      }
+      radioStations.length = 0;
+      resolved.list.forEach(item => radioStations.push(Object.assign({}, item)));
+      safeSetStorage('joyos_v8_radio_presets', radioStations);
+      safeSetStorage('joyos_v8_radio_city_v1', resolved.city);
+      if (manualClick) {
+        safeSetStorage('joyos_v8_radio_custom_v1', false);
+      }
+      if (state && typeof state.stationIdx === 'number') {
+        state.stationIdx = 0;
+        state.customFreq = null;
+      }
+      const btn = document.getElementById('radio-sync-city-btn');
+      if (btn) btn.innerHTML = '<span>Sincronizar · ' + resolved.city + '</span>';
+      if (manualClick && typeof showJoyToast === 'function') {
+        showJoyToast('Radio FM · ' + resolved.city, 'Emisoras locales actualizadas al dial de ' + resolved.city, 'ok');
+      }
+      if (typeof renderAll === 'function' && state && typeof state.tab === 'string') {
+        renderAll();
+      }
+      return true;
+    }
+
     const knownFmBandFreqs = [
-      { freq: 88.1, name: 'FM 88.1' }, { freq: 88.9, name: 'Los 40 / Pop' },
-      { freq: 89.5, name: 'Radio Uno / Regional' }, { freq: 90.1, name: 'FM 90.1' },
-      { freq: 90.9, name: 'La Mega' }, { freq: 91.9, name: 'Javeriana / Cultural' },
-      { freq: 92.9, name: 'Mix FM' }, { freq: 93.9, name: 'RCN Radio' },
-      { freq: 94.9, name: 'La FM' }, { freq: 95.9, name: 'Radio Nacional' },
-      { freq: 96.5, name: 'Bésame / Clásica' }, { freq: 97.9, name: 'Tropicana' },
-      { freq: 98.1, name: 'La Reina / Regional' }, { freq: 98.5, name: 'Radioacktiva' },
-      { freq: 99.1, name: 'Policía Nacional' }, { freq: 99.9, name: 'W Radio' },
-      { freq: 100.9, name: 'Caracol Radio' }, { freq: 101.9, name: 'Candela / Blu' },
-      { freq: 102.9, name: 'Tropicana / Fantástica' }, { freq: 103.9, name: 'La X' },
-      { freq: 104.9, name: 'Olímpica Stereo' }, { freq: 105.7, name: 'Radio Tiempo' },
+      { freq: 88.1, name: 'FM 88.1' }, { freq: 88.9, name: 'Los 40 / Guasca' },
+      { freq: 89.5, name: 'Radio Tiempo / Uno' }, { freq: 90.3, name: 'Caracol Radio' },
+      { freq: 90.9, name: 'La Mega' }, { freq: 91.7, name: 'Radio Autónoma' },
+      { freq: 92.1, name: 'Olímpica Stereo' }, { freq: 92.9, name: 'Mix FM' },
+      { freq: 93.3, name: '¡Qué Buena! FM' }, { freq: 94.1, name: 'Radio Policía' },
+      { freq: 94.7, name: 'La Rumbera' }, { freq: 94.9, name: 'La FM / Bésame' },
+      { freq: 95.1, name: 'Colombia Estéreo' }, { freq: 95.9, name: 'Radio Nacional' },
+      { freq: 96.5, name: 'La Clave FM' }, { freq: 97.1, name: 'La Voz FM' },
+      { freq: 98.1, name: 'W Radio' }, { freq: 98.5, name: 'Radioacktiva' },
+      { freq: 99.9, name: 'W Radio / Nacional' }, { freq: 100.1, name: 'Radio Uno' },
+      { freq: 100.9, name: 'Caracol Radio' }, { freq: 103.9, name: 'La X' },
+      { freq: 104.1, name: 'Unicauca Estéreo' }, { freq: 104.9, name: 'Olímpica Stereo' },
+      { freq: 105.1, name: 'Popayán FM' }, { freq: 106.1, name: 'Tropicana' },
       { freq: 106.9, name: 'La Kalle' }, { freq: 107.9, name: 'Minuto de Dios' }
     ];
 
@@ -11243,11 +11430,76 @@
         theme: 'dark',
         avatarType: 'preset',
         avatarPresetId: 'helmet',
-        avatarImageUrl: ''
+        avatarImageUrl: '',
+        btDeviceAddress: '',
+        btDeviceName: ''
       }
     ];
 
     let profiles = safeGetStorage('joyos_v8_profiles_min') || JSON.parse(JSON.stringify(defaultProfiles));
+    profiles.forEach(p => {
+      if (p && typeof p.btDeviceAddress !== 'string') p.btDeviceAddress = '';
+      if (p && typeof p.btDeviceName !== 'string') p.btDeviceName = '';
+    });
+
+    // Trusted Clock (prevents cold-boot RTC reset to 2024-03-11 from corrupting SOAT/RTM days or Pico y Placa)
+    const MIN_VALID_CLOCK_MS = Date.UTC(2025, 0, 1);
+    const TRUSTED_CLOCK_KEY = 'joyos_last_valid_clock_v1';
+    window._joyLatestGpsTimeMs = 0;
+    window._joyLatestGpsPerfAt = 0;
+    window._joyLastSavedClockAt = 0;
+    const savedClockSnap = safeGetStorage(TRUSTED_CLOCK_KEY);
+    if (savedClockSnap && typeof savedClockSnap.trustedMs === 'number' && savedClockSnap.trustedMs >= MIN_VALID_CLOCK_MS) {
+      window._joyCachedClockMs = savedClockSnap.trustedMs;
+    } else {
+      window._joyCachedClockMs = 0;
+    }
+
+    function persistTrustedClockMs(ms) {
+      if (typeof ms !== 'number' || ms < MIN_VALID_CLOCK_MS) return;
+      window._joyCachedClockMs = ms;
+      const perfNow = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : 0;
+      if (!window._joyLastSavedClockAt || Math.abs(perfNow - window._joyLastSavedClockAt) > 60000) {
+        window._joyLastSavedClockAt = perfNow || 1;
+        safeSetStorage(TRUSTED_CLOCK_KEY, { trustedMs: Math.round(ms) });
+      }
+    }
+
+    function updateTrustedClockFromGps(gpsTimeMs) {
+      if (typeof gpsTimeMs === 'number' && gpsTimeMs >= MIN_VALID_CLOCK_MS) {
+        window._joyLatestGpsTimeMs = gpsTimeMs;
+        window._joyLatestGpsPerfAt = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : 0;
+        persistTrustedClockMs(gpsTimeMs);
+      }
+    }
+
+    function getTrustedNow() {
+      const sysNow = Date.now();
+      if (sysNow >= MIN_VALID_CLOCK_MS) {
+        persistTrustedClockMs(sysNow);
+        return new Date(sysNow);
+      }
+      const perfNow = (typeof performance !== 'undefined' && typeof performance.now === 'function') ? performance.now() : 0;
+      if (window._joyLatestGpsTimeMs >= MIN_VALID_CLOCK_MS) {
+        const elapsed = perfNow >= window._joyLatestGpsPerfAt ? (perfNow - window._joyLatestGpsPerfAt) : 0;
+        return new Date(window._joyLatestGpsTimeMs + elapsed);
+      }
+      if (window._joyCachedClockMs >= MIN_VALID_CLOCK_MS) {
+        return new Date(window._joyCachedClockMs + Math.max(0, perfNow));
+      }
+      return new Date(sysNow);
+    }
+
+    function getTrustedDateKey(dateObj) {
+      const d = dateObj || getTrustedNow();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function isSystemClockTrusted() {
+      return Date.now() >= MIN_VALID_CLOCK_MS ||
+        window._joyLatestGpsTimeMs >= MIN_VALID_CLOCK_MS ||
+        window._joyCachedClockMs >= MIN_VALID_CLOCK_MS;
+    }
 
     // Vehicle State (RUNT/R5 manual/date-tracked + GPS city auto-detection)
     const colombiaCitiesGeo = [
@@ -11287,7 +11539,7 @@
       const y = parseInt(parts[0], 10);
       const m = parseInt(parts[1], 10) - 1;
       const d = parseInt(parts[2], 10);
-      const now = new Date();
+      const now = getTrustedNow();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const target = new Date(y, m, d);
       if (isNaN(target.getTime())) return null;
@@ -11296,7 +11548,7 @@
 
     function isoDateFromDays(days) {
       const d = Math.max(0, parseInt(days, 10) || 0);
-      const now = new Date();
+      const now = getTrustedNow();
       const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d);
       return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
     }
@@ -11319,15 +11571,22 @@
     };
     const savedR5 = safeGetStorage('joyos_v8_r5_vehicle');
     const r5State = Object.assign({}, defaultR5State, savedR5 || {});
-    if (r5State.soatExpiryDate) {
-      const d = calcDaysUntilIso(r5State.soatExpiryDate);
-      if (d !== null) r5State.soatDays = d;
+
+    function recomputeR5LegalStatus() {
+      if (r5State.soatExpiryDate) {
+        const d = calcDaysUntilIso(r5State.soatExpiryDate);
+        if (d !== null) r5State.soatDays = d;
+      }
+      if (r5State.rtmExpiryDate) {
+        const d = calcDaysUntilIso(r5State.rtmExpiryDate);
+        if (d !== null) r5State.rtmDays = d;
+      }
+      r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15) || (r5State.rtmDays > 0 && r5State.rtmDays <= 15);
+      if (r5State.plate && typeof computeRealPicoYPlaca === 'function') {
+        r5State.picoRestricted = !!computeRealPicoYPlaca(r5State.plate, r5State.city).restricted;
+      }
     }
-    if (r5State.rtmExpiryDate) {
-      const d = calcDaysUntilIso(r5State.rtmExpiryDate);
-      if (d !== null) r5State.rtmDays = d;
-    }
-    r5State.expiringAlert = (r5State.soatDays > 0 && r5State.soatDays <= 15) || (r5State.rtmDays > 0 && r5State.rtmDays <= 15);
+    recomputeR5LegalStatus();
 
     const state = {
       theme: 'dark',
@@ -12004,7 +12263,7 @@
       });
       return {
         app: 'JoyOS',
-        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.4',
+        version: typeof detectedJoyVer !== 'undefined' ? detectedJoyVer : '1.1.5',
         exportedAt: new Date().toISOString(),
         keys: data
       };
@@ -12276,11 +12535,15 @@
     const notifQueue = [];
     let notifSeqId = 1;
 
+    function buildNotificationContentSig(opts) {
+      return (opts.type || 'info') + '|' + (opts.title || '') + '|' + (opts.plate || '') + '|' + (opts.tag || '');
+    }
+
     function enqueueNotification(opts) {
       const container = document.getElementById('notification-stack-container');
       if (!container) return;
 
-      // If it's a volume notification and one is already in the stack, update it in place so rapid volume clicks don't flood 10 bars, while still stacking in FIFO order with other notifications!
+      // If it's a volume notification and one is already in the stack, update it in place
       if (opts.type === 'volume') {
         const existingVol = notifQueue.find(n => n.type === 'volume');
         if (existingVol) {
@@ -12293,22 +12556,49 @@
         }
       }
 
+      // Active deduplication for keyed banners (e.g. Home legal/Pico y Placa pill on tapping Inicio)
+      const contentSig = buildNotificationContentSig(opts);
+      if (opts.dedupKey) {
+        const activeKeyed = notifQueue.find(n => n.dedupKey === opts.dedupKey);
+        if (activeKeyed) {
+          if (opts.skipIfActive && activeKeyed.contentSig === contentSig) {
+            return;
+          }
+          // Content changed (e.g. date synced from cold-boot RTC): update active banner in-place!
+          activeKeyed.type = opts.type || activeKeyed.type;
+          activeKeyed.title = opts.title || '';
+          activeKeyed.plate = opts.plate || '';
+          activeKeyed.tag = opts.tag || '';
+          activeKeyed.dotClass = opts.dotClass || activeKeyed.dotClass;
+          activeKeyed.tagClass = opts.tagClass || activeKeyed.tagClass;
+          activeKeyed.redirect = opts.redirect || activeKeyed.redirect;
+          activeKeyed.contentSig = contentSig;
+          clearTimeout(activeKeyed.timer);
+          const dur = opts.duration || (activeKeyed.type === 'volume' ? 2400 : 5200);
+          activeKeyed.timer = setTimeout(() => removeNotificationById(activeKeyed.id, 'up'), dur);
+          updateNotificationDomInPlace(activeKeyed);
+          return;
+        }
+      }
+
       const id = 'notif_' + (notifSeqId++);
       const item = {
         id,
+        dedupKey: opts.dedupKey || '',
+        contentSig,
         type: opts.type || 'info', // 'volume' | 'pico' | 'soat' | 'engine' | 'tire' | 'bt' | 'r5' | 'music'
         title: opts.title || '',
         plate: opts.plate || '',
         tag: opts.tag || '',
         dotClass: opts.dotClass || 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] shrink-0',
-        tagClass: opts.tagClass || 'text-[11px] text-[var(--mute)] pl-1',
+        tagClass: opts.tagClass || 'text-[var(--mute)]',
         redirect: opts.redirect || null,
         vol: typeof opts.vol === 'number' ? opts.vol : state.vol,
         muted: !!opts.muted,
         timer: null
       };
 
-      const duration = item.type === 'volume' ? 2400 : 4800;
+      const duration = opts.duration || (item.type === 'volume' ? 2400 : 5200);
       item.timer = setTimeout(() => {
         removeNotificationById(id, 'up');
       }, duration);
@@ -12323,16 +12613,46 @@
       appendNotificationDom(item);
     }
 
+    function renderNotificationInnerHtml(item) {
+      if (item.type === 'volume') {
+        const pct = item.muted ? 0 : Math.round((item.vol / 30) * 100);
+        return `
+          <svg class="ic notif-vol-icon text-[var(--accent)]" style="width:18px;height:18px" viewBox="0 0 24 24">
+            ${item.muted
+            ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
+            : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>'}
+          </svg>
+          <span class="notif-vol-lbl text-xs font-semibold text-[var(--ink)]">${item.muted ? 'Sonido silenciado' : 'Volumen'}</span>
+          <div class="notif-vol-track w-24 h-1.5 rounded-full bg-current/15 overflow-hidden">
+            <div class="notif-vol-bar h-full bg-[var(--accent)] rounded-full transition-all duration-150" style="width: ${pct}%;"></div>
+          </div>
+          <span class="notif-vol-num font-sora text-xs font-bold text-[var(--accent)] tabular-nums min-w-[3ch] text-right">${item.muted ? 'MUTE' : item.vol}</span>
+        `;
+      }
+      return `
+        <span class="notif-dot ${item.dotClass}"></span>
+        <div class="notif-main">
+          <span class="notif-title">${item.title}</span>
+          ${item.plate ? `<span class="notif-sep">·</span><span class="notif-plate tabular-nums">${item.plate}</span>` : ''}
+        </div>
+        ${item.tag ? `<span class="notif-cta ${item.tagClass}">${item.tag}</span>` : ''}
+      `;
+    }
+
     function updateNotificationDomInPlace(item) {
       const el = document.getElementById(item.id);
       if (!el) return;
-      const bar = el.querySelector('.notif-vol-bar');
-      const num = el.querySelector('.notif-vol-num');
-      const lbl = el.querySelector('.notif-vol-lbl');
-      const pct = item.muted ? 0 : Math.round((item.vol / 30) * 100);
-      if (bar) bar.style.width = pct + '%';
-      if (num) num.textContent = item.muted ? 'MUTE' : item.vol;
-      if (lbl) lbl.textContent = item.muted ? 'Sonido silenciado' : 'Volumen';
+      if (item.type === 'volume') {
+        const bar = el.querySelector('.notif-vol-bar');
+        const num = el.querySelector('.notif-vol-num');
+        const lbl = el.querySelector('.notif-vol-lbl');
+        const pct = item.muted ? 0 : Math.round((item.vol / 30) * 100);
+        if (bar) bar.style.width = pct + '%';
+        if (num) num.textContent = item.muted ? 'MUTE' : item.vol;
+        if (lbl) lbl.textContent = item.muted ? 'Sonido silenciado' : 'Volumen';
+      } else {
+        el.innerHTML = renderNotificationInnerHtml(item);
+      }
     }
 
     function appendNotificationDom(item) {
@@ -12342,31 +12662,7 @@
       const el = document.createElement('div');
       el.id = item.id;
       el.className = 'notif-pill opacity-0 -translate-y-2';
-
-      if (item.type === 'volume') {
-        const pct = item.muted ? 0 : Math.round((item.vol / 30) * 100);
-        el.innerHTML = `
-          <svg class="ic text-[var(--accent)]" style="width:18px;height:18px" viewBox="0 0 24 24">
-            ${item.muted
-            ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
-            : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>'}
-          </svg>
-          <span class="notif-vol-lbl text-xs font-semibold text-[var(--ink)]">${item.muted ? 'Sonido silenciado' : 'Volumen'}</span>
-          <div class="w-24 h-1.5 rounded-full bg-current/15 overflow-hidden">
-            <div class="notif-vol-bar h-full bg-[var(--accent)] rounded-full transition-all duration-150" style="width: ${pct}%;"></div>
-          </div>
-          <span class="notif-vol-num font-sora text-xs font-bold text-[var(--accent)] tabular-nums min-w-[3ch] text-right">${item.muted ? 'MUTE' : item.vol}</span>
-        `;
-      } else {
-        el.innerHTML = `
-          <span class="${item.dotClass}"></span>
-          <div class="flex items-center gap-2 text-xs">
-            <span class="font-sora font-semibold text-[var(--ink)]">${item.title}</span>
-            ${item.plate ? `<span class="opacity-40">·</span><span class="font-sora font-semibold text-[var(--accent)] tracking-wide tabular-nums">${item.plate}</span>` : ''}
-          </div>
-          ${item.tag ? `<span class="${item.tagClass}">${item.tag}</span>` : ''}
-        `;
-      }
+      el.innerHTML = renderNotificationInnerHtml(item);
 
       bindNotificationGestures(el, item);
       container.appendChild(el);
@@ -12465,6 +12761,9 @@
         state.tab = 'home';
         renderAll();
       }
+      if (window._joyBootInProgress && !customOverride) {
+        return;
+      }
 
       if (customOverride) {
         enqueueNotification({
@@ -12483,42 +12782,50 @@
         return;
       }
 
+      recomputeR5LegalStatus();
       if (r5State.picoRestricted) {
         enqueueNotification({
+          dedupKey: 'home_legal_notice',
+          skipIfActive: true,
           type: 'pico',
           title: 'No puedes salir · Pico y Placa (' + (r5State.city || 'Colombia') + ')',
           plate: r5State.plate,
-          tag: r5State.expiringAlert ? ('⚠️ SOAT vence en ' + r5State.soatDays + ' días') : 'Toca para ver Estado Legal',
+          tag: r5State.expiringAlert ? ('SOAT ' + r5State.soatDays + 'd') : 'Ver Estado Legal',
           dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] shrink-0 animate-pulse',
-          tagClass: 'text-[11px] font-semibold text-amber-500 pl-1',
+          tagClass: 'font-semibold text-amber-500',
           redirect: () => { state.tab = 'settings'; state.settingsSubView = 'r5'; renderAll(); }
         });
       } else if (r5State.expiringAlert) {
         enqueueNotification({
+          dedupKey: 'home_legal_notice',
+          skipIfActive: true,
           type: 'soat',
           title: 'Alerta SOAT por vencer',
           plate: r5State.plate,
-          tag: `⚠️ Vence en ${r5State.soatDays} días · Toca para abrir`,
+          tag: `Vence en ${r5State.soatDays} días`,
           dotClass: 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] shrink-0 animate-pulse',
-          tagClass: 'text-[11px] font-semibold text-amber-500 pl-1',
+          tagClass: 'font-semibold text-amber-500',
           redirect: () => { state.tab = 'settings'; state.settingsSubView = 'r5'; renderAll(); }
         });
       } else {
         enqueueNotification({
+          dedupKey: 'home_legal_notice',
+          skipIfActive: true,
           type: 'pico',
           title: 'Hoy puedes salir',
           plate: r5State.plate,
           tag: state.sensorWaitMode ? 'Modo GPS activo' : 'Pico y Placa libre',
           dotClass: 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] shrink-0',
-          tagClass: 'text-[11px] text-[var(--mute)] pl-1',
+          tagClass: 'text-[var(--mute)]',
           redirect: () => { state.tab = 'settings'; state.settingsSubView = 'r5'; renderAll(); }
         });
       }
     }
 
     function dismissHomeNotice() {
-      if (notifQueue.length > 0) {
-        removeNotificationById(notifQueue[0].id, 'up');
+      const target = notifQueue.find(n => n.dedupKey === 'home_legal_notice') || notifQueue[0];
+      if (target) {
+        removeNotificationById(target.id, 'up');
       }
     }
 
@@ -12570,11 +12877,134 @@
       }
     }
 
-    function openProfileSelector() {
+    function ensureNativeBtBondedLoaded() {
+      if (!window.AndroidBridge || typeof window.AndroidBridge.getBluetoothBondedDevices !== 'function') return btDevices;
+      try {
+        const rawBonded = window.AndroidBridge.getBluetoothBondedDevices();
+        const bonded = JSON.parse(rawBonded || '[]');
+        if (Array.isArray(bonded)) {
+          btDevices.length = 0;
+          bonded.forEach(d => {
+            btDevices.push({
+              name: d.name,
+              address: d.address || '',
+              sub: d.type === 'obd' ? 'Telemetría ECU OBD2' : 'Audio y llamadas Bluetooth',
+              battery: typeof d.battery === 'number' ? d.battery : -1,
+              signal: typeof d.signal === 'number' ? d.signal : -1,
+              connected: !!d.connected,
+              a2dpConnected: !!d.a2dpConnected,
+              hfpConnected: !!d.hfpConnected,
+              type: d.type
+            });
+          });
+        }
+      } catch (e) { }
+      return btDevices;
+    }
+
+    function populateProfileBtSelect(selectedAddr) {
+      const sel = document.getElementById('prof-edit-bt-select');
+      if (!sel) return;
+      ensureNativeBtBondedLoaded();
+      const phones = (btDevices || []).filter(d => d && !d.isTelemetry && d.type !== 'obd');
+      let html = '<option value="">Sin teléfono asignado (Manual)</option>';
+      phones.forEach(d => {
+        const val = d.address || d.name;
+        const selAttr = (selectedAddr && (d.address === selectedAddr || (!d.address && d.name === selectedAddr))) ? ' selected' : '';
+        html += `<option value="${String(val).replace(/"/g, '&quot;')}"${selAttr}>${d.name}${d.connected ? ' (Conectado)' : ''}</option>`;
+      });
+      if (selectedAddr && !phones.some(d => d.address === selectedAddr || d.name === selectedAddr)) {
+        const fallbackName = (state.draftProfile && state.draftProfile.btDeviceName) || selectedAddr;
+        html += `<option value="${String(selectedAddr).replace(/"/g, '&quot;')}" selected>${fallbackName} (Guardado)</option>`;
+      }
+      sel.innerHTML = html;
+    }
+
+    function setDraftProfileBtDevice(val) {
+      if (!state.draftProfile) return;
+      const cleanVal = String(val || '').trim();
+      state.draftProfile.btDeviceAddress = cleanVal;
+      if (!cleanVal) {
+        state.draftProfile.btDeviceName = '';
+      } else {
+        const match = (btDevices || []).find(d => d && (d.address === cleanVal || d.name === cleanVal));
+        state.draftProfile.btDeviceName = match ? match.name : cleanVal;
+      }
+    }
+
+    function switchProfilePreferredBluetooth(profile) {
+      if (!profile || !profile.btDeviceAddress) return;
+      const targetAddr = String(profile.btDeviceAddress).trim();
+      const targetName = profile.btDeviceName || targetAddr;
+      if (!targetAddr) return;
+
+      ensureNativeBtBondedLoaded();
+      const idx = btDevices.findIndex(d => d && !d.isTelemetry && d.type !== 'obd' &&
+        (d.address === targetAddr || (!d.address && d.name === targetAddr)));
+      if (idx >= 0) state.btDeviceIdx = idx;
+
+      if (window.AndroidBridge && typeof window.AndroidBridge.switchProfileBluetooth === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.switchProfileBluetooth(targetAddr) || '{}');
+          showJoyToast('Bluetooth · ' + (profile.name || 'Perfil'), res.message || ('Cambiando a ' + targetName + '...'), res.ok ? 'ok' : 'warn');
+        } catch (e) { }
+        setTimeout(() => updateHardwareStatus(true), 1200);
+        setTimeout(() => updateHardwareStatus(true), 3200);
+      } else if (window.AndroidBridge && typeof window.AndroidBridge.connectBluetoothDevice === 'function') {
+        try {
+          const res = JSON.parse(window.AndroidBridge.connectBluetoothDevice(targetAddr) || '{}');
+          showJoyToast('Bluetooth · ' + (profile.name || 'Perfil'), res.message || ('Conectando ' + targetName + '...'), res.ok ? 'ok' : 'warn');
+        } catch (e) { }
+        setTimeout(() => updateHardwareStatus(true), 1200);
+      } else {
+        state.btEnabled = true;
+        if (idx >= 0) {
+          btDevices.forEach((d, i) => {
+            if (d && !d.isTelemetry && d.type !== 'obd') d.connected = (i === idx);
+          });
+          state.phoneConnected = true;
+          state.btConnected = true;
+          state.btDeviceName = btDevices[idx].name;
+        }
+        renderAll();
+      }
+    }
+
+    function runPostBootDeferredTasks() {
+      if (window._joyDeferredBootRan) return;
+      window._joyDeferredBootRan = true;
+      window._joyBootInProgress = false;
+      if (r5State && r5State.city && typeof syncRadioPresetsToCity === 'function' &&
+        !safeGetStorage('joyos_v8_radio_custom_v1') && isLegacyBogotaDefaults(radioStations)) {
+        syncRadioPresetsToCity(r5State.city, false);
+      }
+      setTimeout(() => {
+        if (window.AndroidBridge && typeof window.AndroidBridge.getGpsLocation === 'function') {
+          try {
+            const gpsSeed = JSON.parse(window.AndroidBridge.getGpsLocation() || '{}');
+            if (typeof gpsSeed.gpsTimeMs === 'number') {
+              handleClockOrDateSync(gpsSeed.gpsTimeMs);
+            }
+            if (typeof gpsSeed.latitude === 'number' && typeof gpsSeed.longitude === 'number' &&
+              (gpsSeed.latitude !== 0 || gpsSeed.longitude !== 0) &&
+              typeof window.onTelemetryUpdate === 'function') {
+              window.onTelemetryUpdate(gpsSeed);
+            }
+          } catch (e) { }
+        }
+        updateHardwareStatus(true);
+        setTimeout(() => loadNativeInstalledAppsAsync(), 120);
+        setTimeout(() => refreshMusicFromDevice(), 220);
+        setTimeout(() => refreshDynamicWeather(), 450);
+      }, 60);
+    }
+
+    function openProfileSelector(fromBoot) {
       const ov = document.getElementById('profile-selector-overlay');
       if (!ov) return;
       state.profileSelectEditMode = false;
       state.editingProfileIdx = null;
+      if (fromBoot) window._joyBootInProgress = false;
       showProfileStage('cards');
       renderProfilesUI();
       ov.classList.remove('hidden');
@@ -12586,7 +13016,9 @@
       if (!ov) return;
       ov.classList.add('hidden');
       ov.classList.remove('flex');
-      setTimeout(() => showHomeFloatingNotice(), 220);
+      window._joyBootInProgress = false;
+      runPostBootDeferredTasks();
+      setTimeout(() => showHomeFloatingNotice(), 240);
     }
 
     function toggleProfileSelectEditMode() {
@@ -12603,8 +13035,10 @@
       if (state.profileSelectEditMode) {
         openProfileEditorForIndex(idx);
       } else {
+        safeSetStorage('joyos_v8_active_profile_idx', idx);
         applyProfile(idx);
         closeProfileSelector();
+        switchProfilePreferredBluetooth(profiles[idx]);
       }
     }
 
@@ -12667,11 +13101,15 @@
           theme: state.theme || 'dark',
           avatarType: 'preset',
           avatarPresetId: presetAvatars[profiles.length % presetAvatars.length].id,
-          avatarImageUrl: ''
+          avatarImageUrl: '',
+          btDeviceAddress: '',
+          btDeviceName: ''
         };
       } else {
         if (heading) heading.textContent = 'Editar perfil';
         state.draftProfile = JSON.parse(JSON.stringify(profiles[idx]));
+        if (typeof state.draftProfile.btDeviceAddress !== 'string') state.draftProfile.btDeviceAddress = '';
+        if (typeof state.draftProfile.btDeviceName !== 'string') state.draftProfile.btDeviceName = '';
         // Immediately preview the selected profile's current theme & accent
         state.theme = state.draftProfile.theme || 'dark';
         state.accent = state.draftProfile.accent || 'cyan';
@@ -12682,6 +13120,7 @@
       if (nameIn) nameIn.value = state.draftProfile.name;
       const urlIn = document.getElementById('prof-avatar-url-in');
       if (urlIn) urlIn.value = state.draftProfile.avatarType === 'image' ? state.draftProfile.avatarImageUrl : '';
+      populateProfileBtSelect(state.draftProfile.btDeviceAddress || '');
 
       showProfileStage('editor');
       updateDraftEditorUI();
@@ -13097,6 +13536,9 @@
           r5State.picoRestricted = computeRealPicoYPlaca(r5State.plate, r5State.city).restricted;
         }
         safeSetStorage('joyos_v8_r5_vehicle', r5State);
+        if (typeof syncRadioPresetsToCity === 'function') {
+          syncRadioPresetsToCity(cityName, false);
+        }
         renderAll();
       }
       const labelEl = document.getElementById('map-gps-city-label');
@@ -13202,7 +13644,7 @@
         return { restricted: false, label: 'Placa inválida', digits: [] };
       }
 
-      const now = new Date();
+      const now = getTrustedNow();
       const dow = now.getDay(); // 0=Dom, 1=Lun..5=Vie, 6=Sab
       const dateNum = now.getDate();
       const c = normalizeColombiaCityName(city) || (city || 'Bogotá');
@@ -13535,7 +13977,7 @@
     }
 
     function updateScreensaverClock() {
-      const now = new Date();
+      const now = getTrustedNow();
       const rawH = now.getHours();
       const mm = String(now.getMinutes()).padStart(2, '0');
       const sec = String(now.getSeconds()).padStart(2, '0');
@@ -13975,22 +14417,26 @@
           btnInt.classList.remove('active');
           if (badgeUsb) {
             badgeUsb.textContent = usbStats.mounted ? 'Activa' : 'Sin USB';
-            badgeUsb.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
+            badgeUsb.style.paddingLeft = '10px';
+            badgeUsb.className = 'ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
           }
           if (badgeInt) {
             badgeInt.textContent = intStats.mounted ? `${intStats.totalGb} GB` : 'Interna';
-            badgeInt.className = 'text-[10px] text-[var(--mute)] font-medium';
+            badgeInt.style.paddingLeft = '10px';
+            badgeInt.className = 'ml-auto shrink-0 text-[10px] text-[var(--mute)] font-medium';
           }
         } else {
           btnInt.classList.add('active');
           btnUsb.classList.remove('active');
           if (badgeInt) {
             badgeInt.textContent = 'Activa';
-            badgeInt.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
+            badgeInt.style.paddingLeft = '10px';
+            badgeInt.className = 'ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--accent)]/15 text-[var(--accent)] border border-[var(--accent)]/30';
           }
           if (badgeUsb) {
             badgeUsb.textContent = usbStats.mounted ? `${usbStats.totalGb} GB` : 'Sin USB';
-            badgeUsb.className = 'text-[10px] text-[var(--mute)] font-medium';
+            badgeUsb.style.paddingLeft = '10px';
+            badgeUsb.className = 'ml-auto shrink-0 text-[10px] text-[var(--mute)] font-medium';
           }
         }
       }
@@ -14608,7 +15054,39 @@
       renderCallOverlay();
     }
 
+    function toggleProfileDefaultBtDevice(idx, ev) {
+      if (ev && ev.stopPropagation) ev.stopPropagation();
+      const dev = btDevices[idx];
+      if (!dev || dev.isTelemetry || dev.type === 'obd') return;
+      const p = profiles[state.activeProfileIdx] || profiles[0];
+      if (!p) return;
+      const devKey = dev.address || dev.name;
+      const isAlready = p.btDeviceAddress && (p.btDeviceAddress === dev.address || p.btDeviceAddress === dev.name);
+      if (isAlready) {
+        p.btDeviceAddress = '';
+        p.btDeviceName = '';
+        showJoyToast('Perfil · ' + p.name, 'Teléfono predeterminado quitado (modo manual)', 'info');
+      } else {
+        p.btDeviceAddress = devKey;
+        p.btDeviceName = dev.name;
+        showJoyToast('Perfil · ' + p.name, dev.name + ' fijado como teléfono base', 'ok');
+      }
+      safeSetStorage('joyos_v8_profiles_min', profiles);
+      renderBluetoothDevicesList();
+    }
+
+    function updateBtProfileSummaryUI() {
+      const p = profiles[state.activeProfileIdx] || profiles[0];
+      const lblEl = document.getElementById('bt-profile-active-label');
+      const valEl = document.getElementById('bt-profile-default-name');
+      if (lblEl) lblEl.textContent = (p && p.name) ? p.name : 'Perfil';
+      if (valEl) valEl.textContent = (p && p.btDeviceAddress) ? (p.btDeviceName || p.btDeviceAddress) : 'Manual (sin base)';
+    }
+
     function renderBluetoothDevicesList() {
+      updateBtProfileSummaryUI();
+      const activeProf = profiles[state.activeProfileIdx] || profiles[0];
+      const prefAddr = (activeProf && activeProf.btDeviceAddress) ? activeProf.btDeviceAddress : '';
       const container = document.getElementById('bt-devices-list-container');
       const countEl = document.getElementById('bt-linked-count-label');
       if (countEl) countEl.textContent = `Vinculados (${btDevices.length})`;
@@ -14634,11 +15112,12 @@
                 <div class="font-sora font-semibold text-sm text-[var(--ink)] truncate">${dev.name}</div>
                 <div class="text-xs text-[var(--mute)] mt-1 truncate">${dev.sub}</div>
               </div>
-              <span class="px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold tabular-nums shrink-0">${state.obdConnected ? 'En línea' : 'Vinculado'}</span>
+              <span class="ml-3 px-3.5 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold tabular-nums shrink-0">${state.obdConnected ? 'En línea' : 'Vinculado'}</span>
             </div>
           `;
         }
         const isActive = state.btEnabled && (!!dev.connected || (state.phoneConnected && state.btDeviceIdx === idx));
+        const isProfDefault = !!(prefAddr && ((dev.address && dev.address === prefAddr) || dev.name === prefAddr));
         const profileTags = [];
         if (dev.a2dpConnected) profileTags.push('A2DP');
         if (dev.hfpConnected) profileTags.push('HFP');
@@ -14652,9 +15131,14 @@
               <div class="font-sora font-semibold text-sm text-[var(--ink)] truncate">${dev.name}</div>
               <div class="text-xs text-[var(--mute)] mt-1 truncate">${subText}</div>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center shrink-0 ml-2">
+              <button type="button" onclick="toggleProfileDefaultBtDevice(${idx}, event)"
+                class="pressable px-2.5 py-1 rounded-lg border text-[11px] font-semibold mr-2 ${isProfDefault
+                  ? 'bg-[var(--accent)]/15 border-[var(--accent)]/40 text-[var(--accent)]'
+                  : 'border-[var(--line)] text-[var(--mute)] hover:text-[var(--ink)]'}"
+                title="Asignar como teléfono Bluetooth predeterminado de este perfil">${isProfDefault ? '★ Base' : 'Fijar base'}</button>
               ${isActive && dev.address
-            ? `<button type="button" onclick="disconnectBtDevice(${idx}, event)" class="pressable joy-bt-disconnect-btn">Desconectar</button>`
+            ? `<button type="button" onclick="disconnectBtDevice(${idx}, event)" class="pressable joy-bt-disconnect-btn mr-2">Desconectar</button>`
             : ''}
               <span class="text-xs font-bold ${isActive ? 'text-[var(--accent)] font-extrabold' : 'text-[var(--mute)]'}">${isActive ? 'Conectado ✓' : 'Conectar'}</span>
             </div>
@@ -16436,7 +16920,9 @@
     function triggerBootCeremony(forceFail = false, openProfileAfter = false) {
       const overlay = document.getElementById('boot-overlay');
       if (!overlay) return;
+      window._joyBootSkipped = false;
       _bootOpensProfileOnFinish = !!openProfileAfter;
+      window._joyBootInProgress = true;
       initBootGauges();
       clearTimeout(bootFadeTimeout);
       clearTimeout(bootTelltaleT1);
@@ -16455,34 +16941,31 @@
       void overlay.offsetWidth; // Force CSS reflow
       overlay.classList.add('run');
 
-      // Telltales on main cluster self-test
-      const prevLights = state.lights;
-      const prevHaz = state.hazard;
-      bootTelltaleT1 = setTimeout(() => {
-        state.lights = 'high';
-        state.hazard = true;
-        renderAll();
-      }, 2400);
-
-      // Restore telltales after sweep
-      bootTelltaleT2 = setTimeout(() => {
-        state.lights = prevLights;
-        state.hazard = prevHaz;
-        renderAll();
-      }, 4400);
-
-      // Smooth fade out into Profile Selector at 5.0s
+      // Smooth crossfade directly into Profile Selector at 4.8s without touching Home or triggering heavy renderAll mid-sweep
       bootFadeTimeout = setTimeout(() => {
         skipBootCeremony();
-      }, 5000);
+      }, 4800);
     }
 
     function skipBootCeremony() {
+      if (window._joyBootSkipped) return;
+      window._joyBootSkipped = true;
       clearTimeout(bootFadeTimeout);
       clearTimeout(bootTelltaleT1);
       clearTimeout(bootTelltaleT2);
       const shouldOpenProfile = _bootOpensProfileOnFinish;
       _bootOpensProfileOnFinish = false;
+
+      // Render Profile Selector BEHIND #boot-overlay BEFORE starting opacity fade -> 0ms flash of Home!
+      if (shouldOpenProfile && typeof openProfileSelector === 'function') {
+        openProfileSelector(true);
+      } else {
+        window._joyBootInProgress = false;
+        if (typeof runPostBootDeferredTasks === 'function') {
+          runPostBootDeferredTasks();
+        }
+      }
+
       const overlay = document.getElementById('boot-overlay');
       if (overlay) {
         overlay.style.pointerEvents = 'none';
@@ -16492,12 +16975,7 @@
         setTimeout(() => {
           overlay.classList.add('hidden-boot');
           overlay.style.display = 'none';
-          if (shouldOpenProfile && typeof openProfileSelector === 'function') {
-            openProfileSelector();
-          }
-        }, 350);
-      } else if (shouldOpenProfile && typeof openProfileSelector === 'function') {
-        openProfileSelector();
+        }, 320);
       }
     }
 
@@ -16807,14 +17285,19 @@
       console.warn("joyAudio status/notice:", err);
     });
 
-    function showJoyToast(msg) {
+    function showJoyToast(msg, subMsg, kind) {
       if (typeof enqueueNotification === 'function') {
+        const dotCls = kind === 'warn'
+          ? 'w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0'
+          : (kind === 'ok'
+            ? 'w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0'
+            : 'w-2.5 h-2.5 rounded-full bg-[var(--accent)] shrink-0');
         enqueueNotification({
           type: 'status',
-          dotClass: 'w-2 h-2 rounded-full bg-[var(--accent)] shrink-0',
+          dotClass: dotCls,
           title: msg || 'JoyOS',
-          tag: '',
-          tagClass: 'hidden'
+          tag: subMsg ? String(subMsg) : '',
+          tagClass: kind === 'warn' ? 'text-amber-500 font-semibold' : (kind === 'ok' ? 'text-emerald-400 font-semibold' : 'text-[var(--mute)]')
         });
       }
     }
@@ -17409,6 +17892,7 @@
       state.stationIdx = idx;
       state.customFreq = null;
       safeSetStorage('joyos_v8_radio_presets', radioStations);
+      safeSetStorage('joyos_v8_radio_custom_v1', true);
       renderAll();
       showJoyToast('Memoria P' + (idx + 1) + ' guardada: ' + rounded.toFixed(1) + ' MHz (' + radioStations[idx].name + ')');
     }
@@ -17453,6 +17937,7 @@
           radioStations[idx].name = cleanName;
         }
         safeSetStorage('joyos_v8_radio_presets', radioStations);
+        safeSetStorage('joyos_v8_radio_custom_v1', true);
         renderAll();
         showJoyToast('Emisora guardada: ' + cleanName);
       }
@@ -17564,16 +18049,35 @@
       state.audioMode = 'radio';
       const station = radioStations[idx];
       if (station) {
-        if (station.streamUrl) {
-          if (joyAudio.src !== station.streamUrl) {
-            joyAudio.src = station.streamUrl;
-          }
-          joyAudio.play().then(() => {
-            state.playing = true;
-          }).catch(e => console.log('Stream err:', e));
-        }
         if (window.AndroidBridge && typeof window.AndroidBridge.tuneRadio === 'function') {
-          window.AndroidBridge.tuneRadio(station.freq);
+          try { window.AndroidBridge.tuneRadio(station.freq); } catch (e) { }
+        }
+        if (station.streamUrl) {
+          if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            try { joyAudio.pause(); } catch (e) { }
+            state.playing = false;
+            showJoyToast('Radio FM · ' + station.freq.toFixed(1) + ' MHz', 'Sin Wi-Fi para streaming · Toca "Radio de Fábrica ↗" para antena FM', 'info');
+          } else {
+            if (joyAudio.src !== station.streamUrl) {
+              joyAudio.src = station.streamUrl;
+            }
+            joyAudio.play().then(() => {
+              state.playing = true;
+              renderAll();
+            }).catch(e => {
+              state.playing = false;
+              showJoyToast('Radio FM · ' + station.freq.toFixed(1) + ' MHz', 'Stream sin red · Usa "Radio de Fábrica ↗" si estás sin Wi-Fi', 'info');
+              renderAll();
+            });
+          }
+        } else {
+          try { joyAudio.pause(); joyAudio.removeAttribute('src'); } catch (e) { }
+          state.playing = true;
+          if (typeof window.AndroidBridge === 'undefined') {
+            showJoyToast('Radio FM · ' + station.freq.toFixed(1) + ' MHz', station.name + ' (' + station.sub + ')', 'info');
+          } else {
+            showJoyToast('Radio FM · ' + station.freq.toFixed(1) + ' MHz', 'Sintonía enviada al sintonizador · Usa "Radio de Fábrica ↗" si la MCU no emite audio', 'info');
+          }
         }
       }
       renderAll();
@@ -17665,17 +18169,23 @@
       if (state.audioMode === 'radio') {
         const station = radioStations[state.stationIdx] || radioStations[0];
         if (state.playing) {
-          joyAudio.pause();
+          try { joyAudio.pause(); } catch (e) { }
           state.playing = false;
         } else {
-          if (station && station.streamUrl) {
-            if (joyAudio.src !== station.streamUrl) {
-              joyAudio.src = station.streamUrl;
-            }
-            joyAudio.play().catch(e => console.log("Stream play err:", e));
-          }
           if (window.AndroidBridge && typeof window.AndroidBridge.tuneRadio === 'function') {
-            window.AndroidBridge.tuneRadio(station ? station.freq : 98.5);
+            try { window.AndroidBridge.tuneRadio(station ? station.freq : 98.1); } catch (e) { }
+          }
+          if (station && station.streamUrl) {
+            if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+              showJoyToast('Radio FM', 'Sin Wi-Fi para streaming · Abre "Radio de Fábrica ↗" para antena FM', 'info');
+            } else {
+              if (joyAudio.src !== station.streamUrl) {
+                joyAudio.src = station.streamUrl;
+              }
+              joyAudio.play().catch(e => {
+                showJoyToast('Radio FM', 'No se pudo cargar el stream · Usa "Radio de Fábrica ↗"', 'info');
+              });
+            }
           }
           state.playing = true;
         }
@@ -18913,6 +19423,9 @@
 
     window.onGpsUpdate = function (data) {
       if (!data) return;
+      if (typeof data.gpsTimeMs === 'number' && typeof handleClockOrDateSync === 'function') {
+        handleClockOrDateSync(data.gpsTimeMs);
+      }
       state.gpsSpeed = data.speed || 0;
       const speedEl = document.getElementById('map-speed-val');
       if (speedEl) speedEl.textContent = String(formatSpeedVal(state.gpsSpeed));
@@ -19705,6 +20218,12 @@
           : '<polygon points="6 4 20 12 6 20 6 4"/>';
       }
 
+      const syncCityBtn = document.getElementById('radio-sync-city-btn');
+      if (syncCityBtn) {
+        const cityLbl = (r5State && r5State.city) ? r5State.city : 'Ciudad';
+        syncCityBtn.innerHTML = `<span>Sincronizar · ${cityLbl}</span>`;
+      }
+
       const presetsRow = document.getElementById('radio-presets-row');
       if (presetsRow && !radioHoldTimer) {
         const presetsSig = activeFreq + '|' + (state.customFreq === null ? state.stationIdx : -1) + '|' + radioStations.map(s => s.freq.toFixed(1) + ':' + s.name).join(',');
@@ -20470,24 +20989,16 @@
         r5State.picoRestricted = computeRealPicoYPlaca(r5State.plate, r5State.city).restricted;
       }
 
-      // Defer heavy native bridge IPC until after boot ceremony starts smoothly (eliminates 5s startup stall)
-      setTimeout(() => {
-        if (window.AndroidBridge && typeof window.AndroidBridge.getGpsLocation === 'function') {
-          try {
-            const gpsSeed = JSON.parse(window.AndroidBridge.getGpsLocation() || '{}');
-            if (typeof gpsSeed.latitude === 'number' && typeof gpsSeed.longitude === 'number' &&
-              (gpsSeed.latitude !== 0 || gpsSeed.longitude !== 0) &&
-              typeof window.onTelemetryUpdate === 'function') {
-              window.onTelemetryUpdate(gpsSeed);
-            }
-          } catch (e) { }
-        }
-        updateHardwareStatus(true);
-      }, 400);
-
-      setTimeout(() => {
-        loadNativeInstalledAppsAsync();
-      }, 1100);
+      // Defer heavy native bridge IPC until boot ceremony finishes -> Profile -> Software
+      const sysPrefsBoot = safeGetStorage('joyos_sys_prefs_v1');
+      const willAnimateBoot = !sysPrefsBoot || sysPrefsBoot.bootAnimEnabled !== false;
+      if (willAnimateBoot) {
+        window._joyBootInProgress = true;
+      } else {
+        setTimeout(() => {
+          if (typeof runPostBootDeferredTasks === 'function') runPostBootDeferredTasks();
+        }, 250);
+      }
     }
 
     function openWifiDirect() {
@@ -20741,12 +21252,53 @@
       }
     }
 
+    window._joyLastDateKey = getTrustedDateKey();
+    function handleClockOrDateSync(gpsTimeMs) {
+      if (typeof gpsTimeMs === 'number' && gpsTimeMs >= MIN_VALID_CLOCK_MS) {
+        updateTrustedClockFromGps(gpsTimeMs);
+      }
+      const nextDateKey = getTrustedDateKey();
+      const trustedNow = isSystemClockTrusted();
+      const switched = nextDateKey !== window._joyLastDateKey || (trustedNow && !window._joyWasClockTrusted);
+      if (!switched) return;
+
+      window._joyLastDateKey = nextDateKey;
+      if (trustedNow) window._joyWasClockTrusted = true;
+      recomputeR5LegalStatus();
+      safeSetStorage('joyos_v8_r5_vehicle', r5State);
+      if (typeof formatIslandDate === 'function') formatIslandDate();
+      renderAll();
+
+      const hasLegalBanner = notifQueue.some(n => n.dedupKey === 'home_legal_notice');
+      if ((hasLegalBanner || state.tab === 'home') && !window._joyBootInProgress) {
+        enqueueNotification({
+          dedupKey: 'home_legal_notice',
+          skipIfActive: false,
+          type: r5State.picoRestricted ? 'pico' : (r5State.expiringAlert ? 'soat' : 'pico'),
+          title: r5State.picoRestricted
+            ? ('No puedes salir · Pico y Placa (' + (r5State.city || 'Colombia') + ')')
+            : (r5State.expiringAlert ? 'Alerta SOAT por vencer' : 'Hoy puedes salir'),
+          plate: r5State.plate,
+          tag: r5State.picoRestricted
+            ? (r5State.expiringAlert ? ('SOAT ' + r5State.soatDays + 'd') : 'Ver Estado Legal')
+            : (r5State.expiringAlert ? (`Vence en ${r5State.soatDays} días`) : (state.sensorWaitMode ? 'Modo GPS activo' : 'Pico y Placa libre')),
+          dotClass: (r5State.picoRestricted || r5State.expiringAlert)
+            ? 'w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_12px_#fbbf24] shrink-0 animate-pulse'
+            : 'w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] shrink-0',
+          tagClass: (r5State.picoRestricted || r5State.expiringAlert) ? 'font-semibold text-amber-500' : 'text-[var(--mute)]',
+          redirect: () => { state.tab = 'settings'; state.settingsSubView = 'r5'; renderAll(); }
+        });
+      }
+    }
+
     initNativeHardwareMode();
     setInterval(() => updateHardwareStatus(false), 5000);
-    setTimeout(refreshDynamicWeather, 1500);
 
     window.onTelemetryUpdate = function (data) {
       if (!data) return;
+      if (typeof data.gpsTimeMs === 'number') {
+        handleClockOrDateSync(data.gpsTimeMs);
+      }
       if (typeof data.obdSpeed === 'number' && data.obdSpeed >= 0 && !data.speed) {
         data.speed = data.obdSpeed;
       }
@@ -20884,7 +21436,7 @@
     const island = document.getElementById('island');
 
     function formatIslandDate() {
-      const d = new Date();
+      const d = getTrustedNow();
       const dia = d.toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', '');
       const resto = d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }).replace('.', '');
       const dateEl = document.getElementById('date');
@@ -20903,9 +21455,10 @@
     }
 
     function updateTopClockLive() {
+      if (typeof handleClockOrDateSync === 'function') handleClockOrDateSync();
       const clockEl = document.getElementById('clock');
       if (!clockEl) return;
-      const now = new Date();
+      const now = getTrustedNow();
       let hh = now.getHours();
       const mm = String(now.getMinutes()).padStart(2, '0');
       const ampm = hh >= 12 ? 'p. m.' : 'a. m.';
@@ -20969,7 +21522,9 @@
     scheduleIdleScreensaver();
     bindGlobalViewSwipe();
     bindSongCoverSwipe();
-    applyProfile(0);
+    let initProfIdx = parseInt(safeGetStorage('joyos_v8_active_profile_idx'), 10);
+    if (isNaN(initProfIdx) || initProfIdx < 0 || initProfIdx >= profiles.length) initProfIdx = 0;
+    applyProfile(initProfIdx);
     if (state.startupAudioSource && state.startupAudioSource !== 'last') {
       if (state.startupAudioSource === 'radio') state.audioMode = 'radio';
       else if (state.startupAudioSource === 'bt') state.audioMode = 'bt';
@@ -20995,17 +21550,13 @@
         initBootGauges();
         triggerBootCeremony(false, true);
       }, 60);
-    }
-
-    const _bootOverlay = document.getElementById('boot-overlay');
-    if (_bootOverlay) {
-      _bootOverlay.addEventListener('click', () => {
-        skipBootCeremony();
-      });
+      // Failsafe watchdog in case WebView pauses CSS animations during cold start
+      setTimeout(() => {
+        if (!window._joyBootSkipped) skipBootCeremony();
+      }, 6200);
     }
 
     safeBootSequence();
-    setTimeout(refreshMusicFromDevice, 280);
   </script>
 </body>
 

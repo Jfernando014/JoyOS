@@ -17,7 +17,8 @@ data class GpsData(
     val altitude: Double = 2600.0,
     val hasFix: Boolean = false,
     val provider: String = "standby",
-    val accuracyM: Float = -1f
+    val accuracyM: Float = -1f,
+    val gpsTimeMs: Long = 0L
 )
 
 /**
@@ -41,19 +42,25 @@ class GpsTelemetryManager(
 
     private var lastGpsFixMs: Long = 0L
 
+    companion object {
+        private const val MIN_VALID_EPOCH_MS = 1735689600000L // 2025-01-01T00:00:00Z
+    }
+
     private fun loadInitialGpsData(): GpsData {
         return try {
             if (prefs.contains("last_lat") && prefs.contains("last_lon")) {
                 val lat = Double.fromBits(prefs.getLong("last_lat", 0L))
                 val lon = Double.fromBits(prefs.getLong("last_lon", 0L))
                 val alt = Double.fromBits(prefs.getLong("last_alt", java.lang.Double.doubleToRawLongBits(2600.0)))
+                val savedTime = prefs.getLong("last_gps_time_ms", 0L).let { if (it >= MIN_VALID_EPOCH_MS) it else 0L }
                 if (lat in -90.0..90.0 && lon in -180.0..180.0 && (lat != 0.0 || lon != 0.0)) {
                     return GpsData(
                         latitude = lat,
                         longitude = lon,
                         altitude = alt,
                         hasFix = false,
-                        provider = "cached"
+                        provider = "cached",
+                        gpsTimeMs = savedTime
                     )
                 }
             }
@@ -175,6 +182,10 @@ class GpsTelemetryManager(
         }
         lastLocation = location
 
+        val locTime = location.time.let { if (it >= MIN_VALID_EPOCH_MS) it else 0L }
+        val prevSavedTime = prefs.getLong("last_gps_time_ms", 0L).let { if (it >= MIN_VALID_EPOCH_MS) it else 0L }
+        val trustedTimeMs = if (locTime >= MIN_VALID_EPOCH_MS) locTime else prevSavedTime
+
         val tripKm = accumulatedMeters / 1000.0
         val data = GpsData(
             speedKmh = speedKmh,
@@ -185,16 +196,22 @@ class GpsTelemetryManager(
             altitude = if (location.hasAltitude()) location.altitude else 0.0,
             hasFix = true,
             provider = location.provider ?: (if (isHardwareGps) "gps" else "network"),
-            accuracyM = if (location.hasAccuracy()) location.accuracy else -1f
+            accuracyM = if (location.hasAccuracy()) location.accuracy else -1f,
+            gpsTimeMs = trustedTimeMs
         )
         currentGpsData = data
         try {
-            if (location.latitude != 0.0 || location.longitude != 0.0) {
-                prefs.edit()
-                    .putLong("last_lat", java.lang.Double.doubleToRawLongBits(location.latitude))
-                    .putLong("last_lon", java.lang.Double.doubleToRawLongBits(location.longitude))
-                    .putLong("last_alt", java.lang.Double.doubleToRawLongBits(data.altitude))
-                    .apply()
+            if (location.latitude != 0.0 || location.longitude != 0.0 || trustedTimeMs >= MIN_VALID_EPOCH_MS) {
+                val editor = prefs.edit()
+                if (location.latitude != 0.0 || location.longitude != 0.0) {
+                    editor.putLong("last_lat", java.lang.Double.doubleToRawLongBits(location.latitude))
+                        .putLong("last_lon", java.lang.Double.doubleToRawLongBits(location.longitude))
+                        .putLong("last_alt", java.lang.Double.doubleToRawLongBits(data.altitude))
+                }
+                if (trustedTimeMs >= MIN_VALID_EPOCH_MS) {
+                    editor.putLong("last_gps_time_ms", trustedTimeMs)
+                }
+                editor.apply()
             }
         } catch (_: Throwable) {
         }
