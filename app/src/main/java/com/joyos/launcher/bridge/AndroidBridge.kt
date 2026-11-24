@@ -87,6 +87,8 @@ class AndroidBridge(
     private val onSeekMediaPosition: ((Long) -> Boolean)? = null,
     private val onConnectBluetoothDevice: ((String) -> Boolean)? = null,
     private val onDisconnectBluetoothDevice: ((String) -> Boolean)? = null,
+    private val onSwitchProfileBluetooth: ((String) -> Boolean)? = null,
+    private val onFocusBtAudioSink: (() -> Unit)? = null,
     private val onAnswerCallAction: (() -> Boolean)? = null,
     private val onEndCallAction: (() -> Boolean)? = null,
     private val onDialCallAction: ((String) -> Boolean)? = null
@@ -511,6 +513,30 @@ class AndroidBridge(
     }
 
     /**
+     * Switches active phone audio/HFP connection to the active driver's preferred phone address
+     * without disturbing any paired/connected OBD2 scanner or redirecting to system Settings.
+     */
+    @JavascriptInterface
+    fun switchProfileBluetooth(targetAddress: String): String {
+        val result = JSONObject()
+        val cleanAddr = targetAddress.trim()
+        if (cleanAddr.isEmpty()) {
+            result.put("ok", false)
+            result.put("message", "Sin teléfono predeterminado asignado al perfil")
+            return result.toString()
+        }
+        val ok = try {
+            onSwitchProfileBluetooth?.invoke(cleanAddr) == true
+        } catch (_: Throwable) {
+            false
+        }
+        result.put("ok", ok)
+        result.put("address", cleanAddr)
+        result.put("message", if (ok) "Buscando y conectando teléfono del perfil..." else "No se pudo iniciar cambio automático Bluetooth")
+        return result.toString()
+    }
+
+    /**
      * Returns real car battery/alternator voltage from OBD2 ATRV first, falling back to real 12V ADC
      * only if exposed by hardware; never emits fake static "12.4" when unavailable.
      */
@@ -608,9 +634,52 @@ class AndroidBridge(
         }
     }
 
+    @Volatile private var cachedOemBtServices: List<ComponentName>? = null
+
+    private fun discoverExportedOemBtServices(): List<ComponentName> {
+        cachedOemBtServices?.let { return it }
+        val discovered = mutableListOf<ComponentName>()
+        val seen = mutableSetOf<String>()
+        fun addIfNew(pkg: String, cls: String) {
+            val k = "$pkg/$cls"
+            if (seen.add(k)) discovered.add(ComponentName(pkg, cls))
+        }
+        listOf(
+            "com.xyauto.bt" to "com.xyauto.bt.BtService",
+            "com.ts.bt" to "com.ts.bt.BtService",
+            "com.autochips.bluetooth" to "com.autochips.bluetooth.BluetoothService",
+            "com.goodocom.gocsdk" to "com.goodocom.gocsdk.service.GocsdkService"
+        ).forEach { (p, c) -> addIfNew(p, c) }
+
+        try {
+            val kw = listOf("bt", "bluetooth", "goc", "xyauto", "autochips", "forfan", "nwd", "syu", "fyt", "jancar", "mainui", "carservice", "mcu")
+            @Suppress("DEPRECATION")
+            val pkgs = packageManager.getInstalledPackages(PackageManager.GET_SERVICES)
+            for (pi in pkgs) {
+                val pkg = pi.packageName ?: continue
+                if (pkg == context.packageName || pkg.startsWith("com.android.bluetooth")) continue
+                val lowPkg = pkg.lowercase(Locale.ROOT)
+                if (!kw.any { lowPkg.contains(it) }) continue
+                val svcs = pi.services ?: continue
+                for (si in svcs) {
+                    if (!si.exported) continue
+                    val lowName = si.name.lowercase(Locale.ROOT)
+                    if (lowPkg.contains("bt") || lowPkg.contains("bluetooth") || lowPkg.contains("goc") ||
+                        lowName.contains("bt") || lowName.contains("a2dp") || lowName.contains("avrcp") ||
+                        lowName.contains("mcu") || lowName.contains("goc") || lowName.contains("main")
+                    ) {
+                        addIfNew(pkg, si.name)
+                    }
+                }
+            }
+        } catch (_: Throwable) {}
+        cachedOemBtServices = discovered
+        return discovered
+    }
+
     /**
      * Ensures Android music stream is unmuted, audio mode is normal outside calls,
-     * and wakes AC8227L OEM A2DP sink services if idle.
+     * wakes AC8227L OEM A2DP sink services if idle, and asserts A2DP Sink audio focus.
      */
     @JavascriptInterface
     fun activateBtAudioSink(): Boolean {
@@ -651,18 +720,13 @@ class AndroidBridge(
             for (wakeIntent in wakeIntents) {
                 try { context.sendBroadcast(wakeIntent) } catch (_: Throwable) {}
             }
-            val oemBtServices = listOf(
-                ComponentName("com.xyauto.bt", "com.xyauto.bt.BtService"),
-                ComponentName("com.ts.bt", "com.ts.bt.BtService"),
-                ComponentName("com.autochips.bluetooth", "com.autochips.bluetooth.BluetoothService"),
-                ComponentName("com.goodocom.gocsdk", "com.goodocom.gocsdk.service.GocsdkService")
-            )
-            for (svc in oemBtServices) {
+            for (svc in discoverExportedOemBtServices()) {
                 try {
                     val si = Intent().setComponent(svc)
                     context.startService(si)
                 } catch (_: Throwable) {}
             }
+            try { onFocusBtAudioSink?.invoke() } catch (_: Throwable) {}
             try {
                 bluetoothAdapter?.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
                     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
@@ -1452,15 +1516,15 @@ class AndroidBridge(
     }
 
     /**
-     * Returns the currently installed JoyOS version name (e.g. "1.1.4").
+     * Returns the currently installed JoyOS version name (e.g. "1.1.5").
      */
     @JavascriptInterface
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.1.4"
+            pInfo.versionName ?: "1.1.5"
         } catch (_: Throwable) {
-            "1.1.4"
+            "1.1.5"
         }
     }
 
@@ -1722,65 +1786,122 @@ class AndroidBridge(
         }
     }
 
-    /**
-     * Scans real files from connected USB drives in glovebox or internal storage.
-     * Returns JSON array of real APK and media files.
-     */
-    @JavascriptInterface
-    fun getStorageFiles(driveType: String): String {
-        return try {
-            val fileList = JSONArray()
-            val targetDirs = mutableListOf<File>()
+    private fun collectUniqueStorageRoots(includeInternalFolders: Boolean, includeUsb: Boolean): List<File> {
+        val roots = mutableListOf<File>()
+        val seenCanonical = mutableSetOf<String>()
+        val mountedStorageVolNames = mutableSetOf<String>()
 
-            if (driveType.equals("usb", ignoreCase = true)) {
-                // Potential USB OTG mount points in automotive MediaTek AC8227L units
-                val storageRoot = File("/storage")
-                if (storageRoot.exists() && storageRoot.isDirectory) {
-                    storageRoot.listFiles()?.forEach { file ->
-                        val name = file.name.lowercase()
-                        if (file.isDirectory && name != "emulated" && name != "self" && file.canRead()) {
-                            targetDirs.add(file)
-                        }
+        fun addRootIfUnique(dir: File?, recordVolName: Boolean = false) {
+            if (dir == null || !dir.exists() || !dir.isDirectory || !dir.canRead()) return
+            val canon = try { dir.canonicalPath } catch (_: Throwable) { dir.absolutePath }
+            if (seenCanonical.add(canon)) {
+                roots.add(dir)
+                if (recordVolName) mountedStorageVolNames.add(dir.name.lowercase(Locale.ROOT))
+            }
+        }
+
+        if (includeUsb) {
+            // Prefer user-space /storage/<vol> bind mounts first
+            val storageRoot = File("/storage")
+            if (storageRoot.exists() && storageRoot.isDirectory) {
+                storageRoot.listFiles()?.forEach { file ->
+                    val name = file.name.lowercase(Locale.ROOT)
+                    if (file.isDirectory && name != "emulated" && name != "self" && file.canRead()) {
+                        addRootIfUnique(file, recordVolName = true)
                     }
                 }
-                val mntMedia = File("/mnt/media_rw")
-                if (mntMedia.exists() && mntMedia.isDirectory) {
-                    mntMedia.listFiles()?.forEach { file ->
-                        if (file.isDirectory && file.canRead() && !targetDirs.contains(file)) {
-                            targetDirs.add(file)
-                        }
-                    }
-                }
-                // Check removable external directories via Context
+            }
+            try {
                 context.getExternalFilesDirs(null)?.forEach { dir ->
                     if (dir != null && Environment.isExternalStorageRemovable(dir)) {
                         var root: File? = dir
                         while (root?.parentFile != null && root.parentFile?.absolutePath != "/storage") {
                             root = root.parentFile
                         }
-                        if (root != null && root.canRead() && !targetDirs.contains(root)) {
-                            targetDirs.add(root)
-                        }
+                        addRootIfUnique(root, recordVolName = true)
                     }
                 }
-                listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage").forEach { p ->
-                    val f = File(p)
-                    if (f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
-                        targetDirs.add(f)
+            } catch (_: Throwable) {}
+
+            listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage").forEach { p ->
+                addRootIfUnique(File(p), recordVolName = true)
+            }
+
+            // Only include /mnt/media_rw/<vol> when /storage/<vol> was NOT already mounted (prevents duplicate listings)
+            val mntMedia = File("/mnt/media_rw")
+            if (mntMedia.exists() && mntMedia.isDirectory) {
+                mntMedia.listFiles()?.forEach { file ->
+                    val volLow = file.name.lowercase(Locale.ROOT)
+                    if (file.isDirectory && file.canRead() && !mountedStorageVolNames.contains(volLow)) {
+                        addRootIfUnique(file, recordVolName = true)
                     }
                 }
+            }
+        }
+
+        if (includeInternalFolders) {
+            listOf(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                File("/storage/emulated/0/Music"),
+                File("/storage/emulated/0/Download")
+            ).forEach { f ->
+                addRootIfUnique(f, recordVolName = false)
+            }
+        }
+
+        return roots
+    }
+
+    private fun deduplicateScannedFiles(rawFiles: List<File>): List<File> {
+        // Order /storage/... ahead of /mnt/media_rw/... so user-friendly paths always win
+        val sorted = rawFiles.sortedBy { if (it.absolutePath.startsWith("/storage/")) 0 else 1 }
+        val unique = mutableListOf<File>()
+        val seenCanonical = mutableSetOf<String>()
+        val seenSignatures = mutableSetOf<String>()
+        for (file in sorted) {
+            val canon = try { file.canonicalPath } catch (_: Throwable) { file.absolutePath }
+            if (!seenCanonical.add(canon)) continue
+            val sig = "${file.name.lowercase(Locale.ROOT)}|${file.length()}|${file.lastModified()}"
+            if (seenSignatures.add(sig)) {
+                unique.add(file)
+            }
+        }
+        return unique
+    }
+
+    /**
+     * Scans real files from connected USB drives in glovebox or internal storage.
+     * Deduplicates bind-mounted paths (/storage/udisk2 vs /mnt/media_rw/udisk2).
+     */
+    @JavascriptInterface
+    fun getStorageFiles(driveType: String): String {
+        return try {
+            val fileList = JSONArray()
+            val targetDirs = if (driveType.equals("usb", ignoreCase = true)) {
+                collectUniqueStorageRoots(includeInternalFolders = false, includeUsb = true)
             } else {
-                // Internal storage roots
-                targetDirs.add(Environment.getExternalStorageDirectory())
-                targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS))
-                targetDirs.add(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC))
+                listOfNotNull(
+                    Environment.getExternalStorageDirectory(),
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+                ).let { raw ->
+                    val seen = mutableSetOf<String>()
+                    raw.filter { d ->
+                        d.exists() && d.isDirectory && d.canRead() &&
+                            seen.add(try { d.canonicalPath } catch (_: Throwable) { d.absolutePath })
+                    }
+                }
             }
 
             val validExtensions = setOf("apk", "mp3", "flac", "wav", "m4a", "aac", "ogg", "wma", "mp4", "mkv", "avi", "pdf")
             val foundFiles = mutableListOf<File>()
+            val visitedDirCanonical = mutableSetOf<String>()
 
             fun scanDir(dir: File, depth: Int) {
-                if (depth > 3 || foundFiles.size >= 80) return
+                if (depth > 3 || foundFiles.size >= 160) return
+                val canonDir = try { dir.canonicalPath } catch (_: Throwable) { dir.absolutePath }
+                if (!visitedDirCanonical.add(canonDir)) return
                 val entries = dir.listFiles() ?: return
                 for (entry in entries) {
                     if (entry.isDirectory && !entry.name.startsWith(".")) {
@@ -1798,7 +1919,8 @@ class AndroidBridge(
                 scanDir(dir, 0)
             }
 
-            for (file in foundFiles) {
+            val dedupedFiles = deduplicateScannedFiles(foundFiles).take(80)
+            for (file in dedupedFiles) {
                 val ext = file.extension.lowercase()
                 val isApk = ext == "apk"
                 val isAudio = ext in setOf("mp3", "flac", "wav", "m4a", "aac", "ogg", "wma")
@@ -1825,7 +1947,7 @@ class AndroidBridge(
     }
 
     /**
-     * Returns real-time GPS location, bearing, speed, accuracy, provider, and fix state.
+     * Returns real-time GPS location, bearing, speed, accuracy, provider, satellite UTC time, and fix state.
      */
     @JavascriptInterface
     fun getGpsLocation(): String {
@@ -1843,63 +1965,32 @@ class AndroidBridge(
                 put("tripKm", data.tripKm)
                 put("provider", data.provider)
                 put("accuracy", data.accuracyM.toDouble())
+                put("gpsTimeMs", data.gpsTimeMs)
             }
             json.toString()
         } catch (_: Throwable) {
-            "{\"lat\":4.6534,\"lon\":-74.0836,\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0,\"provider\":\"standby\",\"accuracy\":-1}"
+            "{\"lat\":4.6534,\"lon\":-74.0836,\"latitude\":4.6534,\"longitude\":-74.0836,\"speed\":0,\"bearing\":0,\"altitude\":2600,\"hasFix\":false,\"tripKm\":0,\"provider\":\"standby\",\"accuracy\":-1,\"gpsTimeMs\":0}"
         }
     }
 
     /**
      * Scans automotive USB flash drives and internal storage for audio files.
-     * Extracts title, artist, album, duration, and file URI for the embedded player.
+     * Deduplicates bind-mounted directories and extracts ID3 metadata cleanly.
      */
     @JavascriptInterface
     fun getMusicFiles(): String {
         return try {
             val musicList = JSONArray()
-            val targetDirs = mutableListOf<File>()
-
-            // 1. Removable USB paths
-            try {
-                val extDirs = androidx.core.content.ContextCompat.getExternalFilesDirs(context, null)
-                for (dir in extDirs) {
-                    if (dir != null && Environment.isExternalStorageRemovable(dir)) {
-                        var root: File? = dir
-                        while (root?.parentFile != null && root.parentFile?.absolutePath != "/storage") {
-                            root = root.parentFile
-                        }
-                        if (root != null && root.canRead() && !targetDirs.contains(root)) {
-                            targetDirs.add(root)
-                        }
-                    }
-                }
-            } catch (_: Throwable) {}
-
-            listOf("/storage/usb0", "/storage/usb1", "/storage/usbotg", "/mnt/usb_storage", "/mnt/media_rw").forEach { p ->
-                val f = File(p)
-                if (f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
-                    targetDirs.add(f)
-                }
-            }
-
-            // 2. Internal storage music & download folders
-            listOf(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                File("/storage/emulated/0/Music"),
-                File("/storage/emulated/0/Download")
-            ).forEach { f ->
-                if (f != null && f.exists() && f.isDirectory && f.canRead() && !targetDirs.contains(f)) {
-                    targetDirs.add(f)
-                }
-            }
+            val targetDirs = collectUniqueStorageRoots(includeInternalFolders = true, includeUsb = true)
 
             val validAudioExts = setOf("mp3", "flac", "wav", "m4a", "aac", "ogg")
             val foundAudio = mutableListOf<File>()
+            val visitedDirCanonical = mutableSetOf<String>()
 
             fun scanDir(dir: File, depth: Int) {
-                if (depth > 4 || foundAudio.size >= 120) return
+                if (depth > 4 || foundAudio.size >= 160) return
+                val canonDir = try { dir.canonicalPath } catch (_: Throwable) { dir.absolutePath }
+                if (!visitedDirCanonical.add(canonDir)) return
                 val entries = dir.listFiles() ?: return
                 for (entry in entries) {
                     if (entry.isDirectory && !entry.name.startsWith(".")) {
@@ -1917,8 +2008,9 @@ class AndroidBridge(
                 scanDir(dir, 0)
             }
 
+            val dedupedAudio = deduplicateScannedFiles(foundAudio).take(120)
             val mmr = MediaMetadataRetriever()
-            for ((idx, file) in foundAudio.withIndex()) {
+            for ((idx, file) in dedupedAudio.withIndex()) {
                 var title = file.nameWithoutExtension
                 var artist = "Desconocido"
                 var album = if (file.absolutePath.contains("usb") || file.absolutePath.contains("mnt")) "Memoria USB" else "Almacenamiento Local"
@@ -2720,7 +2812,14 @@ class AndroidBridge(
                 put("density", dm.density.toDouble())
             })
 
-            result.toString()
+            val outJson = result.toString()
+            try {
+                val dl = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (dl != null && (dl.exists() || dl.mkdirs()) && dl.canWrite()) {
+                    File(dl, "JoyOS_REA_Report.json").writeText(result.toString(2), Charsets.UTF_8)
+                }
+            } catch (_: Throwable) {}
+            outJson
         } catch (e: Throwable) {
             Log.w("AndroidBridge", "Error in inspectOemHardware: ${e.message}")
             "{\"model\":\"ZXDZ_01\",\"error\":\"${e.message}\"}"
