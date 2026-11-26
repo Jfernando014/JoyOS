@@ -223,13 +223,17 @@ object JoyMediaArtworkHelper {
             }
         }
 
-        // 2. Skip generic placeholder labels
+        // 2. Skip generic placeholder labels & persistent 7-day negative cache (.none)
         val lowerTitle = cleanTitle.lowercase()
         if (lowerTitle.contains("esperando") || lowerTitle == "audio bluetooth" || lowerTitle == "audio del sistema") {
             return null
         }
+        if (hasNegativeDiskMarker(context, cacheKey)) {
+            failedKeys[cacheKey] = System.currentTimeMillis()
+            return null
+        }
 
-        // 3. Query public iTunes artwork endpoint (no API key required, works when online)
+        // 3. Query public Deezer & iTunes artwork endpoints (no API key required; Deezer tolerates older TLS stacks)
         return try {
             val usableArtist = if (
                 cleanArtist.equals("Bluetooth Audio", ignoreCase = true) ||
@@ -238,32 +242,23 @@ object JoyMediaArtworkHelper {
             ) "" else cleanArtist
             val queryText = "$usableArtist $cleanTitle".trim()
             val encoded = URLEncoder.encode(queryText, "UTF-8")
-            val apiUrl = "https://itunes.apple.com/search?term=$encoded&media=music&entity=song&limit=1"
 
-            val jsonBytes = downloadBytes(apiUrl, timeoutMs = 4000) ?: run {
-                failedKeys[cacheKey] = System.currentTimeMillis()
-                return null
+            var imgBytes: ByteArray? = fetchFromDeezer(encoded)
+            if (imgBytes == null) {
+                imgBytes = fetchFromItunes(encoded)
             }
-            val root = JSONObject(String(jsonBytes, Charsets.UTF_8))
-            val results = root.optJSONArray("results")
-            if (results == null || results.length() == 0) {
+            if (imgBytes == null) {
                 failedKeys[cacheKey] = System.currentTimeMillis()
-                return null
-            }
-
-            val art100 = results.getJSONObject(0).optString("artworkUrl100", "").trim()
-            if (art100.isEmpty()) {
-                failedKeys[cacheKey] = System.currentTimeMillis()
+                writeNegativeDiskMarker(context, cacheKey)
                 return null
             }
 
-            val art300 = art100.replace("100x100bb", "300x300bb")
-            val imgBytes = downloadBytes(art300, timeoutMs = 4500) ?: downloadBytes(art100, timeoutMs = 4000)
             val res = processBytesToArtwork(imgBytes, maxDim = 300, quality = 80)
             if (res != null) {
                 putInCache(cacheKey, res, context)
             } else {
                 failedKeys[cacheKey] = System.currentTimeMillis()
+                writeNegativeDiskMarker(context, cacheKey)
             }
             res
         } catch (e: Throwable) {
@@ -271,6 +266,56 @@ object JoyMediaArtworkHelper {
             failedKeys[cacheKey] = System.currentTimeMillis()
             null
         }
+    }
+
+    private fun fetchFromDeezer(encodedQuery: String): ByteArray? {
+        return try {
+            val jsonBytes = downloadBytes("https://api.deezer.com/search?q=$encodedQuery&limit=1", timeoutMs = 3500) ?: return null
+            val root = JSONObject(String(jsonBytes, Charsets.UTF_8))
+            val data = root.optJSONArray("data") ?: return null
+            if (data.length() == 0) return null
+            val album = data.getJSONObject(0).optJSONObject("album") ?: return null
+            val artUrl = album.optString("cover_big", "").ifEmpty { album.optString("cover_medium", "") }.trim()
+            if (artUrl.isEmpty()) return null
+            downloadBytes(artUrl, timeoutMs = 4000)
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    private fun fetchFromItunes(encodedQuery: String): ByteArray? {
+        return try {
+            val apiUrl = "https://itunes.apple.com/search?term=$encodedQuery&media=music&entity=song&limit=1"
+            val jsonBytes = downloadBytes(apiUrl, timeoutMs = 3800) ?: return null
+            val root = JSONObject(String(jsonBytes, Charsets.UTF_8))
+            val results = root.optJSONArray("results") ?: return null
+            if (results.length() == 0) return null
+            val art100 = results.getJSONObject(0).optString("artworkUrl100", "").trim()
+            if (art100.isEmpty()) return null
+            val art300 = art100.replace("100x100bb", "300x300bb")
+            downloadBytes(art300, timeoutMs = 4200) ?: downloadBytes(art100, timeoutMs = 3500)
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    private fun hasNegativeDiskMarker(context: Context?, key: String): Boolean {
+        if (context == null) return false
+        return try {
+            val noneFile = File(File(context.cacheDir, DISK_CACHE_DIR_NAME), "${diskKeyHash(key)}.none")
+            noneFile.exists() && (System.currentTimeMillis() - noneFile.lastModified()) < 7L * 24L * 3600L * 1000L
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    private fun writeNegativeDiskMarker(context: Context?, key: String) {
+        if (context == null) return
+        try {
+            val dir = File(context.cacheDir, DISK_CACHE_DIR_NAME)
+            if (!dir.exists()) dir.mkdirs()
+            File(dir, "${diskKeyHash(key)}.none").writeText("0", Charsets.UTF_8)
+        } catch (_: Throwable) {}
     }
 
     private fun diskKeyHash(key: String): String {

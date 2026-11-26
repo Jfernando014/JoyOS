@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
+import android.content.ComponentCallbacks2
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -25,6 +26,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.telephony.TelephonyManager
 import android.util.Log
+import android.util.LruCache
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
@@ -35,8 +37,8 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -47,6 +49,7 @@ import com.joyos.launcher.services.JoyHardwareOptimizer
 import com.joyos.launcher.services.JoyMediaArtworkHelper
 import com.joyos.launcher.services.JoyMediaNotificationListener
 import com.joyos.launcher.services.ObdBleManager
+import com.joyos.launcher.services.OemBluetoothRouter
 import com.joyos.launcher.services.OtaUpdateManager
 import com.joyos.launcher.services.TpmsUsbReceiver
 import kotlinx.coroutines.Dispatchers
@@ -58,10 +61,9 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
-import java.security.MessageDigest
 import java.util.Locale
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
     private lateinit var bridge: AndroidBridge
@@ -71,6 +73,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tpmsReceiver: TpmsUsbReceiver
     private lateinit var otaManager: OtaUpdateManager
     private lateinit var hardwareOptimizer: JoyHardwareOptimizer
+    private lateinit var oemBtRouter: OemBluetoothRouter
 
     @Volatile
     private var hotTempThresholdC: Int = 104
@@ -164,15 +167,46 @@ class MainActivity : AppCompatActivity() {
             onClearWebCache = { runOnUiThread { try { webView.clearCache(true) } catch (_: Throwable) {} } },
             onReloadUi = { runOnUiThread { loadJoyOS() } },
             onEvaluateJs = { script -> runOnUiThread { webView.evaluateJavascript(script, null) } },
-            onMediaTransportAction = { action -> handleSessionTransportAction(action) },
+            onMediaTransportAction = { action ->
+                handleSessionTransportAction(action) || oemBtRouter.sendDirectTransport(action)
+            },
             onSeekMediaPosition = { posMs -> seekSessionPosition(posMs) },
             onConnectBluetoothDevice = { address -> connectBtDeviceProxy(address) },
             onDisconnectBluetoothDevice = { address -> disconnectBtDeviceProxy(address) },
             onSwitchProfileBluetooth = { address -> switchProfileBluetoothProxy(address) },
             onFocusBtAudioSink = { focusA2dpSinkProxy() },
+            onEnsureOemBtRouted = { manual -> oemBtRouter.ensureBtAudioRouted(manual) },
+            onNotifyRadioOpened = { oemBtRouter.notifyRadioOpened() },
             onAnswerCallAction = { answerBtOrTelecomCall() },
             onEndCallAction = { endBtOrTelecomCall() },
             onDialCallAction = { number -> dialBtHfpCall(number) }
+        )
+
+        oemBtRouter = OemBluetoothRouter(
+            activity = this,
+            onMetadataUpdate = { title, artist, album, durSec, posSec, isPlaying, artBytes, sourcePkg ->
+                val art = if (artBytes != null) JoyMediaArtworkHelper.processBytesToArtwork(artBytes) else null
+                bridge.updateLiveBtMetadata(
+                    title = title,
+                    artist = artist,
+                    album = album,
+                    durationSec = durSec,
+                    isPlaying = isPlaying,
+                    sourceAction = sourcePkg,
+                    positionSec = posSec,
+                    coverDataUri = art?.dataUri,
+                    color1 = art?.color1,
+                    color2 = art?.color2,
+                    sourceApp = sourcePkg
+                )
+            },
+            isCallActive = {
+                try {
+                    JSONObject(bridge.getCallStatus()).optBoolean("active", false)
+                } catch (_: Throwable) {
+                    false
+                }
+            }
         )
 
         obdManager = ObdBleManager(this) { obd ->
@@ -254,6 +288,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         attachMediaSessionsIfAllowed()
+        oemBtRouter.start()
         scheduleBackgroundOtaCheck()
 
         // Handle back button: as a Home Launcher, navigate back to home view rather than exiting
@@ -820,6 +855,7 @@ class MainActivity : AppCompatActivity() {
                                 deviceName = name.ifEmpty { null },
                                 deviceAddress = addr.ifEmpty { null }
                             )
+                            oemBtRouter.onPhoneA2dpConnected(autoRouteEnabled = true)
                         }
                         refreshBtTelemetryFromProfiles()
                     }
@@ -884,7 +920,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     "android.bluetooth.headsetclient.profile.action.CONNECTION_STATE_CHANGED",
                     "android.bluetooth.a2dp-sink.profile.action.CONNECTION_STATE_CHANGED" -> {
+                        val st = intent.getIntExtra("android.bluetooth.profile.extra.STATE", -1)
                         focusA2dpSinkProxy()
+                        if (st == BluetoothProfile.STATE_CONNECTED) {
+                            oemBtRouter.onPhoneA2dpConnected(autoRouteEnabled = true)
+                        }
                         refreshBtTelemetryFromProfiles()
                     }
                     TelephonyManager.ACTION_PHONE_STATE_CHANGED -> {
@@ -1261,8 +1301,20 @@ class MainActivity : AppCompatActivity() {
         try { tpmsReceiver.unregister() } catch (_: Throwable) {}
     }
 
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        try {
+            if (level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND) {
+                tileRamCache.evictAll()
+            } else if (level >= ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW) {
+                tileRamCache.trimToSize(tileRamCache.maxSize() / 2)
+            }
+        } catch (_: Throwable) {}
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        try { oemBtRouter.stop() } catch (_: Throwable) {}
         try { JoyMediaNotificationListener.setOnListenerReadyCallback(null) } catch (_: Throwable) {}
         try { JoyMediaNotificationListener.setOnCallNotificationCallback(null) } catch (_: Throwable) {}
         try { unregisterMediaControllerCallbacks() } catch (_: Throwable) {}
@@ -1401,7 +1453,7 @@ class MainActivity : AppCompatActivity() {
                 try {
                     val baseUa = userAgentString ?: "Mozilla/5.0"
                     if (!baseUa.contains("JoyOS")) {
-                        userAgentString = "$baseUa JoyOS/1.1.5"
+                        userAgentString = "$baseUa JoyOS/1.1.6"
                     }
                 } catch (_: Throwable) {}
             }
@@ -1453,9 +1505,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun sha256Hex(text: String): String {
-        val bytes = MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8))
-        return bytes.joinToString("") { "%02x".format(it) }
+    private data class CachedTile(val bytes: ByteArray, val mime: String)
+
+    private val tileRamCache = object : LruCache<String, CachedTile>(12 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: CachedTile): Int = value.bytes.size.coerceAtLeast(1)
+    }
+
+    private val zxyTileRegex = Regex("/(\\d+)/(\\d+)/(\\d+)(\\.png|\\.jpg|\\.jpeg)?")
+    private val googleTileRegex = Regex("[?&]x=(\\d+)&y=(\\d+)&z=(\\d+)")
+
+    private fun fastTileKey(url: String): String {
+        val provider = when {
+            url.contains("lyrs=y", ignoreCase = true) || url.contains("lyrs=s", ignoreCase = true) -> "gsat"
+            url.contains("google.com/vt", ignoreCase = true) -> "gmap"
+            url.contains("World_Imagery", ignoreCase = true) -> "esat"
+            url.contains("World_Dark_Gray_Reference", ignoreCase = true) -> "edarkref"
+            url.contains("World_Dark_Gray", ignoreCase = true) -> "edark"
+            url.contains("World_Street_Map", ignoreCase = true) -> "estreet"
+            url.contains("openstreetmap.fr/hot", ignoreCase = true) -> "osmhot"
+            url.contains("openstreetmap.fr", ignoreCase = true) -> "osmfr"
+            url.contains("openstreetmap.org", ignoreCase = true) -> "osm"
+            else -> "tile"
+        }
+        val gm = googleTileRegex.find(url)
+        if (gm != null) {
+            val (x, y, z) = gm.destructured
+            return "${provider}_${z}_${x}_${y}"
+        }
+        val zm = zxyTileRegex.find(url)
+        if (zm != null) {
+            val (z, x, y) = zm.destructured
+            return "${provider}_${z}_${x}_${y}"
+        }
+        var h = 1125899906842597L
+        for (c in url) h = 31L * h + c.code
+        return "${provider}_${java.lang.Long.toHexString(h)}"
     }
 
     private fun fetchTileBytes(tileUrl: String): Pair<ByteArray, String>? {
@@ -1506,41 +1590,53 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun serveCachedMapTile(originalUrl: String): WebResourceResponse? {
-        val key = sha256Hex(originalUrl)
+        val key = fastTileKey(originalUrl)
+        val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
+
+        // 1. Instant RAM LruCache hit (0ms disk I/O)
+        val ramHit = tileRamCache.get(key)
+        if (ramHit != null) {
+            return WebResourceResponse(ramHit.mime, null, 200, "OK", headers, ByteArrayInputStream(ramHit.bytes))
+        }
+
+        // 2. Persistent disk cache hit
         val cacheFile = File(mapTileCacheDir, "$key.tile")
         val maxAgeMs = 14L * 24L * 3600L * 1000L
         val now = System.currentTimeMillis()
         if (cacheFile.exists() && cacheFile.length() > 64 && (now - cacheFile.lastModified()) < maxAgeMs) {
             return try {
                 val data = cacheFile.readBytes()
-                val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
-                WebResourceResponse(detectImageMime(data), null, 200, "OK", headers, ByteArrayInputStream(data))
+                val mime = detectImageMime(data)
+                tileRamCache.put(key, CachedTile(data, mime))
+                WebResourceResponse(mime, null, 200, "OK", headers, ByteArrayInputStream(data))
             } catch (_: Throwable) {
                 null
             }
         }
 
+        // 3. Network fetch with automatic CDN fallback
         for (candidate in buildTileFallbacks(originalUrl)) {
             val fetched = fetchTileBytes(candidate)
             if (fetched != null) {
                 val (bytes, mime) = fetched
+                tileRamCache.put(key, CachedTile(bytes, mime))
                 try {
                     val tmp = File(mapTileCacheDir, "$key.tmp")
                     tmp.writeBytes(bytes)
                     if (cacheFile.exists()) cacheFile.delete()
                     tmp.renameTo(cacheFile)
                 } catch (_: Throwable) {}
-                val headers = mapOf("Access-Control-Allow-Origin" to "*", "Cache-Control" to "max-age=1209600")
                 return WebResourceResponse(mime, null, 200, "OK", headers, ByteArrayInputStream(bytes))
             }
         }
 
-        // Offline fallback: serve stale disk tile if present so previously visited routes stay visible
+        // 4. Offline fallback: serve stale disk tile if present so previously visited routes stay visible
         if (cacheFile.exists() && cacheFile.length() > 64) {
             return try {
                 val data = cacheFile.readBytes()
-                val headers = mapOf("Access-Control-Allow-Origin" to "*")
-                WebResourceResponse(detectImageMime(data), null, 200, "OK", headers, ByteArrayInputStream(data))
+                val mime = detectImageMime(data)
+                tileRamCache.put(key, CachedTile(data, mime))
+                WebResourceResponse(mime, null, 200, "OK", mapOf("Access-Control-Allow-Origin" to "*"), ByteArrayInputStream(data))
             } catch (_: Throwable) {
                 null
             }
