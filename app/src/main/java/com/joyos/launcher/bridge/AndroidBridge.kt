@@ -89,6 +89,8 @@ class AndroidBridge(
     private val onDisconnectBluetoothDevice: ((String) -> Boolean)? = null,
     private val onSwitchProfileBluetooth: ((String) -> Boolean)? = null,
     private val onFocusBtAudioSink: (() -> Unit)? = null,
+    private val onEnsureOemBtRouted: ((Boolean) -> Boolean)? = null,
+    private val onNotifyRadioOpened: (() -> Unit)? = null,
     private val onAnswerCallAction: (() -> Boolean)? = null,
     private val onEndCallAction: (() -> Boolean)? = null,
     private val onDialCallAction: ((String) -> Boolean)? = null
@@ -727,6 +729,7 @@ class AndroidBridge(
                 } catch (_: Throwable) {}
             }
             try { onFocusBtAudioSink?.invoke() } catch (_: Throwable) {}
+            try { onEnsureOemBtRouted?.invoke(false) } catch (_: Throwable) {}
             try {
                 bluetoothAdapter?.getProfileProxy(context, object : BluetoothProfile.ServiceListener {
                     override fun onServiceConnected(profile: Int, proxy: BluetoothProfile?) {
@@ -1279,6 +1282,7 @@ class AndroidBridge(
     @JavascriptInterface
     fun openNativeRadio(): Boolean {
         val radioPkgs = listOf(
+            "com.clw.fmam",
             "com.ts.fmradio",
             "com.xyauto.radio",
             "com.android.fmradio",
@@ -1290,15 +1294,21 @@ class AndroidBridge(
             "com.autonavi.radio"
         )
         for (pkg in radioPkgs) {
-            if (launchApp(pkg)) return true
+            if (launchApp(pkg)) {
+                try { onNotifyRadioOpened?.invoke() } catch (_: Throwable) {}
+                return true
+            }
         }
         try {
             val pm = context.packageManager
             val packages = pm.getInstalledPackages(0)
             for (p in packages) {
                 val pkgName = p.packageName.lowercase()
-                if ((pkgName.contains("radio") || pkgName.contains("fmradio")) && !pkgName.contains("joyos")) {
-                    if (launchApp(p.packageName)) return true
+                if ((pkgName.contains("radio") || pkgName.contains("fmradio") || pkgName.contains("fmam")) && !pkgName.contains("joyos")) {
+                    if (launchApp(p.packageName)) {
+                        try { onNotifyRadioOpened?.invoke() } catch (_: Throwable) {}
+                        return true
+                    }
                 }
             }
         } catch (_: Throwable) {}
@@ -1522,9 +1532,9 @@ class AndroidBridge(
     fun getAppVersion(): String {
         return try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            pInfo.versionName ?: "1.1.5"
+            pInfo.versionName ?: "1.1.6"
         } catch (_: Throwable) {
-            "1.1.5"
+            "1.1.6"
         }
     }
 
